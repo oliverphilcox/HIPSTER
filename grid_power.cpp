@@ -1,4 +1,4 @@
-// grid_power.cpp -- Oliver Philcox - based on Daniel Eisenstein's grid_multipoles.cpp code
+// grid_power.cpp -- Oliver Philcox - based on Oliver Philcox's RascalC code
 
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-#include "../threevector.hh"
-#include "../STimer.cc"
+#include "threevector.hh"
+#include "STimer.cc"
 #include <sys/stat.h>
 #include <gsl/gsl_sf.h>
 #include <gsl/gsl_interp.h>
@@ -32,9 +32,9 @@ typedef double3 Float3;
 
 // Define module files
 #include "power_mod/power_parameters.h"
-#include "../modules/cell_utilities.h"
-#include "../modules/grid.h"
-#include "../modules/driver.h"
+#include "modules/cell_utilities.h"
+#include "modules/grid.h"
+#include "modules/driver.h"
 #include "power_mod/kernel_interp.h"
 #include "power_mod/survey_correction_legendre.h"
 #include "power_mod/pair_counter.h"
@@ -46,12 +46,12 @@ STimer TotalTime;
 
 
 int main(int argc, char *argv[]) {
-    
+
 	Parameters par=Parameters(argc,argv);
-        
+
     // Now read in particles to grid:
     Grid all_grid[2]; // create empty grids
-    
+
     for(int index=0;index<2;index++){
         Float3 shift;
         Particle *orig_p;
@@ -61,21 +61,22 @@ int main(int argc, char *argv[]) {
             else filename=par.fname2;
             orig_p = read_particles(par.rescale, &par.np, filename, par.rstart, par.nmax);
             assert(par.np>0);
-            par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.rmax, shift, par.nside);
+            par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
         } else {
         // If you want to just make random particles instead:
         assert(par.np>0);
         orig_p = make_particles(par.rect_boxsize, par.np);
+        par.cellsize = par.rect_boxsize.x/float(par.nside);
         // set as periodic if we make the random particles
         par.perbox = true;
         }
-        
+
         if (par.qinvert) invert_weights(orig_p, par.np);
         if (par.qbalance) balance_weights(orig_p, par.np);
 
         // Now ready to compute!
         // Sort the particles into the grid.
-        Grid tmp_grid(orig_p, par.np, par.rect_boxsize, par.nside, shift, 1.);
+        Grid tmp_grid(orig_p, par.np, par.rect_boxsize, par.cellsize, par.nside, shift, 1.);
 
         Float grid_density = (double)par.np/tmp_grid.nf;
         printf("\n RANDOM CATALOG %d DIAGNOSTICS:\n",index+1);
@@ -98,27 +99,27 @@ int main(int argc, char *argv[]) {
 
         // Now save grid to global memory:
         all_grid[index].copy(&tmp_grid);
-        
+
         free(orig_p); // Particles are now only stored in grid
-        
+
         fflush(NULL);
     }
-    
+
     // Read in survey correction fucntion
     SurveyCorrection sc(&par,1,1);
 
-    
+
     // Count number of second field cells enclosed by the maximum truncation radius
     Float cellsize = all_grid[1].cellsize;
     Float filled_vol = 4./3.*M_PI*pow(par.R0+2.*cellsize,3);
     int n_close = ceil(filled_vol/pow(cellsize,3)); // number of close cells
-    
+
     // Define cell separations (dimensionless) within truncation radius
     Float3 cell_sep_close_tmp[n_close];
     int len = ceil((par.R0+cellsize/2.)/cellsize);
     int len_cell_sep_close=0.; // counter
     integer3 this_pos;
-    
+
     for(int i=-1*len;i<=len;i++){
         for(int j=-1*len;j<=len;j++){
             for(int k=-1*len;k<=len;k++){
@@ -130,19 +131,19 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    assert(len_cell_sep_close<=n_close);  
-    
+    assert(len_cell_sep_close<=n_close);
+
     integer3 cell_sep_close[len_cell_sep_close]; // proper array to house cell separations of correct length
     for(int i=0;i<len_cell_sep_close;i++) cell_sep_close[i] = cell_sep_close_tmp[i];
-    
+
     // Compute kernel interpolation functions
     printf("Creating kernel interpolator function\n");
     KernelInterp interp_func(par.R0,par.rmax);
-        
+
     // RUN Pair Counter
-    
+
     pair_counter(&all_grid[0],&all_grid[1],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
-    
+
     rusage ru;
     getrusage(RUSAGE_SELF, &ru);
 
@@ -150,4 +151,3 @@ int main(int argc, char *argv[]) {
 
     return 0;
 }
-

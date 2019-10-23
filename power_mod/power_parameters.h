@@ -1,5 +1,5 @@
 
-// parameter function file for grid_power.cpp 
+// parameter function file for grid_power.cpp
 
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
@@ -8,65 +8,65 @@ class Parameters{
 
 public:
 	// Important variables to set!  Here are the defaults:
-	
+
     //---------- ESSENTIAL PARAMETERS -----------------
-    
+
     // Name of the first particle field
     char *fname = NULL;
-    const char default_fname[500] = "/mnt/store1/oliverphilcox/QPM_proc/qpm_galaxy_0001.xyzw";//PowerSpectra/qpm_galaxy_1.xyzwj";//randoms_10x.xyzwj"; 
-    
-    // Name of second particle field 
+    const char default_fname[500] = "";///mnt/store1/oliverphilcox/QPM_proc/qpm_galaxy_0001.xyzw";//PowerSpectra/qpm_galaxy_1.xyzwj";//randoms_10x.xyzwj";
+
+    // Name of second particle field
     char *fname2 = NULL;
-	const char default_fname2[500] = "/mnt/store1/oliverphilcox/QPM_proc/qpm_galaxy_0001.xyzw";//PowerSpectra/qpm_galaxy_1.xyzwj";// "/mnt/store1/oliverphilcox/3PCF/qpm_galaxy_1.xyzwj";
-    
+	const char default_fname2[500] = "";///mnt/store1/oliverphilcox/QPM_proc/qpm_galaxy_0001.xyzw";//PowerSpectra/qpm_galaxy_1.xyzwj";// "/mnt/store1/oliverphilcox/3PCF/qpm_galaxy_1.xyzwj";
+
     // Optional File Prefix for output
     char *out_string = NULL;
-    const char default_out_string[500] = "DD"; 
-    
+    const char default_out_string[500] = "";//"DD";
+
     // Name of the radial binning .csv file in k-space
     char *radial_bin_file = NULL;
-    const char default_radial_bin_file[500] = "/mnt/store1/oliverphilcox/PowerSpectra/k_binning2.csv";
-    
-    // Output directory 
-    char *out_file = NULL;
-    const char default_out_file[500] = "/mnt/store1/oliverphilcox/PowerQPM/";
-    
-    // The number of threads to run on
-	int nthread = 20;
+    const char default_radial_bin_file[500] = "";//"/mnt/store1/oliverphilcox/PowerSpectra/k_binning2.csv";
 
-    // The grid size, which should be tuned to match boxsize. 
+    // Output directory
+    char *out_file = NULL;
+    const char default_out_file[500] = "";//"/mnt/store1/oliverphilcox/PowerQPM/";
+
+    // The number of threads to run on
+	int nthread = 10;;
+
+    // The grid size, which should be tuned to match boxsize.
 	// This uses the maximum width of the cuboidal box.
-	int nside = 151;
-    
+	int nside = 250;;
+
     // Whether or not we are using a periodic box
 	bool perbox = false;
 
-    int max_l = 4; // max Legendre moment (must be even)
-    
+    int max_l = 2;; // max Legendre moment (must be even)
+
     Float R0 = 100; // kernel truncation radius (in Mpc/h)
-    
-    char *inv_phi_file = NULL; // Survey correction function coefficient file 
-    const char default_inv_phi_file[500] = "/mnt/store1/oliverphilcox/PowerSpectra/InvPhiCoeff_DR12.txt";
-    
+
+    char *inv_phi_file = NULL; // Survey correction function coefficient file
+    const char default_inv_phi_file[500] = "";//"/mnt/store1/oliverphilcox/PowerSpectra/InvPhiCoeff_DR12.txt";
+
     //-------- OTHER PARAMETERS ----------------------------------------------
-    
+
 	// The periodicity of the position-space cube.
 	Float boxsize = 200; // this is only used if the input particles are made randomly
-    
+
 	// The particles will be read from the unit cube, but then scaled by boxsize.
 	Float rescale = 1.;   // If left zero or negative, set rescale=boxsize
 
 	// The maximum number of points to read
 	uint64 nmax = 1000000000000;
-	
+
     // The location and name of a integrated grid of probabilities to be saved
 	char *savename = NULL;
     // The location and name of a integrated grid of probabilities to be loaded
-	char *loadname = NULL; //	
-	
+	char *loadname = NULL; //
+
 	// Whether to balance the weights or multiply them by -1
 	int qinvert = 0, qbalance = 0;
-    
+
 	// If set, we'll just throw random periodic points instead of reading the file
 	int make_random = 0;
 
@@ -78,26 +78,28 @@ public:
 
 	//---------------- INTERNAL PARAMETERS -----------------------------------
     // (no more user defined parameters below this line)
-    
-    // For consistency with other modules    
-    char *inv_phi_file2 = NULL; // Survey correction function coefficient file 
-    char *inv_phi_file12 = NULL; // Survey correction function coefficient file 
-    
-	// The periodicity of the position-space cuboid in 3D. 
+
+    // For consistency with other modules
+    char *inv_phi_file2 = NULL; // Survey correction function coefficient file
+    char *inv_phi_file12 = NULL; // Survey correction function coefficient file
+
+	// The periodicity of the position-space cuboid in 3D.
     Float3 rect_boxsize = {boxsize,boxsize,boxsize}; // this is overwritten on particle read-in
-    
+
+		Float cellsize;
+
     // Radial binning parameters (will be set from file)
     int nbin=0,mbin;
     Float rmin, rmax;
     Float * radial_bins_low;
     Float * radial_bins_high;
-    
+
     // Variable to decide if we are using multiple tracers:
     bool multi_tracers;
-    
+
     // Constructor
 	Parameters(int argc, char *argv[]){
-        
+
 	    if (argc==1) usage();
 	    int i=1;
 	    while (i<argc) {
@@ -143,8 +145,8 @@ public:
 		}
 		i++;
 	    }
-	    
-	        
+
+
 #ifdef PERIODIC
         if (perbox!=true){
             printf("\nC++ code compiled with periodic flag, but periodic box parameter is not set! Exiting.\n\n");
@@ -156,7 +158,7 @@ public:
             exit(1);
         }
 #endif
-        
+
         if(R0<40){
             printf("\nTruncation radius (%.0f Mpc/h) is too small for accurate power computation. Exiting.\n\n",R0);
             exit(1);
@@ -169,7 +171,7 @@ public:
 	    // compute smallest and largest boxsizes
 	    Float box_min = fmin(fmin(rect_boxsize.x,rect_boxsize.y),rect_boxsize.z);
 	    Float box_max = fmax(fmax(rect_boxsize.x,rect_boxsize.y),rect_boxsize.z);
-	    
+
 	    assert(i==argc);  // For example, we might have omitted the last argument, causing disaster.
 
         assert(max_l%2==0); // check maximum ell is even
@@ -181,17 +183,17 @@ public:
         if (rescale<=0.0) rescale = box_max;   // This would allow a unit cube to fill the periodic volume
 	    if (out_file==NULL) out_file = (char *) default_out_file; // no output savefile
 	    if (out_string==NULL) out_string = (char *) default_out_string; // no output string
-	    if (radial_bin_file==NULL) {radial_bin_file = (char *) default_radial_bin_file;} // No radial binning 
-	    
+	    if (radial_bin_file==NULL) {radial_bin_file = (char *) default_radial_bin_file;} // No radial binning
+
 	    if (fname==NULL) fname = (char *) default_fname;   // No name was given
 	    if (fname2==NULL) fname2 = (char *) default_fname2;   // No name was given
-	    
+
 	    create_directory();
-        
+
 	    // Read in the radial binning
 	    read_radial_binning(radial_bin_file);
         printf("Read in %d radial k-space bins in range (%.0f, %.0f) successfully.\n",nbin,rmin,rmax);
-        
+
 	    assert(box_min>0.0);
 	    assert(rmax>0.0);
 	    assert(nside>0);
@@ -217,18 +219,18 @@ private:
 	    fprintf(stderr, "   -in <file>: The input random particle file for particle-set 1 (space-separated x,y,z,w).\n");
 	    fprintf(stderr, "   -in2 <file>: The input random particle file for particle-set 2 (space-separated x,y,z,w).\n");
         fprintf(stderr, "   -binfile <filename>: File containing the desired radial bins\n");
-        fprintf(stderr, "   -output: (Pre-existing) directory to save output covariance matrices into\n"); 
+        fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");
         fprintf(stderr, "   -out_string: (Optional) String to add to file name to specify field type (e.g. RR)\n");
-        fprintf(stderr, "   -nside <nside>: The grid size for accelerating the pair count.  Default 250.\n");
-	    fprintf(stderr, "          There are {nside} cells along the longest dimension of the periodic box.\n");
-	    fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
+        fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
         fprintf(stderr, "   -perbox <perbox>: Boolean, whether the box is periodic is not\n");
         fprintf(stderr, "\n");
 	    fprintf(stderr, "   -max_l <max_l>: Maximum legendre multipole (must be even)\n");
         fprintf(stderr, "   -R0 <R0>: Truncation radius for pair-separation window (in Mpc/h)\n");
         fprintf(stderr, "   -inv_phi_file <filename>: Survey inverse correction function multipole coefficient file\n");
         fprintf(stderr, "\n");
-        fprintf(stderr, "   -boxsize <boxsize> : If creating particles randomly, this is the periodic size of the cubic computational domain.\n");
+        fprintf(stderr, "   -nside <nside>: The grid size for accelerating the pair count.  Default 250.\n");
+	    fprintf(stderr, "          There are {nside} cells along the longest dimension of the periodic box.\n");
+	    fprintf(stderr, "   -boxsize <boxsize> : If creating particles randomly, this is the periodic size of the cubic computational domain.\n");
         fprintf(stderr, "           Default 400. If reading from file, this is reset dynamically creating a cuboidal box.\n");
 	    fprintf(stderr, "   -rescale <rescale>: How much to dilate the input positions by.  Default 1.\n");
         fprintf(stderr, "            Zero or negative value causes =boxsize, rescaling unit cube to full periodicity\n");
@@ -246,7 +248,7 @@ private:
 
 	    exit(1);
 	}
-	
+
 	void create_directory(){
         // Initialize output directory:
 	    if (mkdir(out_file,S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH)==0){
@@ -257,7 +259,7 @@ private:
     void read_radial_binning(char* binfile_name){
         // Read the radial binning file and determine the number of bins
         char line[100000];
-    
+
         FILE *fp;
         fp = fopen(binfile_name,"r");
         if (fp==NULL){
@@ -265,7 +267,7 @@ private:
             abort();
         }
         fprintf(stderr,"\nReading radial binning file '%s'\n",binfile_name);
-        
+
         // Count lines to construct the correct size
         while (fgets(line,10000,fp)!=NULL){
             if (line[0]=='#') continue; // comment line
@@ -274,27 +276,27 @@ private:
             }
             printf("\n# Found %d radial bins in the file\n",nbin);
             rewind(fp); // restart file
-            
+
             // Now allocate memory to the weights array
             int ec=0;
             ec+=posix_memalign((void **) &radial_bins_low, PAGE, sizeof(Float)*nbin);
             ec+=posix_memalign((void **) &radial_bins_high, PAGE, sizeof(Float)*nbin);
             assert(ec==0);
-            
+
             int line_count=0; // line counter
             int counter=0; // counts which element in line
-            
+
             // Read in values to file
             while (fgets(line,100000,fp)!=NULL) {
                 // Select required lines in file
                 if (line[0]=='#') continue;
                 if (line[0]=='\n') continue;
-                
+
                 // Split into variables
                 char * split_string;
                 split_string = strtok(line, "\t");
                 counter=0;
-                
+
                 // Iterate over line
                 while (split_string!=NULL){
                     if(counter==0){
@@ -312,7 +314,7 @@ private:
                 }
                 line_count++;
             }
-            
+
             rmin = radial_bins_low[0];
             rmax = radial_bins_high[line_count-1];
             assert(line_count==nbin);
