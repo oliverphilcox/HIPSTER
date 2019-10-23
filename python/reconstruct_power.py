@@ -41,8 +41,7 @@ if periodic:
         sys.exit();
 
     V = x_range*y_range*z_range
-    n_gal = N_gal/V
-    norm = np.mean(gal_w**2.)*n_gal**2.*V
+    norm = np.sum(gal_w**2.)
     print('Norm = %.2f'%norm)
 else:
     norm = 0
@@ -50,8 +49,7 @@ else:
     with open(gal_file) as infile:
         for l,line in enumerate(infile):
             this_w = float(line.split()[3])
-            # Assume FKP weights here
-            norm+=this_w**2.*(1./this_w-1.)/20000
+            norm+=this_w**2.
             N_gal+=1
     print("Norm = %.2f"%norm)
 

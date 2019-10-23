@@ -1,30 +1,77 @@
 # ConfigPowerSpectra
 
+# ADD LATEX and LINKS
+
+# CHECK WHERE NORM IS - REMOVE FROM RECONSTRUCTION?? or ADAPT FOR GALAXIES??
+
 Code to compute configuration-space power spectra for arbitrary survey geometries, based on the work of Philcox & Eisenstein (2019). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation in real- or redshift-space.
 
-# Code Requirements
+# Code Requirements and Acknowledgements
 
 - C++ Compiler (g++ used by default)
 - OpenMP Installation (optional, but required for parallelization)
 - Python (optional, but useful for pre- and post-processing.)
+- [Corrfunc](Corrfunc.readthedocs.io) (required for aperiodic surveys for geometry correction)
+
+Main authors:
+- Oliver Philcox (Department of Astrophysical Sciences, Princeton)
+- Daniel Eisenstein (Center for Astrophysics | Harvard & Smithsonian)
+
+Note that many of the code modules are based on those of [RascalC](RascalC.readthedocs.io), developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
+
+
+## Inputs
+
+# Galaxy and Random Particle Files
+
+The main inputs to the C++ code are files containing the locations and weights of galaxies and random particles (whose distribution matches that of unclustered galaxies in the same survey). These are the standard 'Data' and 'Random' files used in pair count analyses and are here required to be lists of particle positions in space-separated (x,y,z,weight) format, with the co-ordinates given in comoving $h^{-1}\mathrm{Mpc}$ units.
+
+We provide a convenience function to convert galaxy/random files in (RA,Dec,z,weight) co-ordinates to the required format;
+
+    python python/convert_to_xyz.py {INFILE} {OUTFILE} {OMEGA_M} {OMEGA_K} {W_DARK_ENERGY}
+
+where {INFILE} and {OUTFILE} are the filenames for the (RA,Dec,redshift,weight) and the remaining parameters specify the (present-day) cosmology. If these are not specified a cosmology of $\{\Omega_m = 0.31,\Omega_k = 0,w_\Lambda = -1\}$ is assumed by default.
+
+For pair-count analysis, we usually require a random particle files with $N_\mathrm{rand}\sim 50N_\mathrm{gal}$ for DR counts and $N_\mathrm{rand}\sim 10N_\mathrm{gal}$ for RR counts to minimize random noise. For this reason we provide a further convenience function to draw a random subset of a given particle file (in (x,y,z,weight) co-ordinates). This is run as follows (where {N_PARTICLES} specifies the size of the output file)::
+
+    python python/take_subset_of_particles/py {INPUT_FILE} {OUTPUT_FILE} {N_PARTICLES}
 
 # Computing Binning Functions
 
-We provide two simply Python routines to produce $k$-space binning files. These are either in linear or logarithmic (base e) binning and are run as::
+In addition to the sets of galaxy/random positions, we require a file to specify the desired $k$-space binning of the output power spectra. Two Python routines are provided to produce the relevant files in linear or logarithmic (base $e$) binning and are run as::
 
-    python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
-    python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
+        python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
+        python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
 
-with the output file saved to the specified destination. The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each $k$-bin (in $h\,\mathrm{Mpc}^{-1}$ units). Note that the bins are required to be contiguous (i.e. the upper limit of the $n$th bin should equal the lower limit of the $(n+1)$th bin.
+    with the output file saved to the specified destination. The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each $k$-bin (in $h\,\mathrm{Mpc}^{-1}$ units). Note that the bins are required to be contiguous (i.e. the upper limit of the $n$th bin should equal the lower limit of the $(n+1)$th bin.
 
-# Inputs
 
-# Phi Files
+## Computing the Survey Correction Function
+
+An important ingredient in the weighted power spectrum pair counts is the 'survey correction function' $\Phi$, defined as the ratio of ideal and true (unweighted) RR pair counts. For periodic data, this is simply unity. In this package, we compute $\Phi$ using the [Corrfunc](Corrfunc.readthedocs.io) pair counting routines (for aperiodic data) and store the results as quadratic fits to the first few multipoles of $\Phi^{-1}$. Note that a normalization is also performed for later convenience.
+
+This can be computed using the ``compute_correction_function.py`` script::
+
+    python python/compute_correction_function.py {RANDOM_PARTICLE_FILE} {OUTFILE} {PERIODIC} [{R_MAX} {N_R_BINS} {N_MU_BINS} {NTHREADS}]
+
+with inputs:
+
+- {RANDOM_PARTICLE_FILE}: File containing random particles in the survey geometry. Since the correction function is being fit to a smooth function, we can use a relatively small random catalog here.
+- {OUTFILE}: Location of output ASCII file. This is automatically read in by the C++ code
+- {PERIODIC}: Whether to assume periodic boundary conditions
+- *(if aperiodic)* {R_MAX}: Radius (in $h^{-1}\mathrm{Mpc}$) up to which to count pairs and fit the correction function. This should be at least as large as the truncation radius ($R_0$) used for the power spectrum computation. Note that the computation time scales as $R_\mathrm{max}^3$.
+- *(if aperiodic)* {N_R_BINS}: Number of radial bins in the pair counting. We recommend using $\sim 1\,h^{-1}\mathrm{Mpc}$ radial binning here.
+- *{if aperiodic}* {N_MU_BINS}: Number of angular bins used in the pair counting. We recommend 100 $\mu$ bins.
+- *{if aperiodic}* {N_THREADS}: Number of CPU threads on which to perform pair counts.
+
+For an aperiodic survey, this may take some time to compute, but only needs to be computed once for a given survey. Whilst the user can specify the number of radial and angular bins used by the pair counts, this does not have a significant affect on the output function, assuming a moderately fine binning is used.
 
 # Note on choice of R0
 Add time scaling and errors
 
-# Code compilation
+## Computing the Power Spectrum
+
+# Code Compilation
 
 To compile the C++ code, simply run the following in the installation directory::
 
