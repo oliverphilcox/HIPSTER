@@ -20,9 +20,9 @@ Main authors:
 Note that many of the code modules are based on those of [RascalC](RascalC.readthedocs.io), developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
 
 
-## Inputs
+# Inputs
 
-# Galaxy and Random Particle Files
+## Galaxy and Random Particle Files
 
 The main inputs to the C++ code are files containing the locations and weights of galaxies and random particles (whose distribution matches that of unclustered galaxies in the same survey). These are the standard 'Data' and 'Random' files used in pair count analyses and are here required to be lists of particle positions in space-separated (x,y,z,weight) format, with the co-ordinates given in comoving $h^{-1}\mathrm{Mpc}$ units.
 
@@ -36,7 +36,7 @@ For pair-count analysis, we usually require a random particle files with $N_\mat
 
     python python/take_subset_of_particles/py {INPUT_FILE} {OUTPUT_FILE} {N_PARTICLES}
 
-# Computing Binning Functions
+## Computing Binning Functions
 
 In addition to the sets of galaxy/random positions, we require a file to specify the desired $k$-space binning of the output power spectra. Two Python routines are provided to produce the relevant files in linear or logarithmic (base $e$) binning and are run as::
 
@@ -46,7 +46,7 @@ In addition to the sets of galaxy/random positions, we require a file to specify
     with the output file saved to the specified destination. The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each $k$-bin (in $h\,\mathrm{Mpc}^{-1}$ units). Note that the bins are required to be contiguous (i.e. the upper limit of the $n$th bin should equal the lower limit of the $(n+1)$th bin.
 
 
-## Computing the Survey Correction Function
+# Computing the Survey Correction Function
 
 An important ingredient in the weighted power spectrum pair counts is the 'survey correction function' $\Phi$, defined as the ratio of ideal and true (unweighted) RR pair counts. For periodic data, this is simply unity. In this package, we compute $\Phi$ using the [Corrfunc](Corrfunc.readthedocs.io) pair counting routines (for aperiodic data) and store the results as quadratic fits to the first few multipoles of $\Phi^{-1}$. Note that a normalization is also performed for later convenience.
 
@@ -69,9 +69,9 @@ For an aperiodic survey, this may take some time to compute, but only needs to b
 # Note on choice of R0
 Add time scaling and errors
 
-## Computing the Power Spectrum
+# Computing the Power Spectrum
 
-# Code Compilation
+## Code Compilation
 
 To compile the C++ code, simply run the following in the installation directory::
 
@@ -83,7 +83,7 @@ This creates the ``./power`` executable in the working directory.
 The Makefile may need to be modified depending on the specific computational system. In addition, by specifying the ``-DPERIODIC`` flag in the Makefile, the code will assume periodic boundary conditions (as appropriate for periodic box simulations), measuring the angle $\mu$ from the z-axis. Furthermore, by removing the ``-DOPENMP`` flag, the code will run single threaded, without use of OPENMP.
 
 
-# Compute Weighted Pair Counts
+## Compute Weighted Pair Counts
 
 Configuration space power spectra are computed by estimating RR, DR and DD pair counts (analogous to 2PCF computation) weighted by a $k$-bin-dependent kernel. To compute pair counts for two input fields we simply run the ``./power`` executable, specifying the input parameters on the command line. (Parameters can also be altered in the ``power_mod/ppower_parameters.h`` file, but this requires the code to be re-compiled after each modification.). As an example let's compute a set of data-random (DR) counts from input files ``galaxy_positions.txt`` and ``random_positions.txt``.
 
@@ -106,7 +106,7 @@ Note that a full list of command line options to the executable can be shown by 
 
 To compute the full power spectra, the data-data (DD), data-random (DR) and random-random (RR) pair counts must be computed. We do *not* have to use the same sized random catalogs for the DR and RR counts. It is usually preferable to use a larger random catalog for the DR pair counts to reduce noise. We recommend $\sim$50x randoms for DR counts and $\sim$10x randoms for the DD counts. Note that the RR counts are the most computationally intensive procedure, but they only need be computed for each survey once (i.e. when analyzing mock data, the RR pair counts are the same for each mock).
 
-# Reconstruct Power Spectrum
+## Reconstruct Power Spectrum
 
 Once the pair counts have been computed, it is straightforward to reconstruct the power spectrum. This can be done via a simple Python script;
 
