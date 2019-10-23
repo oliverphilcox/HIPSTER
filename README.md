@@ -1,5 +1,7 @@
 # ConfigPowerSpectra
 
+# SHOW BASIC USAGE HERE
+
 # ADD LATEX and LINKS
 # Add note on R0
 
