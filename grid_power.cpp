@@ -32,9 +32,9 @@ typedef double3 Float3;
 
 // Define module files
 #include "power_mod/power_parameters.h"
-#include "modules/cell_utilities.h"
-#include "modules/grid.h"
-#include "modules/driver.h"
+#include "power_mod/cell_utilities.h"
+#include "power_mod/grid.h"
+#include "power_mod/driver.h"
 #include "power_mod/kernel_interp.h"
 #include "power_mod/survey_correction_legendre.h"
 #include "power_mod/pair_counter.h"

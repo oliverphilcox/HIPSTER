@@ -1,24 +1,21 @@
 # ConfigPowerSpectra
 
 # ADD LATEX and LINKS
+# Add note on R0
 
-# CHECK WHERE NORM IS - REMOVE FROM RECONSTRUCTION?? or ADAPT FOR GALAXIES??
-
-Code to compute configuration-space power spectra for arbitrary survey geometries, based on the work of Philcox & Eisenstein (2019). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation in real- or redshift-space.
+Code to compute configuration-space power spectra for arbitrary survey geometries, based on the work of Philcox & Eisenstein (2019, submitted). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation in real- or redshift-space.
 
 # Code Requirements and Acknowledgements
 
-- C++ Compiler (g++ used by default)
-- OpenMP Installation (optional, but required for parallelization)
-- Python (optional, but useful for pre- and post-processing.)
-- [Corrfunc](Corrfunc.readthedocs.io) (required for aperiodic surveys for geometry correction)
+- [C compiler](https://gcc.gnu.org/): Tested with gcc 5.4.O
+- [Gnu Scientific Library (GSL)](https://www.gnu.org/software/gsl/doc/html/index.html): Any recent version
+- [Corrfunc](https://corrfunc.readthedocs.io): 2.0 or later (required for aperiodic surveys to compute geometry correction)
+- [OpenMP](https://www.openmp.org/): Any recent version (optional, but required for parallelization)
+- [Python](https://www.python.org/): 2.7 or later, 3.4 or later (required for pre- and post-processing)
 
-Main authors:
-- Oliver Philcox (Department of Astrophysical Sciences, Princeton)
-- Daniel Eisenstein (Center for Astrophysics | Harvard & Smithsonian)
+Corrfunc can be installed using ``pip install corrfunc`` and is used for efficient pair counting.
 
-Note that many of the code modules are based on those of [RascalC](RascalC.readthedocs.io), developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
-
+Note that many of the code modules and convenience functions are based on those of [RascalC](https://RascalC.readthedocs.io), developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
 
 # Inputs
 
@@ -48,7 +45,7 @@ In addition to the sets of galaxy/random positions, we require a file to specify
 
 # Computing the Survey Correction Function
 
-An important ingredient in the weighted power spectrum pair counts is the 'survey correction function' $\Phi$, defined as the ratio of ideal and true (unweighted) RR pair counts. For periodic data, this is simply unity. In this package, we compute $\Phi$ using the [Corrfunc](Corrfunc.readthedocs.io) pair counting routines (for aperiodic data) and store the results as quadratic fits to the first few multipoles of $\Phi^{-1}$. Note that a normalization is also performed for later convenience.
+An important ingredient in the weighted power spectrum pair counts is the 'survey correction function' $\Phi$, defined as the ratio of ideal and true (unweighted) RR pair counts. For periodic data, this is simply unity. In this package, we compute $\Phi$ using the [Corrfunc](https://Corrfunc.readthedocs.io) pair counting routines (for aperiodic data) and store the results as quadratic fits to the first few multipoles of $\Phi^{-1}$. Note that a normalization is also performed for later convenience.
 
 This can be computed using the ``compute_correction_function.py`` script::
 
@@ -96,7 +93,7 @@ This runs in a few minutes to hours (depending on the catalog size and computati
     -``-binfile``: $k$-space ASCII binning file, as described above.
     -``-output``: Directory in which to house output products. This will be created if not already in existence.
     -``-out_string``: String to include in output filename for identification (e.g. RR, DR or DD)
-    -``-max_l``: Maximum Legendre multipole required (must be even). Maximum 10.
+    -``-max_l``: Maximum Legendre multipole required (must be even). Currently, only multipoles up to the hexadecapole ($\ell = 6$) have been implemented, but more can be added if required.
     -``-R0``: Truncation radius in Mpc/h units (default: $100\,h^{-1}\mathrm{Mpc}$). See note above.
     -``-inv_phi_file``: Location of survey geometry correction file, as produced above.
     -``-nthread``: Number of CPU threads to use for the computation.
