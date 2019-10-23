@@ -85,13 +85,14 @@ if not periodic:
     # Now compute RR counts
     from Corrfunc.mocks.DDsmu_mocks import DDsmu_mocks
 
+    print('Computing unweighted RR pair counts')
     RR=DDsmu_mocks(1,2,nthreads,mu_max,nmu_bins,binfile,Ra,Dec,com_dist,weights1=W,weight_type='pair_product',
                    verbose=False,is_comoving_dist=True)
     # Weight by average particle weighting
     RR_counts=(RR[:]['npairs']*RR[:]['weightavg']).reshape((nrbins,nmu_bins))
 
     # Now compute ideal model for RR Counts
-    print("Compute correction functino model")
+    print("Compute correction function model")
     mu_cen = np.arange(1/(2*nmu_bins),1.+1/(2*nmu_bins),1/nmu_bins)
     delta_mu = (mu_cen[-1]-mu_cen[-2])
     delta_mu_all = delta_mu*np.ones_like(mu_cen).reshape(1,-1)

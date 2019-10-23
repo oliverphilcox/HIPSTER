@@ -40,8 +40,10 @@ In addition to the sets of galaxy/random positions, we require a file to specify
         python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
         python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
 
-    with the output file saved to the specified destination. The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each $k$-bin (in $h\,\mathrm{Mpc}^{-1}$ units). Note that the bins are required to be contiguous (i.e. the upper limit of the $n$th bin should equal the lower limit of the $(n+1)$th bin.
+with the output file saved to the specified destination. The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each $k$-bin (in $h\,\mathrm{Mpc}^{-1}$ units). Note that the bins are required to be contiguous (i.e. the upper limit of the $n$th bin should equal the lower limit of the $(n+1)$th bin.
 
+# Wrapper
+Note that the code must be compiled in the correct manner before the wrapper is used.
 
 # Computing the Survey Correction Function
 
