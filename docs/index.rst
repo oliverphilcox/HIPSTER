@@ -1,4 +1,4 @@
-HIPSTER: High-k Power SpecTrum EstimatoR
+HIPSTER: HIgh-k Power SpecTrum EstimatoR
 =========================================
 
 Overview
