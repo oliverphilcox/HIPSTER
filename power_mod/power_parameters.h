@@ -13,23 +13,23 @@ public:
 
     // Name of the first particle field
     char *fname = NULL;
-    const char default_fname[500] = "";///mnt/store1/oliverphilcox/QPM_proc/qpm_galaxy_0001.xyzw";//PowerSpectra/qpm_galaxy_1.xyzwj";//randoms_10x.xyzwj";
+    const char default_fname[500] = "";
 
     // Name of second particle field
     char *fname2 = NULL;
-	const char default_fname2[500] = "";///mnt/store1/oliverphilcox/QPM_proc/qpm_galaxy_0001.xyzw";//PowerSpectra/qpm_galaxy_1.xyzwj";// "/mnt/store1/oliverphilcox/3PCF/qpm_galaxy_1.xyzwj";
+	const char default_fname2[500] = "";
 
     // Optional File Prefix for output
     char *out_string = NULL;
-    const char default_out_string[500] = "";//"DD";
+    const char default_out_string[500] = "";
 
     // Name of the radial binning .csv file in k-space
     char *radial_bin_file = NULL;
-    const char default_radial_bin_file[500] = "";//"/mnt/store1/oliverphilcox/PowerSpectra/k_binning2.csv";
+    const char default_radial_bin_file[500] = "";
 
     // Output directory
     char *out_file = NULL;
-    const char default_out_file[500] = "";//"/mnt/store1/oliverphilcox/PowerQPM/";
+    const char default_out_file[500] = "";
 
     // The number of threads to run on
 	int nthread = 10;;
@@ -46,7 +46,7 @@ public:
     Float R0 = 100; // kernel truncation radius (in Mpc/h)
 
     char *inv_phi_file = NULL; // Survey correction function coefficient file
-    const char default_inv_phi_file[500] = "";//"/mnt/store1/oliverphilcox/PowerSpectra/InvPhiCoeff_DR12.txt";
+    const char default_inv_phi_file[500] = "";
 
     //-------- OTHER PARAMETERS ----------------------------------------------
 
