@@ -21,8 +21,8 @@ with inputs:
     - {PERIODIC}: Whether to assume periodic boundary conditions
     - *(if aperiodic)* {R_MAX}: Radius (in :math:`h^{-1}\mathrm{Mpc}`) up to which to count pairs and fit the correction function. This should be at least as large as the truncation radius (:math:`R_0`) used for the power spectrum computation. Note that the computation time scales as :math:`R_\mathrm{max}^3`.
     - *(if aperiodic)* {N_R_BINS}: Number of radial bins in the pair counting. We recommend using :math:`\sim 1\,h^{-1}\mathrm{Mpc}` radial binning here.
-    - *{if aperiodic}* {N_MU_BINS}: Number of angular bins used in the pair counting. We recommend 100 :math:`\mu` bins.
-    - *{if aperiodic}* {N_THREADS}: Number of CPU threads on which to perform pair counts.
+    - *(if aperiodic)* {N_MU_BINS}: Number of angular bins used in the pair counting. We recommend 100 :math:`\mu` bins.
+    - *(if aperiodic)* {N_THREADS}: Number of CPU threads on which to perform pair counts.
 
 For an aperiodic survey, this may take some time to compute, but only needs to be computed once for a given survey. Whilst the user can specify the number of radial and angular bins used by the pair counts, this does not have a significant affect on the output function, assuming a moderately fine binning is used.
 
@@ -60,7 +60,7 @@ This runs in a few minutes to hours (depending on the catalog size and computati
     - ``-binfile``: :math:`k`-space ASCII binning file, as described above.
     - ``-output``: Directory in which to house output products. This will be created if not already in existence.
     - ``-out_string``: String to include in output filename for identification (e.g. RR, DR or DD)
-    - ``-max_l``: Maximum Legendre multipole required (must be even). Currently, only multipoles up to the hexadecapole (:math:`\ell = 6`) have been implemented, but more can be added if required.
+    - ``-max_l``: Maximum Legendre multipole required (must be even). Currently, only multipoles up to the hexadecapole (:math:`\ell = 4`) have been implemented, but more can be added if required.
     - ``-R0``: Truncation radius in Mpc/h units (default: :math:`100\,h^{-1}\mathrm{Mpc}`). See :ref:`truncation-radius-note`.
     - ``-inv_phi_file``: Location of survey geometry correction file, as produced above.
     - ``-nthread``: Number of CPU threads to use for the computation.
