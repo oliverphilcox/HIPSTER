@@ -7,15 +7,15 @@ To install HIPSTER, simply clone the Github repository and compile the C++ code 
     cd HIPSTER
     make
 
-**NB**: HIPSTER can be run for either *periodic* or *aperiodic* data-sets. This is specified by adding compiler flags in the ``Makefile``. See :doc:`getting-started` for more information.
+**NB**: HIPSTER can be run for either *periodic* or *aperiodic* data-sets. This is specified by adding compiler flags in the ``Makefile``. See :doc:`basic-usage` for more information.
 
-.. todo:: add links here 
-    
-Once HIPSTER is installed, see the :doc:`getting-started` section.
+.. todo:: add links here
+
+Once HIPSTER is installed, it can be run via a simple bash wrapper, as described in the :doc:`basic-usage` section. This requires the inputs specified in :doc:`pre-processing`. For advanced usage, the routines in :doc:`advanced-usage` can be used.
 
 .. _dependencies:
 
-Dependencies 
+Dependencies
 -------------
 
 Hipster requires the following packages:

@@ -10,7 +10,7 @@ Galaxy and Random Particle Files
 
 The main inputs to the HIPSTER code are files containing the locations and weights of galaxies (i.e. 'data') and random particles (i.e. 'randoms'). The random particles are of the same form as those used in real-space correlation function analyses, and we expect their distribution to match that of unclustered galaxies in the survey. These files are usually provided by clustering teams or can be simply created in the case of a periodic box geometry. The file format is a list of particle positions in space-separated (x,y,z,weight) format, with the co-ordinates given in comoving :math:`h^{-1}\mathrm{Mpc}`` units.
 
-We provide a convenience function to convert galaxy/random files in comoving (RA,Dec,z,weight) co-ordinates to the required format (using a simple WCDM co-ordinate converted by Daniel Eisenstein);
+We provide a convenience function to convert galaxy/random files in comoving (RA,Dec,z,weight) co-ordinates to the required format (using a simple WCDM co-ordinate converted by Daniel Eisenstein)::
 
     python python/convert_to_xyz.py {INFILE} {OUTFILE} {OMEGA_M} {OMEGA_K} {W_DARK_ENERGY}
 
@@ -50,4 +50,4 @@ In addition to the sets of galaxy/random positions, we require a file to specify
 
 with the output file saved to the specified destination.
 
-The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each :math:`k`-bin (in :math:`h\,\mathrm{Mpc}^{-1}`` units). Note that the bins are required to be contiguous (i.e. the upper limit of the :math:`n`th bin should equal the lower limit of the :math:`(n+1)`th bin.
+The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each :math:`k`-bin (in :math:`h\,\mathrm{Mpc}^{-1}`` units). Note that the bins are required to be contiguous (i.e. the upper limit of the :math:`n`-th bin should equal the lower limit of the :math:`(n+1)`-th bin.
