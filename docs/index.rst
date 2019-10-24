@@ -8,7 +8,7 @@ HIPSTER is a code to quickly compute small-scale galaxy (or halo) power spectra 
 
 The source code is publicly available on `Github <https://github.com/oliverphilcox/HIPSTER>`_, and contains many modules modified from the `RascalC <https://github.com/oliverphilcox/HIPSTER>`_ covariance matrix code.
 
-To compute a galaxy power spectrum up to :math:\ell=L` with weighted pair counts from galaxies (``galaxies.dat``) and randoms (``randoms.dat``) truncated at radius ``R0`` with :math:`k`-binning file ``binning.csv``, the basic usage is simply::
+To compute a galaxy power spectrum up to :math:`\ell=L` with weighted pair counts from galaxies (``galaxies.dat``) and randoms (``randoms.dat``) truncated at radius ``R0`` with :math:`k`-binning file ``binning.csv``, the basic usage is simply::
 
     ./hipster_wrapper.sh --dat galaxies.dat --ran_DR randoms.dat --ran_RR randoms.dat -l_max L -R0 R0 -k_bin binning.csv
 
