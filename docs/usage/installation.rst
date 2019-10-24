@@ -20,15 +20,15 @@ Dependencies
 
 HIPSTER requires the following packages:
 
-- [C compiler](https://gcc.gnu.org/): Tested with gcc 5.4.O
-- [Gnu Scientific Library (GSL)](https://www.gnu.org/software/gsl/doc/html/index.html): Any recent version
-- [Corrfunc](https://corrfunc.readthedocs.io): 2.0 or later (required for aperiodic surveys to compute geometry correction)
-- [OpenMP](https://www.openmp.org/): Any recent version (optional, but required for parallelization)
-- [Python](https://www.python.org/): 2.7 or later, 3.4 or later (required for pre- and post-processing)
+- `C compiler <https://gcc.gnu.org/>`_: Tested with gcc 5.4.O
+- `Gnu Scientific Library (GSL) <https://www.gnu.org/software/gsl/doc/html/index.html>`_: Any recent version
+- `Corrfunc <https://corrfunc.readthedocs.io>`_: 2.0 or later (required for aperiodic surveys to compute geometry correction)
+- `OpenMP <https://www.openmp.org/>`_: Any recent version (optional, but required for parallelization)
+- `Python <(https://www.python.org/>`_: 2.7 or later, 3.4 or later (required for pre- and post-processing)
 
 Corrfunc can be installed using ``pip install corrfunc`` and is used for efficient pair counting.
 
-Note that many of the code modules and convenience functions are based on those of [RascalC](https://RascalC.readthedocs.io), developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
+Note that many of the code modules and convenience functions are based on those of `RascalC <https://RascalC.readthedocs.io>`_, developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
 
 Acknowledgements
 -----------------

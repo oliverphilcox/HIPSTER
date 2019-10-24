@@ -1,4 +1,5 @@
 #!/bin/bash
+# Bash wrapper for the HIPSTER code developed by Oliver Philcox & Daniel Eisenstein
 
 # Define Inputs
 SHORT=h

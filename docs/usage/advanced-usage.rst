@@ -3,7 +3,7 @@ Advanced Usage
 
 Here we describe the individual code modules used to compute the power spectrum multipoles, :math:`P_\ell(k)`. For basic usage, the HIPSTER wrapper (:doc:`basic-usage`) can be used, which simply runs all the packages in sequence connecting the relevant inputs and outputs. If the user requires more flexibility (e.g. to use multiple sets of random particle files or to run particular sections of the code on an HPC cluster) the modules can be run separately, as described below.
 
-.. _survey_correction_function:
+.. _survey-correction-function:
 
 Survey Correction Function
 ---------------------------
@@ -26,7 +26,7 @@ with inputs:
 
 For an aperiodic survey, this may take some time to compute, but only needs to be computed once for a given survey. Whilst the user can specify the number of radial and angular bins used by the pair counts, this does not have a significant affect on the output function, assuming a moderately fine binning is used.
 
-.. _main_c_code:
+.. _main-c-code:
 
 Computing Weighted Pair Counts
 -------------------------------
@@ -55,16 +55,16 @@ Configuration space power spectra are computed by estimating RR, DR and DD pair 
 
 This runs in a few minutes to hours (depending on the catalog size and computational resources available) and uses the following main arguments:
 
-    -``-in``: First input ASCII file containing space separated (x,y,z,weight) positions of particles in comoving :math:`h^{-1}\mathrm{Mpc}` units.
-    -``-in2``: Second input ASCII file, with format as above.
-    -``-binfile``: :math:`k`-space ASCII binning file, as described above.
-    -``-output``: Directory in which to house output products. This will be created if not already in existence.
-    -``-out_string``: String to include in output filename for identification (e.g. RR, DR or DD)
-    -``-max_l``: Maximum Legendre multipole required (must be even). Currently, only multipoles up to the hexadecapole (:math:`\ell = 6`) have been implemented, but more can be added if required.
-    -``-R0``: Truncation radius in Mpc/h units (default: :math:`100\,h^{-1}\mathrm{Mpc}`). See note above.
-    -``-inv_phi_file``: Location of survey geometry correction file, as produced above.
-    -``-nthread``: Number of CPU threads to use for the computation.
-    -``-periodic``: This flag must be set if we require the code to be run with *periodic* boundary conditions, measuring :math:`\mu` from the z-axis.
+    - ``-in``: First input ASCII file containing space separated (x,y,z,weight) positions of particles in comoving :math:`h^{-1}\mathrm{Mpc}` units.
+    - ``-in2``: Second input ASCII file, with format as above.
+    - ``-binfile``: :math:`k`-space ASCII binning file, as described above.
+    - ``-output``: Directory in which to house output products. This will be created if not already in existence.
+    - ``-out_string``: String to include in output filename for identification (e.g. RR, DR or DD)
+    - ``-max_l``: Maximum Legendre multipole required (must be even). Currently, only multipoles up to the hexadecapole (:math:`\ell = 6`) have been implemented, but more can be added if required.
+    - ``-R0``: Truncation radius in Mpc/h units (default: :math:`100\,h^{-1}\mathrm{Mpc}`). See :ref:`truncation-radius-note`.
+    - ``-inv_phi_file``: Location of survey geometry correction file, as produced above.
+    - ``-nthread``: Number of CPU threads to use for the computation.
+    - ``-periodic``: This flag must be set if we require the code to be run with *periodic* boundary conditions, measuring :math:`\mu` from the z-axis.
 
 Note that a full list of command line options to the executable can be shown by running ``./power`` without any arguments. The code creates the output file ``{OUT_STRING}_power_counts_n{N_BINS}_m{MAX_L}_full.txt``, specifying the ``out_string`` parameter, the number of radial bins and the maximum Legendre multipole. Each line of the output file has the (weighted) pair count with the column specifying the Legendre multipole.
 
