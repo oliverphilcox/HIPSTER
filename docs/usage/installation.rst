@@ -18,7 +18,7 @@ Once HIPSTER is installed, it can be run via a simple bash wrapper, as described
 Dependencies
 -------------
 
-Hipster requires the following packages:
+HIPSTER requires the following packages:
 
 - [C compiler](https://gcc.gnu.org/): Tested with gcc 5.4.O
 - [Gnu Scientific Library (GSL)](https://www.gnu.org/software/gsl/doc/html/index.html): Any recent version
