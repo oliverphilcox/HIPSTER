@@ -68,7 +68,7 @@ This runs in a few minutes to hours (depending on the catalog size and computati
 
 Note that a full list of command line options to the executable can be shown by running ``./power`` without any arguments. The code creates the output file ``{OUT_STRING}_power_counts_n{N_BINS}_m{MAX_L}_full.txt``, specifying the ``out_string`` parameter, the number of radial bins and the maximum Legendre multipole. Each line of the output file has the (weighted) pair count with the column specifying the Legendre multipole.
 
-To compute the full power spectra, the data-data (DD), data-random (DR) and random-random (RR) pair counts must be computed. We do *not* have to use the same sized random catalogs for the DR and RR counts. It is usually preferable to use a larger random catalog for the DR pair counts to reduce noise. We recommend :math:`\sim 50`x randoms for DR counts and :math:`\sim10`x randoms for the DD counts. Note that the RR counts are the most computationally intensive procedure, but they only need be computed for each survey once (i.e. when analyzing mock data, the RR pair counts are the same for each mock).
+To compute the full power spectra, the data-data (DD), data-random (DR) and random-random (RR) pair counts must be computed. We do *not* have to use the same sized random catalogs for the DR and RR counts. It is usually preferable to use a larger random catalog for the DR pair counts to reduce noise. We recommend :math:`\sim 50`x randoms for DR counts and :math:`\sim 10`x randoms for the RR counts. Note that the RR counts are the most computationally intensive procedure, but they only need be computed for each survey once (i.e. when analyzing mock data, the RR pair counts are the same for each mock).
 
 .. _power-spectrum-reconstruction
 
