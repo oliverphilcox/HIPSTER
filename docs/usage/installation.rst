@@ -7,7 +7,7 @@ To install HIPSTER, simply clone the Github repository and compile the C++ code 
     cd HIPSTER
     make
 
-**NB**: HIPSTER can be run for either *periodic* or *aperiodic* data-sets. This is specified by adding compiler flags in the ``Makefile``. See :ref:`periodicity-note` for more information. Furthermore, the code can be compiled without OpenMP by removing the ``-DPERIODIC`` flag from the Makefile.
+**NB**: HIPSTER can be run for either *periodic* or *aperiodic* data-sets. This is specified by adding compiler flags in the Makefile. See :ref:`periodicity-note` for more information. Furthermore, the code can be compiled without OpenMP by removing the ``-DPERIODIC`` flag from the Makefile.
 
 Once HIPSTER is installed, it can be run via a simple bash wrapper, as described in the :doc:`basic-usage` section. This requires the inputs specified in :doc:`pre-processing`. For advanced usage, the routines in :doc:`advanced-usage` can be used.
 
@@ -25,6 +25,7 @@ HIPSTER requires the following packages:
 - `Python <(https://www.python.org/>`_: 2.7 or later, 3.4 or later (required for pre- and post-processing)
 
 Corrfunc can be installed using ``pip install corrfunc`` and is used for efficient pair counting.
+
 Acknowledgements
 -----------------
 

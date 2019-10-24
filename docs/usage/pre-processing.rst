@@ -10,7 +10,7 @@ Galaxy and Random Particle Files
 
 The main inputs to the HIPSTER code are files containing the locations and weights of galaxies (i.e. 'data') and random particles (i.e. 'randoms'). The random particles are of the same form as those used in real-space correlation function analyses, and we expect their distribution to match that of unclustered galaxies in the survey. These files are usually provided by clustering teams or can be simply created in the case of a periodic box geometry. The file format is a list of particle positions in space-separated (x,y,z,weight) format, with the co-ordinates given in comoving :math:`h^{-1}\mathrm{Mpc}`` units.
 
-We provide a convenience function to convert galaxy/random files in comoving (RA,Dec,z,weight) co-ordinates to the required format (using a simple WCDM co-ordinate converted by Daniel Eisenstein)::
+We provide a convenience function to convert galaxy/random files in comoving (RA,Dec,z,weight) co-ordinates to the required format (using a simple WCDM co-ordinate converter by Daniel Eisenstein)::
 
     python python/convert_to_xyz.py {INFILE} {OUTFILE} {OMEGA_M} {OMEGA_K} {W_DARK_ENERGY}
 
@@ -43,7 +43,7 @@ where the ``boxsize`` parameter specifies the side length of the cubic simulatio
 Binning Functions
 ------------------
 
-In addition to the sets of galaxy/random positions, we require a file to specify the desired :math:`k`-space binning of the output power spectra. Two Python routines are provided to produce the relevant files in linear or logarithmic (base $e$) binning and are run as::
+In addition to the sets of galaxy/random positions, we require a file to specify the desired :math:`k`-space binning of the output power spectra. Two Python routines are provided to produce the relevant files in linear or logarithmic (base :math:`e`) binning and are run as::
 
         python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
         python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
