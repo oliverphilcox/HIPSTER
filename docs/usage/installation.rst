@@ -34,6 +34,6 @@ Authors:
 - Oliver H. E. Philcox (Department of Astrophysical Sciences, Princeton)
 - Daniel J. Eisenstein (Center for Astrophysics | Harvard & Smithsonian)
 
-Please cite the initial theory paper (Philcox & Eisenstein 2019, accepted by MNRAS) when using this code in your research.
+Please cite the initial theory paper (Philcox & Eisenstein 2019, accepted by MNRAS, `arXiv <https://arxiv.org/abs/1912.01010>`_) when using this code in your research.
 
 Note that many of the code modules and convenience functions are based on those of `RascalC <https://RascalC.readthedocs.io>`_, developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
