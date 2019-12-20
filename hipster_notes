@@ -11,11 +11,12 @@ Notes:
 - Note file names for periodic
 
 To Do:
-- Removed functionality for periodic correction function - must compute in C++ file.
 - We should remove periodic option from the usual wrapper
 - Preload interpolation grid?
 - Rewrite README
 - Update docs
+- Must check normal wrapper still works
+- Remove periodicity in Phi correction entirely?
 
 To Test:
 Periodic power mode

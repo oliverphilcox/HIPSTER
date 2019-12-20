@@ -3,7 +3,7 @@
 
 # Define Inputs
 SHORT=h
-LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,periodic,load_RR
+LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,load_RR
 
 # read the options
 OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
@@ -35,7 +35,6 @@ function usageText ()
     echo "--k_bin: k-space binning file"
     echo "--string: (Optional): Identification string for output file names."
     echo "--nthreads: (Optional): Number of CPU threads on which to run. Default: 10"
-    echo "--periodic: If set, assume periodic boundary conditions. C++ code must also be compiled with the -DPERIODIC flag"
     echo "--load_RR: If set, load previously computed RR pair counts and survey correction functions for a large speed boost."
     echo
 }
@@ -85,13 +84,6 @@ while true ; do
     --nthreads)
       NTHREADS="$2"
       shift 2
-      ;;
-    --periodic)
-      PERIODIC=true
-      PERIODIC_TAG=1
-      PERIODIC_FLAG="-perbox"
-      PERIODIC_MAKEFLAG="-DPERIODIC"
-      shift
       ;;
     --load_RR )
       PRELOAD=true
@@ -179,11 +171,7 @@ if ! $PRELOAD;  then
     echo
     echo "COMPUTING SURVEY CORRECTION FUNCTION"
     echo
-    if $PERIODIC; then
-        python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $PERIODIC_TAG
-    else
-        python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $PERIODIC_TAG $R0 $R0 100 $NTHREADS
-    fi
+    python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $PERIODIC_TAG $R0 $R0 100 $NTHREADS
 fi
 
 # Count number of randoms in each file
@@ -197,7 +185,7 @@ echo
 echo "COMPILING C++ CODE"
 echo
 bash $CODE_DIR/clean
-make --directory $CODE_DIR Periodic=$PERIODIC_MAKEFLAG
+make --directory $CODE_DIR
 # compile without periodic behavior
 
 # Check that the preloaded RR counts actually exist!

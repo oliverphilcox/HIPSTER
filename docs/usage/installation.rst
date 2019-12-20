@@ -7,7 +7,7 @@ To install HIPSTER on a Linux machine, simply clone the Github repository::
 
 Assuming the :ref:`dependencies` are satisfied, HIPSTER is now ready to run using the simple bash wrappers ``hipster_wrapper.sh`` and ``hipster_wrapper_periodic.sh``, as described in the :doc:`basic-usage` section. This requires the inputs specified in :doc:`pre-processing`. For advanced usage, the routines in :doc:`advanced-usage` can be used.
 
-For advanced users, the C++ code must also be compiled via;
+For advanced users, the C++ code must also be compiled via::
 
     cd HIPSTER
     make [Periodic=-DPERIODIC]
@@ -38,7 +38,7 @@ Main Authors:
 - Oliver H. E. Philcox (Princeton / Harvard)
 - Daniel J. Eisenstein (Harvard)
 
-Other Collaborators:
+Additional Collaborators:
 
 - David Spergel (CCA / Princeton)
 - Francisco Villaescusa-Navarro (CCA / Princeton)
