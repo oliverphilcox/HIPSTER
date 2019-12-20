@@ -29,6 +29,7 @@ function usageText ()
     echo "--k_bin: k-space binning file"
     echo "--string: (Optional): Identification string for output file names."
     echo "--nthreads: (Optional): Number of CPU threads on which to run. Default: 10"
+    echo
 }
 
 # extract options and their arguments into variables.
@@ -80,7 +81,7 @@ while true ; do
 done
 
 # Check all parameters are specified
-if [ "$PARAM_COUNT" -ne 4 ]; then echo 'Not all command line parameters specified! Exiting;'; exit 1; fi
+if [ "$PARAM_COUNT" -ne 4 ]; then echo; echo 'Not all command line parameters specified!'; echo; usageText; exit 1; fi
 
 
 # Print the variables
@@ -97,7 +98,7 @@ echo
 
 # Check some variables:
 
-if [ "$MAX_L" -ge 5 ]; then echo "Only multipoles up to ell = 4 currently implemented. Exiting;"; exit 1; fi;
+if [ "$MAX_L" -ge 7 ]; then echo "Only multipoles up to ell = 6 currently implemented. Exiting;"; exit 1; fi;
 if [ $((MAX_L%2)) -eq 1 ]; then echo "Maximum Legendre multipole must be even. Exiting;"; exit 1; fi;
 
 if ! ( test -f "$DATA" ); then
@@ -115,48 +116,43 @@ K_BINS=`wc -l < $BINFILE`
 let K_BINS++
 
 # Define file names
-CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0}_lmax${MAX_L}.txt
 DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_full.txt
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n{$K_BINS}_l${MAX_L}.txt
-
-# If correction file does not exist re-create it!
-if $PRELOAD; then
-    if ! (test -f "$CORRECTION_FILE"); then
-        echo "Survey correction file: $CORRECTION_FILE has not been previously computed. The correction function and RR counts will now be recomputed from scratch."
-        PRELOAD=false
-    fi
-fi
+RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_L${MAX_L}_full.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
 
 # Compile code
-echo
 echo "COMPILING C++ CODE"
 echo
 bash $CODE_DIR/clean
-make --directory $CODE_DIR Periodic="-DPERIODIC"
-
-# Check that the preloaded RR counts actually exist!
-if $PRELOAD; then
-    if ! (test -f "$RR_FILE"); then
-        echo "Weighted RR count file $RR_FILE has not been previously computed. This will be computed from scratch."
-        PRELOAD=false
-    fi
-fi
+make Periodic="-DPERIODIC" --directory $CODE_DIR
 
 # Compute DD pair counts (always need to be computed)
 echo
 echo "COMPUTING DD PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -nthread $NTHREADS $PERIODIC_FLAG
+$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
 # Ensure that the files have actually been created
 if ! (test -f "$DD_FILE"); then
     echo
     echo "Weighted DD counts have not been computed. This indicates an error. Exiting."
+    echo
     exit 1;
 fi
-
+if ! (test -f "$RR_FILE"); then
+    echo
+    echo "Analytic RR function has not been computed. This indicates an error. Exiting."
+    echo
+    exit 1;
+fi
 # Combine files and output
 echo
 echo "COMBINING PAIR COUNTS TO FORM POWER SPECTRUM"
 echo
-python $CODE_DIR/python/reconstruct_power_periodic.py $DD_FILE $DATA $OUTPUT_FILE
+python $CODE_DIR/python/reconstruct_power_periodic.py $DD_FILE $RR_FILE $DATA $OUTPUT_FILE
+# Ensure this ran as expected
+if ! (test -f "$OUTPUT_FILE"); then
+    echo
+    echo "Output power file has not been computed. This indicates an error. Exiting."
+    exit 1;
+fi
 
 echo "COMPUTATIONS COMPLETE"

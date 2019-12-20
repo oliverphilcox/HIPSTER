@@ -3,6 +3,8 @@ Notes:
 - Now ell up to 6 implemented
 - Periodicity can now be enabled from makefile at command line
 - We ignore weights in periodic running
+- Remove -9.1 in Makefile
+- To run on Mac need gcc + gnu-getopt
 
 To Do:
 - Removed functionality for periodic correction function - must compute in C++ file.
@@ -13,6 +15,7 @@ To Do:
 - Update to ell=6
 - Test if the periodic makefile hack works
 - Check if it works with no weights supplied
+- Must include RR counts in reconstruction
 
 To Test:
 Periodic power mode

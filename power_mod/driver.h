@@ -56,6 +56,7 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
     for(int ii=0;ii<tmp_n_JK;ii++) tmp_filled_JK[ii]=JK->filled_JKs[ii];
 #endif
 
+
     // Count lines to construct the correct size
     while (fgets(line,1000,fp)!=NULL&&(uint)n<nmax) {
         if (line[0]=='#') continue;

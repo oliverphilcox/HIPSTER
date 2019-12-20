@@ -25,6 +25,7 @@
 #define PAGE 4096     // To force some memory alignment.
 
 typedef unsigned long long int uint64;
+typedef unsigned int uint;
 
 // Could swap between single and double precision here.
 typedef double Float;

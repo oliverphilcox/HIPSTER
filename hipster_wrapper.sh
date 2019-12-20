@@ -17,6 +17,7 @@ eval set -- "$OPTS"
 PRELOAD=false
 PERIODIC=false
 PERIODIC_TAG=0
+PERIODIC_MAKEFLAG=
 PARAM_COUNT=0
 NTHREADS=10
 
@@ -36,6 +37,7 @@ function usageText ()
     echo "--nthreads: (Optional): Number of CPU threads on which to run. Default: 10"
     echo "--periodic: If set, assume periodic boundary conditions. C++ code must also be compiled with the -DPERIODIC flag"
     echo "--load_RR: If set, load previously computed RR pair counts and survey correction functions for a large speed boost."
+    echo
 }
 
 # extract options and their arguments into variables.
@@ -87,7 +89,8 @@ while true ; do
     --periodic)
       PERIODIC=true
       PERIODIC_TAG=1
-      PERIODIC_FLAG="-periodic"
+      PERIODIC_FLAG="-perbox"
+      PERIODIC_MAKEFLAG="-DPERIODIC"
       shift
       ;;
     --load_RR )
@@ -107,7 +110,7 @@ while true ; do
 done
 
 # Check all parameters are specified
-if [ "$PARAM_COUNT" -ne 6 ]; then echo 'Not all command line parameters specified! Exiting;'; exit 1; fi
+if [ "$PARAM_COUNT" -ne 6 ]; then echo; echo "Not all command line parameters specified!"; echo; usageText; exit 1; fi
 
 
 # Print the variables
@@ -127,7 +130,7 @@ echo
 
 # Check some variables:
 
-if [ "$MAX_L" -ge 5 ]; then echo "Only multipoles up to ell = 4 currently implemented. Exiting;"; exit 1; fi;
+if [ "$MAX_L" -ge 7 ]; then echo "Only multipoles up to ell = 6 currently implemented. Exiting;"; exit 1; fi;
 if [ $((MAX_L%2)) -eq 1 ]; then echo "Maximum Legendre multipole must be even. Exiting;"; exit 1; fi;
 
 if $PRELOAD; then echo 'Using pre-computed survey correction function and (weighted) random pair counts';
@@ -161,7 +164,7 @@ CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0}_lmax${MAX
 RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}_full.txt
 DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}_full.txt
 DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_full.txt
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n{$K_BINS}_l${MAX_L}.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
 
 # If correction file does not exist re-create it!
 if $PRELOAD; then
@@ -194,7 +197,7 @@ echo
 echo "COMPILING C++ CODE"
 echo
 bash $CODE_DIR/clean
-make --directory $CODE_DIR Periodic=""
+make --directory $CODE_DIR Periodic=$PERIODIC_MAKEFLAG
 # compile without periodic behavior
 
 # Check that the preloaded RR counts actually exist!
@@ -246,5 +249,11 @@ echo
 echo "COMBINING PAIR COUNTS TO FORM POWER SPECTRUM"
 echo
 python $CODE_DIR/python/reconstruct_power.py $DD_FILE $DR_FILE $RR_FILE $DATA $N_RAND_RR $N_RAND_DR $PERIODIC_TAG $OUTPUT_FILE
+# Ensure this ran as expected
+if ! (test -f "$OUTPUT_FILE"); then
+    echo
+    echo "Output power file has not been computed. This indicates an error. Exiting."
+    exit 1;
+fi
 
 echo "COMPUTATIONS COMPLETE"

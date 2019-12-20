@@ -3,19 +3,22 @@
 ## Periodic flag from command line input?
 PERIODIC_FLAG=$(Periodic)
 
-CC = gcc
+CC = gcc-9.1
 CFLAGS = -O3 -Wall
-CXXFLAGS = -DPOWER -Wall -O3 -DOPENMP $PERIODIC_FLAG
+CXXFLAGS = -DPOWER -Wall -O3  $(PERIODIC_FLAG)
+#-DOPENMP
 # disable OPENMP to run single threaded
 #-DPERIODIC # use this to enable periodic behavior
 
-CXX = g++ -fopenmp -lgomp -std=c++0x -ffast-math
+CXX = g++-9.1 -fopenmp -lgomp -std=c++0x -ffast-math
 
 AUNTIE	= power
 AOBJS	= grid_power.o
 
-LD	= g++
-LFLAGS	= -L/usr/local/lib -L/usr/lib/x86_64-linux-gnu -lgsl -lgslcblas -lgomp
+LD	= g++-9.1
+LFLAGS	= -L/usr/local/lib -lgsl -lgslcblas
+# -lgomp
+#-L/usr/lib/x86_64-linux-gnu 
 
 
 main: $(AUNTIE)

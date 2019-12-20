@@ -9,9 +9,9 @@ class KernelInterp{
 public:
     int npoint=100000;
     Float min_val;
-    double *sep, *kernel_vals_0, *kernel_vals_2, *kernel_vals_4;
+    double *sep, *kernel_vals_0, *kernel_vals_2, *kernel_vals_4, *kernel_vals_6;
     gsl_interp_accel *sep_a;
-    gsl_spline *interp_kernel_0, *interp_kernel_2, *interp_kernel_4;
+    gsl_spline *interp_kernel_0, *interp_kernel_2, *interp_kernel_4,*interp_kernel_6;
 
 public:
     inline double kernel(int ell, double this_sep){
@@ -55,7 +55,7 @@ public:
     }
 
 private:
-    void copy(int& _npoint, Float& _min_val, double **_sep, double **_kernel_vals_0, double **_kernel_vals_2, double **_kernel_vals_4){
+    void copy(int& _npoint, Float& _min_val, double **_sep, double **_kernel_vals_0, double **_kernel_vals_2, double **_kernel_vals_4, double **_kernel_vals_6){
         _npoint = npoint;
         _min_val = min_val;
         *_sep = (double *)malloc(sizeof(double)*npoint);
@@ -107,7 +107,7 @@ public:
         kernel_vals_0 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_2 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_4 = (double *)malloc(sizeof(double)*npoint);
-        kernel_vals_6 = (double *)malloc(sizeof(double)*npoint)
+        kernel_vals_6 = (double *)malloc(sizeof(double)*npoint);
 
         min_val = (R0*k_min)/double(npoint); // minimum interpolation value
 

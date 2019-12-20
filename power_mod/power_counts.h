@@ -82,20 +82,20 @@ public:
 
       printf("\nComputing analytic RR term");
       // Define r
-      Float integrand,tmp_r,RR_analyt[nbin];
+      Float integrand,tmp_r,RR_analyt[nbin],old_kr,old_kr3,old_kernel,new_kernel,new_kr,new_kr3,diff_kr;
       int npoint=100000;
       Float delta_r = R0/double(npoint);
 
       for(int j=0;j<npoint;j++){ // iterate over all r in [0,R0]
           tmp_r = double(j+1)/double(npoint)*R0;
-          integrand = 4*M_PI*pow(tmp_r,2)*pair_weight(tmp_r)*delta_r  // 4 pi r^2 W(r) dr
+          integrand = 4*M_PI*pow(tmp_r,2)*pair_weight(tmp_r)*delta_r;  // 4 pi r^2 W(r) dr
 
           for(int i=0;i<nbin;i++){ // iterate over all k-bins
               // Now compute multipole contributions assuming k-bins are contiguous
               if(i==0){
                   old_kr = tmp_r*r_low[0];
                   old_kr3 = pow(old_kr,3);
-                  old_kernel = kernel_interp->kernel(0,old_kr)
+                  old_kernel = kernel_interp->kernel(0,old_kr);
               }
               new_kr = tmp_r*r_high[i];
               new_kr3 = pow(new_kr,3);
@@ -116,7 +116,7 @@ public:
     // Now save output
     char RR_periodic_name[1000];
     Float tmp_out;
-    snprintf(RR_periodic_name, sizeof pow_name, "%s/RR_power_counts_n%d_l%d_%s.txt", out_file,nbin, 2*(mbin-1),suffix);
+    snprintf(RR_periodic_name, sizeof RR_periodic_name, "%s/%s_RR_power_counts_n%d_l%d_full.txt", out_string, out_file,nbin, 2*(mbin-1));
     FILE * RR_periodic_file = fopen(RR_periodic_name,"w");
 
     for (int i=0;i<nbin;i++){

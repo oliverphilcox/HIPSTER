@@ -178,7 +178,7 @@ public:
         assert(max_l<=6); // ell>6 not yet implemented!
         if (inv_phi_file==NULL) {inv_phi_file = (char *) default_inv_phi_file;} // no phi file specified
 #ifdef PERIODIC
-        fprintf(stderr,"Survey correction function %s specified, but in PERIODIC mode. Survey correction function will be ignored.",inv_phi_file)
+        fprintf(stderr,"Survey correction function %s specified, but in PERIODIC mode. Survey correction function will be ignored.",inv_phi_file);
 #endif
         mbin = max_l/2+1; // number of angular bins is set to number of Legendre bins
         if (rescale<=0.0) rescale = box_max;   // This would allow a unit cube to fill the periodic volume
@@ -215,11 +215,11 @@ public:
 	}
 private:
 	void usage() {
-	    fprintf(stderr, "\nUsage for grid_covariance:\n\n");
+	    fprintf(stderr, "\nUsage for HIPSTER:\n\n");
         fprintf(stderr, "   -def: This allows one to accept the defaults without giving other entries.\n");
-	    fprintf(stderr, "   -in <file>: The input random particle file for particle-set 1 (space-separated x,y,z,w).\n");
-	    fprintf(stderr, "   -in2 <file>: The input random particle file for particle-set 2 (space-separated x,y,z,w).\n");
-        fprintf(stderr, "   -binfile <filename>: File containing the desired radial bins\n");
+	    fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,w).\n");
+	    fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,w).\n");
+        fprintf(stderr, "   -binfile <filename>: File containing the desired k-space radial bins\n");
         fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");
         fprintf(stderr, "   -out_string: (Optional) String to add to file name to specify field type (e.g. RR)\n");
         fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
