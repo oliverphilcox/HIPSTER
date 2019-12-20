@@ -15,6 +15,10 @@ private:
     int max_legendre; // maximum order of Legendre polynomials needed
     SurveyCorrection *sc; // survey correction function
     KernelInterp *kernel_interp;
+#ifdef PERIODIC
+    Float power_norm;
+#endif
+
 public:
     uint64 used_pairs; // total number of pairs used
 
@@ -50,6 +54,11 @@ public:
         sc = _sc;
         max_legendre = fmax((sc->l_bins-1)*2,par->max_l);
 
+#ifdef PERIODIC
+        // define power spectrum normalization if periodic = n^2 V = N^2 / V
+        power_norm = pow(par->np,2.)/(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2]);
+#endif
+
         int ec=0;
         ec+=posix_memalign((void **) &power_counts, PAGE, sizeof(double)*nbin*mbin);
         assert(ec==0);
@@ -77,17 +86,21 @@ public:
     }
 
 #ifdef PERIODIC
-    void RR_analytic(){
+    void RR_analytic(Float* RR_analyt){
       // Compute the analytic RR term from numerical integration of the window function in each bin.
 
       printf("\nComputing analytic RR term");
+      fflush(NULL);
       // Define r
-      Float integrand,tmp_r,RR_analyt[nbin],old_kr,old_kr3,old_kernel,new_kernel,new_kr,new_kr3,diff_kr;
+      Float integrand,tmp_r,old_kr,old_kr3,old_kernel,new_kernel,new_kr,new_kr3,diff_kr;
       int npoint=100000;
       Float delta_r = R0/double(npoint);
 
+      for(int i=0;i<nbin;i++) RR_analyt[i]=0; // initialize array
+
       for(int j=0;j<npoint;j++){ // iterate over all r in [0,R0]
           tmp_r = double(j+1)/double(npoint)*R0;
+
           integrand = 4*M_PI*pow(tmp_r,2)*pair_weight(tmp_r)*delta_r;  // 4 pi r^2 W(r) dr
 
           for(int i=0;i<nbin;i++){ // iterate over all k-bins
@@ -113,10 +126,12 @@ public:
               old_kernel = new_kernel;
           }
       }
+
     // Now save output
     char RR_periodic_name[1000];
     Float tmp_out;
-    snprintf(RR_periodic_name, sizeof RR_periodic_name, "%s/%s_RR_power_counts_n%d_l%d_full.txt", out_string, out_file,nbin, 2*(mbin-1));
+
+    snprintf(RR_periodic_name, sizeof RR_periodic_name, "%s/%s_analyt_RR_power_counts_n%d_l%d_full.txt", out_file, out_string, nbin, 2*(mbin-1));
     FILE * RR_periodic_file = fopen(RR_periodic_name,"w");
 
     for (int i=0;i<nbin;i++){
@@ -137,12 +152,16 @@ public:
     }
 #endif
 
-    inline void count_pairs(Particle pi, Particle pj){
+    inline void count_pairs(Particle pi, Particle pj,Float3 separation){
         // Count pairs of particles with some weighting function
+        // separation is the separation of the cell centers (needed for periodic datasets)
         Float r_ij, mu_ij, w_ij, tmp_phi_inv=0, new_kr, old_kr,new_kernel,diff_kr,new_kr3, old_kr3;
         Float legendre[max_legendre/2+1]; // Even-ell Legendre coefficients
         Float old_kernel[mbin]; // saved kernel functions
 
+#ifdef PERIODIC
+        pj.pos+=separation; // add on separation of cell centers (since periodic particles are defined relative to cell center)
+#endif
         cleanup_l(pi.pos,pj.pos,r_ij,mu_ij); // define distance and angle
 
         if(r_ij>R0) return; // outside correct size
@@ -207,17 +226,21 @@ public:
         }
     }
 
-    void save_counts(char* suffix,int one_grid) {
+    void save_counts(int one_grid) {
         // Print power-count output to file.
         // Create output files
 
         char pow_name[1000];
-        snprintf(pow_name, sizeof pow_name, "%s/%s_power_counts_n%d_l%d_%s.txt", out_file,out_string,nbin, 2*(mbin-1),suffix);
+  #ifdef PERIODIC
+        snprintf(pow_name, sizeof pow_name, "%s/%s_DD_power_counts_n%d_l%d.txt", out_file,out_string,nbin, 2*(mbin-1));
+  #else
+        snprintf(pow_name, sizeof pow_name, "%s/%s_power_counts_n%d_l%d.txt", out_file,out_string,nbin, 2*(mbin-1));
+  #endif
         FILE * PowFile = fopen(pow_name,"w");
 
         for (int i=0;i<nbin;i++){
             for(int j=0;j<mbin;j++){
-                if(one_grid==1) power_counts[i*mbin+j]*=2; // since we ignore i-j switches
+                if(one_grid==1) power_counts[i*mbin+j]*=2.; // since we ignore i-j switches
                 fprintf(PowFile,"%le\t",power_counts[i*mbin+j]);
             }
             fprintf(PowFile,"\n");
@@ -227,7 +250,33 @@ public:
 
         // Close open files
         fclose(PowFile);
-    }
+      }
+
+#ifdef PERIODIC
+  void save_power(Float* RR_analytic){
+        // If periodic, we can output the whole power spectrum estimate here
+        char pk_name[1000];
+        Float output_pk;
+        printf("Norm = %.2e\n",power_norm);
+        snprintf(pk_name, sizeof pk_name, "%s/%s_power_spectrum_n%d_l%d.txt", out_file,out_string,nbin, 2*(mbin-1));
+        FILE * PkFile = fopen(pk_name,"w");
+
+        for (int i=0;i<nbin;i++){
+            for(int j=0;j<mbin;j++){
+                output_pk = power_counts[i*mbin+j]/power_norm;
+                if(j==0) output_pk-=RR_analytic[i];
+                fprintf(PkFile,"%le\t",output_pk);
+            }
+            fprintf(PkFile,"\n");
+        }
+
+        fflush(NULL);
+
+        // Close open files
+        fclose(PkFile);
+}
+#endif
+
 };
 
 #endif

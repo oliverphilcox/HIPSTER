@@ -36,7 +36,7 @@ public:
 
     // The grid size, which should be tuned to match boxsize.
 	// This uses the maximum width of the cuboidal box.
-	int nside = 250;;
+	int nside = 100;
 
     // Whether or not we are using a periodic box
 	bool perbox = false;
@@ -51,7 +51,7 @@ public:
     //-------- OTHER PARAMETERS ----------------------------------------------
 
 	// The periodicity of the position-space cube.
-	Float boxsize = 200; // this is only used if the input particles are made randomly
+	Float boxsize = 1200; // this is only used if the input particles are made randomly
 
 	// The particles will be read from the unit cube, but then scaled by boxsize.
 	Float rescale = 1.;   // If left zero or negative, set rescale=boxsize
@@ -159,7 +159,7 @@ public:
         }
 #endif
 
-        if(R0<40){
+        if(R0<20){
             printf("\nTruncation radius (%.0f Mpc/h) is too small for accurate power computation. Exiting.\n\n",R0);
             exit(1);
         }

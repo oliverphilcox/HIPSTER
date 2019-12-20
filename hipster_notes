@@ -4,18 +4,19 @@ Notes:
 - Periodicity can now be enabled from makefile at command line
 - We ignore weights in periodic running
 - Remove -9.1 in Makefile
+- Now outputs entire power spectrum in C++ file
 - To run on Mac need gcc + gnu-getopt
+- usual wrapper currently broken
+- removed suffices from counts
+- Note file names for periodic
 
 To Do:
 - Removed functionality for periodic correction function - must compute in C++ file.
 - We should remove periodic option from the usual wrapper
 - Preload interpolation grid?
-- Can we get rid of Phi file entirely if periodic? - no this stores normalization information
 - Must create reconstruct_power_periodic.py file
-- Update to ell=6
-- Test if the periodic makefile hack works
-- Check if it works with no weights supplied
-- Must include RR counts in reconstruction
+- Do normalization in code if periodic
+- Do all output processing in script
 
 To Test:
 Periodic power mode

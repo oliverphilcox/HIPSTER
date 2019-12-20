@@ -75,6 +75,7 @@ public:
 #endif
             // DEFINE LOCAL THREAD VARIABLES
             Particle *prim_list; // list of particles in first cell
+            Float3 separation;
             int* prim_ids; // list of particle IDs in first cell
             int prim_id_1D,sec_id_1D; // 1D cell ids
             integer3 prim_id,delta,sec_id; // particle positions in grid
@@ -114,6 +115,11 @@ public:
                     delta = cell_sep[n2]; // difference in cell positions
                     sec_id = prim_id + delta;
                     sec_id_1D = grid2->test_cell(sec_id);
+                #ifdef PERIODIC
+                    separation = grid2->cell_sep(delta); // separation vector between grid cells
+                #else
+                    separation = {0,0,0}; // zero vector (unused)
+                #endif
                     if(sec_id_1D<0) continue; // if cell not in grid
                     if((one_grid==1)&&(sec_id_1D<prim_id_1D)) continue; // already counted this pair of cells!
                     sec_cell = grid2->c[sec_id_1D];
@@ -126,7 +132,7 @@ public:
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
                             used_particles++;
-                            loc_counts.count_pairs(grid1->p[i],grid2->p[j]);
+                            loc_counts.count_pairs(grid1->p[i],grid2->p[j],separation);
                         }
                     }
                 }
@@ -143,10 +149,15 @@ public:
     } // end OPENMP loop
 
     // Compute RR analytic counts if periodic
-    #ifdef PERIODIC
-    global_counts.RR_analytic();
-    #endif
+#ifdef PERIODIC
 
+    Float* analytic_RR; // array to hold RR counts
+    int ec=0;
+    ec+=posix_memalign((void **) &analytic_RR, PAGE, sizeof(Float)*nbin);
+    assert(ec==0);
+
+    global_counts.RR_analytic(analytic_RR);
+#endif
     // ----- REPORT AND SAVE OUTPUT ------------
     TotalTime.Stop();
 
@@ -159,13 +170,17 @@ public:
     printf("We tried %.2e pairs of particles and accepted %.2e pairs of particles.\n", double(used_particles),double(global_counts.used_pairs));
     printf("Particle acceptance ratio is %.3f.\n",(double)global_counts.used_pairs/used_particles);
     printf("Average of %.2f pairs accepted per primary particle.\n\n",(Float)global_counts.used_pairs/grid1->np);
+    printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
+    printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
 
-    printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));       printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
-
-    char this_out[5];
-    sprintf(this_out,"full");
-    global_counts.save_counts(this_out,one_grid);
-    printf("Printed counts to file as %s%s_power_counts_n%d_l%d_full.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    global_counts.save_counts(one_grid);
+#ifdef PERIODIC
+    printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    global_counts.save_power(analytic_RR);
+    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+#else
+    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+#endif
     }
 };
 

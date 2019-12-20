@@ -117,7 +117,7 @@ let K_BINS++
 
 # Define file names
 DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_full.txt
-RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_L${MAX_L}_full.txt
+RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_L${MAX_L}_full.txt
 OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
 
 # Compile code
@@ -129,7 +129,8 @@ make Periodic="-DPERIODIC" --directory $CODE_DIR
 # Compute DD pair counts (always need to be computed)
 echo
 echo "COMPUTING DD PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
+$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
+
 # Ensure that the files have actually been created
 if ! (test -f "$DD_FILE"); then
     echo
@@ -143,16 +144,12 @@ if ! (test -f "$RR_FILE"); then
     echo
     exit 1;
 fi
-# Combine files and output
-echo
-echo "COMBINING PAIR COUNTS TO FORM POWER SPECTRUM"
-echo
-python $CODE_DIR/python/reconstruct_power_periodic.py $DD_FILE $RR_FILE $DATA $OUTPUT_FILE
-# Ensure this ran as expected
 if ! (test -f "$OUTPUT_FILE"); then
     echo
     echo "Output power file has not been computed. This indicates an error. Exiting."
     exit 1;
 fi
 
+echo
 echo "COMPUTATIONS COMPLETE"
+echo
