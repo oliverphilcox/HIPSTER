@@ -55,7 +55,7 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
     int tmp_filled_JK[tmp_n_JK];
     for(int ii=0;ii<tmp_n_JK;ii++) tmp_filled_JK[ii]=JK->filled_JKs[ii];
 #endif
-    
+
     // Count lines to construct the correct size
     while (fgets(line,1000,fp)!=NULL&&(uint)n<nmax) {
         if (line[0]=='#') continue;
@@ -63,18 +63,18 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
         n++;
     }
     rewind(fp);
-    
+
     *np = n;
     Particle *p = (Particle *)malloc(sizeof(Particle)*n);
     printf("# Found %d particles from %s\n", n, filename);
     printf("# Rescaling input positions by factor %f\n", rescale);
-    
+
     while (fgets(line,1000,fp)!=NULL&&j<n) {
         if (line[0]=='#') continue;
         if (line[0]=='\n') continue;
         stat=sscanf(line, "%lf %lf %lf %lf %lf", tmp, tmp+1, tmp+2, tmp+3, tmp+4);
 
-        if (stat<4) {
+        if (stat<3) {
         	fprintf(stderr,"Particle %d has bad format\n", j); // Not enough coordinates
         	abort();
         }
@@ -83,7 +83,7 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
         p[j].pos.y = tmp[1]*rescale;
         p[j].pos.z = tmp[2]*rescale;
         p[j].rand_class = rand()%2;
-        
+
         // Get the weights from line 4 if present, else fill with +1/-1 depending on the value of rstart
         // For grid_covariance rstart is typically not used
 #ifdef JACKKNIFE
@@ -96,16 +96,16 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
 		   if(rstart>0&&j>=rstart)
 			   p[j].w = -tmp[stat-2]; //read in weights
 		   else
-			   p[j].w = tmp[stat-2]; 
+			   p[j].w = tmp[stat-2];
         int tmp_JK = tmp[stat-1]; // read in JK region
-		
+
 		// Collapse jacknife indices to only include filled JKs:
 		p[j].JK=-1;
-        
+
         for (int x=0;x<tmp_n_JK;x++){
             if (tmp_filled_JK[x]==tmp_JK) p[j].JK=x;
         }
-        assert(p[j].JK!=-1); // ensure we find jackknife index		    
+        assert(p[j].JK!=-1); // ensure we find jackknife index
 #else
         if((stat!=4)&&(stat!=5))
             if(rstart>0&&j>=rstart)
@@ -117,14 +117,14 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
                     p[j].w = -tmp[3]; // read in weights
                 else
                     p[j].w = tmp[3];
-#endif                
+#endif
             }
-      	
+
 		j++;
     }
     fclose(fp);
     printf("# Done reading the particles\n");
-    
+
     return p;
 }
 
@@ -150,7 +150,7 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
     printf("# Range of z positions are %6.2f to %6.2f\n", pmin.z, pmax.z);
     Float3 prange = pmax-pmin;
     Float         biggest = prange.x;
-    biggest = fmax(biggest, prange.y); 
+    biggest = fmax(biggest, prange.y);
     biggest = fmax(biggest, prange.z);
     if (prange.x>0.99*biggest && prange.y>0.99*biggest && prange.z>0.99*biggest) {
         // Probably using a cube of inputs, intended for a periodic box
@@ -175,7 +175,7 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
     	fprintf(stderr,"#\n# WARNING: non-cubic input detected but you have compiled with PERIODIC flag!\n#\n");
     	printf("#\n# WARNING: non-cubic input detected but you have compiled with PERIODIC flag!\n#\n");
 #endif
-        // set max_boxsize to just enclose the biggest dimension plus r_max 
+        // set max_boxsize to just enclose the biggest dimension plus r_max
         // NB: We natively wrap the grid (to allow for any position of the center of the grid)
         // Must add rmax to biggest to ensure there is no periodic overlap in this case.
         Float max_boxsize = 1.05*(biggest+2*rmax);
@@ -184,8 +184,8 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
         rect_boxsize = ceil3(prange/cellsize)*cellsize; // to ensure we fit an integer number of cells in each direction
         printf("# Setting non-periodic box-size to {%6.2f,%6.2f,%6.2f}\n", rect_boxsize.x,rect_boxsize.y,rect_boxsize.z);
     }
-	
-	
+
+
     return box;
 }
 

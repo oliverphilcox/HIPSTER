@@ -76,6 +76,67 @@ public:
         free(power_counts);
     }
 
+#ifdef PERIODIC
+    void RR_analytic(){
+      // Compute the analytic RR term from numerical integration of the window function in each bin.
+
+      printf("\nComputing analytic RR term");
+      // Define r
+      Float integrand,tmp_r,RR_analyt[nbin];
+      int npoint=100000;
+      Float delta_r = R0/double(npoint);
+
+      for(int j=0;j<npoint;j++){ // iterate over all r in [0,R0]
+          tmp_r = double(j+1)/double(npoint)*R0;
+          integrand = 4*M_PI*pow(tmp_r,2)*pair_weight(tmp_r)*delta_r  // 4 pi r^2 W(r) dr
+
+          for(int i=0;i<nbin;i++){ // iterate over all k-bins
+              // Now compute multipole contributions assuming k-bins are contiguous
+              if(i==0){
+                  old_kr = tmp_r*r_low[0];
+                  old_kr3 = pow(old_kr,3);
+                  old_kernel = kernel_interp->kernel(0,old_kr)
+              }
+              new_kr = tmp_r*r_high[i];
+              new_kr3 = pow(new_kr,3);
+              diff_kr = new_kr3 - old_kr3;
+
+              // Now compute kernel at ell=0
+              new_kernel = kernel_interp->kernel(0,new_kr);
+
+              // Add contribution to integral
+              RR_analyt[i]+=integrand*(new_kernel-old_kernel)/diff_kr; // ie 4 pi r^2 W(r) j_0^a(r) dr
+
+              // Update values for next time
+              old_kr = new_kr;
+              old_kr3 = new_kr3;
+              old_kernel = new_kernel;
+          }
+      }
+    // Now save output
+    char RR_periodic_name[1000];
+    Float tmp_out;
+    snprintf(RR_periodic_name, sizeof pow_name, "%s/RR_power_counts_n%d_l%d_%s.txt", out_file,nbin, 2*(mbin-1),suffix);
+    FILE * RR_periodic_file = fopen(RR_periodic_name,"w");
+
+    for (int i=0;i<nbin;i++){
+        for(int j=0;j<mbin;j++){
+            if(j==0) tmp_out = RR_analyt[i];
+            else tmp_out = 0.;
+            fprintf(RR_periodic_file,"%le\t",tmp_out);
+        }
+        fprintf(RR_periodic_file,"\n");
+    }
+    fflush(NULL);
+
+    // Close open files
+    fclose(RR_periodic_file);
+
+    printf("\nComputation complete, and saved to %s.",RR_periodic_name);
+
+    }
+#endif
+
     inline void count_pairs(Particle pi, Particle pj){
         // Count pairs of particles with some weighting function
         Float r_ij, mu_ij, w_ij, tmp_phi_inv=0, new_kr, old_kr,new_kernel,diff_kr,new_kr3, old_kr3;
@@ -88,7 +149,7 @@ public:
 
         used_pairs++; // update number of pairs used
 
-        // First define all required legendre moments
+        // First define all required legendre moments used for kernel and Phi function
         legendre[0]=1.;
         if(max_legendre>1){
             Float mu2 = mu_ij*mu_ij;
@@ -136,121 +197,17 @@ public:
         }
     }
 
-    inline void count_pairs_old(Particle pi, Particle pj){
-        // Count pairs of particles with some weighting function
-        Float r_ij, mu_ij, kr_ij_lo, kr_ij_hi,w_ij;
-        Float legendre[max_legendre/2+1]; // Even-ell Legendre coefficients
-        Float tmp_phi_inv=0.,tmp_bessel;
-//#define BINNED
-#ifdef BINNED
-        Float k_sin_lo, k_cos_lo, k_sin_hi, k_cos_hi,k_Si_lo=0,k_Si_hi=0;
-        Float diff_k3, tmp_kernel;
-#else
-        Float kr_pow[2*(mbin+1)];
-        Float kr_mean,k_sin,k_cos;
-#endif
-
-        cleanup_l(pi.pos,pj.pos,r_ij,mu_ij); // define distance and angle
-
-        if(r_ij>R0) return; // outside correct size
-
-        used_pairs++; // update number of pairs used
-
-        // First define all required legendre moments
-        legendre[0]=1.;
-        if(max_legendre>1){
-            Float mu2 = mu_ij*mu_ij;
-            legendre[1]=0.5*(3.*mu2-1.);
-            if(max_legendre>3){
-                Float mu4 = mu2*mu2;
-                legendre[2]=1./8.*(35.*mu4-30.*mu2+3.);
-                if(max_legendre>5){
-                    Float mu6 = mu4*mu2;
-                    legendre[3] = 1./16.*(231.*mu6-315.*mu4+105.*mu2-5.);
-                    if(max_legendre>7){
-                        Float mu8 = mu6*mu2;
-                        legendre[4] = 1./128.*(6435.*mu8-12012.*mu6+6930.*mu4-1260.*mu2+35.);
-                        if(max_legendre>9){
-                            legendre[5] = 1./256.*(46189.*mu8*mu2-109395.*mu8+90090.*mu6-30030.*mu4+3465.*mu2-63.);
-                        }
-                    }
-                }
-            }
-        }
-
-        for(int l_i=0;l_i<sc->l_bins;l_i++) tmp_phi_inv+=legendre[l_i]*sc->inv_correction_function(l_i*2,r_ij);
-
-        //TODO: expand pair weight to just use pre-computed r2,r3,r4??
-#ifdef BINNED
-        w_ij = pi.w*pj.w*pair_weight(r_ij)/tmp_phi_inv/pow(r_ij,3)*3;
-#else
-        w_ij = pi.w*pj.w*pair_weight(r_ij)/tmp_phi_inv;
-#endif
-        for(int i=0;i<nbin;i++){
-
-            kr_ij_lo = r_ij*r_low[i];
-            kr_ij_hi = r_ij*r_high[i];
-#ifdef BINNED
-            diff_k3 = pow(r_high[i],3)-pow(r_low[i],3);
-            tmp_kernel = w_ij/diff_k3;
-            k_sin_lo = sin(kr_ij_lo);
-            k_sin_hi = sin(kr_ij_hi);
-            k_cos_lo = cos(kr_ij_lo);
-            k_cos_hi = cos(kr_ij_hi);
-            // Define sine integrals
-            if(max_legendre>1){
-                k_Si_lo = gsl_sf_Si(kr_ij_lo);
-                k_Si_hi = gsl_sf_Si(kr_ij_hi);
-            }
-
-            // Now compute multipole contributions
-            for(int j=0;j<mbin;j++){
-                if(j==0) tmp_bessel = (k_sin_hi-kr_ij_hi*k_cos_hi)-(k_sin_lo-kr_ij_lo*k_cos_lo);
-                else if(j==1) tmp_bessel = (kr_ij_hi*k_cos_hi - 4.*k_sin_hi+3.*k_Si_hi) - (kr_ij_lo*k_cos_lo - 4.*k_sin_lo + 3.*k_Si_lo);
-                else if(j==2) tmp_bessel = 0.5*(((105/kr_ij_hi-2.*kr_ij_hi)*k_cos_hi + (22.-105./pow(kr_ij_hi,2))*k_sin_hi + 15.*k_Si_hi)-((105/kr_ij_lo-2.*kr_ij_lo)*k_cos_lo+(22.-105./pow(kr_ij_lo,2))*k_sin_lo + 15.*k_Si_lo));
-                else{
-                    printf("\nOnly ell = 0,2,4 implemented\n");
-                    exit(1);
-                }
-                power_counts[i*mbin+j]+= tmp_kernel*Float(pow(-1,j)*(4.*j+1))*legendre[j]*tmp_bessel;
-            }
-#else
-            kr_mean = 0.5*(kr_ij_hi+kr_ij_lo);
-            k_sin = sin(kr_mean);
-            k_cos = cos(kr_mean);
-
-            // Define powers of kr
-            kr_pow[0]=1;
-            for(int j=1;j<2*(mbin+1);j++) kr_pow[j] = kr_pow[j-1]*kr_mean;
-            k_sin = sin(kr_mean);
-            k_cos = cos(kr_mean);
-
-            // Now compute multipole contributions
-            for(int j=0;j<mbin;j++){
-                if(j==0) tmp_bessel = k_sin/kr_pow[1];
-                else if(j==1) tmp_bessel = (3.-kr_pow[2])*k_sin/kr_pow[3]-3.*k_cos/kr_pow[2];
-                else if(j==2) tmp_bessel = 5.*(2*kr_pow[2]-21)*k_cos/kr_pow[4]+(kr_pow[4]-45*kr_pow[2]+105)/kr_pow[5]*k_sin;
-                else{
-                    printf("\nOnly ell = 0,2,4 implemented\n");
-                    exit(1);
-                }
-                power_counts[i*mbin+j]+=w_ij*Float(pow(-1,j)*(4*j+1))*legendre[j]*tmp_bessel;
-            }
-#endif
-        }
-    }
-
     inline Float pair_weight(Float sep){
         // Compute weight function W(r;R_0)
         if(sep<R0/2) return 1.;
         else{
             Float x = sep/R0;
             if(sep<3*R0/4) return 1.-8.*pow(2*x-1,3)+8.*pow(2*x-1,4);
-            else return -64.*pow(x-1,3)-128*pow(x-1,4);
+            else return -64.*pow(x-1,3)-128.*pow(x-1,4);
         }
     }
 
-    void save_counts(char* suffix) {
+    void save_counts(char* suffix,int one_grid) {
         // Print power-count output to file.
         // Create output files
 
@@ -260,6 +217,7 @@ public:
 
         for (int i=0;i<nbin;i++){
             for(int j=0;j<mbin;j++){
+                if(one_grid==1) power_counts[i*mbin+j]*=2; // since we ignore i-j switches
                 fprintf(PowFile,"%le\t",power_counts[i*mbin+j]);
             }
             fprintf(PowFile,"\n");

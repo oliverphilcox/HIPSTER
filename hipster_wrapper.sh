@@ -194,7 +194,8 @@ echo
 echo "COMPILING C++ CODE"
 echo
 bash $CODE_DIR/clean
-make --directory $CODE_DIR
+make --directory $CODE_DIR Periodic=""
+# compile without periodic behavior
 
 # Check that the preloaded RR counts actually exist!
 if $PRELOAD; then

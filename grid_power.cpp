@@ -108,7 +108,6 @@ int main(int argc, char *argv[]) {
     // Read in survey correction fucntion
     SurveyCorrection sc(&par,1,1);
 
-
     // Count number of second field cells enclosed by the maximum truncation radius
     Float cellsize = all_grid[1].cellsize;
     Float filled_vol = 4./3.*M_PI*pow(par.R0+2.*cellsize,3);

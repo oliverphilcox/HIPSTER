@@ -175,10 +175,11 @@ public:
 	    assert(i==argc);  // For example, we might have omitted the last argument, causing disaster.
 
         assert(max_l%2==0); // check maximum ell is even
-        assert(max_l<=10); // ell>10 not yet implemented!
+        assert(max_l<=6); // ell>6 not yet implemented!
         if (inv_phi_file==NULL) {inv_phi_file = (char *) default_inv_phi_file;} // no phi file specified
-        assert(max_l%2==0); // check maximum ell is even
-        assert(max_l<=10); // ell>10 not yet implemented!
+#ifdef PERIODIC
+        fprintf(stderr,"Survey correction function %s specified, but in PERIODIC mode. Survey correction function will be ignored.",inv_phi_file)
+#endif
         mbin = max_l/2+1; // number of angular bins is set to number of Legendre bins
         if (rescale<=0.0) rescale = box_max;   // This would allow a unit cube to fill the periodic volume
 	    if (out_file==NULL) out_file = (char *) default_out_file; // no output savefile

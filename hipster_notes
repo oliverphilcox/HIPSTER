@@ -1,6 +1,8 @@
 Notes:
 - We choose axis as the z-axis here (fixed for simulation) (though can be changed relatively easily)
-
+- Now ell up to 6 implemented
+- Periodicity can now be enabled from makefile at command line
+- We ignore weights in periodic running
 
 To Do:
 - Removed functionality for periodic correction function - must compute in C++ file.
@@ -8,3 +10,10 @@ To Do:
 - Preload interpolation grid?
 - Can we get rid of Phi file entirely if periodic? - no this stores normalization information
 - Must create reconstruct_power_periodic.py file
+- Update to ell=6
+- Test if the periodic makefile hack works
+- Check if it works with no weights supplied
+
+To Test:
+Periodic power mode
+Aperiodic counts (to check we haven't broken it)

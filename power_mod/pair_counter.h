@@ -115,6 +115,7 @@ public:
                     sec_id = prim_id + delta;
                     sec_id_1D = grid2->test_cell(sec_id);
                     if(sec_id_1D<0) continue; // if cell not in grid
+                    if((one_grid==1)&&(sec_id_1D<prim_id_1D)) continue; // already counted this pair of cells!
                     sec_cell = grid2->c[sec_id_1D];
                     if(sec_cell.np==0) continue; // if empty cell
 
@@ -123,8 +124,8 @@ public:
                     // Now iterate over particles
                     for(int i=prim_cell.start;i<(prim_cell.start+prim_cell.np);i++){
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
+                            if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
                             used_particles++;
-                            if((one_grid==1)&&(i==j)) continue; // skip if identical particles in same grids
                             loc_counts.count_pairs(grid1->p[i],grid2->p[j]);
                         }
                     }
@@ -140,6 +141,11 @@ public:
         }
 
     } // end OPENMP loop
+
+    // Compute RR analytic counts if periodic
+    #ifdef PERIODIC
+    global_counts.RR_analytic();
+    #endif
 
     // ----- REPORT AND SAVE OUTPUT ------------
     TotalTime.Stop();
@@ -158,7 +164,7 @@ public:
 
     char this_out[5];
     sprintf(this_out,"full");
-    global_counts.save_counts(this_out);
+    global_counts.save_counts(this_out,one_grid);
     printf("Printed counts to file as %s%s_power_counts_n%d_l%d_full.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
     }
 };

@@ -132,7 +132,7 @@ echo
 echo "COMPILING C++ CODE"
 echo
 bash $CODE_DIR/clean
-make --directory $CODE_DIR
+make --directory $CODE_DIR Periodic="-DPERIODIC"
 
 # Check that the preloaded RR counts actually exist!
 if $PRELOAD; then
@@ -157,6 +157,6 @@ fi
 echo
 echo "COMBINING PAIR COUNTS TO FORM POWER SPECTRUM"
 echo
-python $CODE_DIR/python/reconstruct_power_periodic.py $DD_FILE $DATA $PERIODIC_TAG $OUTPUT_FILE
+python $CODE_DIR/python/reconstruct_power_periodic.py $DD_FILE $DATA $OUTPUT_FILE
 
 echo "COMPUTATIONS COMPLETE"
