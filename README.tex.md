@@ -6,6 +6,8 @@ Code to compute small-scale power spectra for N-body simulations and galaxy surv
 
 The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys or N-body simulations respectively. The 'periodic' mode contains various optimizations relating to the periodic geometry, as detailed in the second paper.
 
+Full documentation of HIPSTER is available on [ReadTheDocs](https://HIPSTER.readthedocs.io).
+
 ### Basic Usage
 
 To compute a power spectrum from particles in a *periodic* simulation box (``data.dat``) up to $\ell=L$ with pair-counts truncated at radius $R_0$ using $k$-space binning file ``binning.csv``, run:
@@ -19,5 +21,3 @@ To compute a power spectrum from galaxies in a *non-periodic* survey (``data.dat
 For any queries regarding the code please contact [Oliver Philcox](mailto:ohep2@alumni.cam.ac.uk).
 
 **New for version 2**: Optimizations for periodic N-body simulations
-
-Full documentation of HIPSTER is available on [ReadTheDocs](https://HIPSTER.readthedocs.io). 

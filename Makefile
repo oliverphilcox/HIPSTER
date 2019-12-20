@@ -5,8 +5,7 @@ PERIODIC_FLAG=$(Periodic)
 
 CC = gcc
 CFLAGS = -O3 -Wall
-CXXFLAGS = -DPOWER -Wall -O3  $(PERIODIC_FLAG)
-#-DOPENMP
+CXXFLAGS = -DPOWER -Wall -O3  $(PERIODIC_FLAG) -DOPENMP
 # disable OPENMP to run single threaded
 #-DPERIODIC # use this to enable periodic behavior
 
@@ -16,9 +15,7 @@ AUNTIE	= power
 AOBJS	= grid_power.o
 
 LD	= g++
-LFLAGS	= -L/usr/local/lib -lgsl -lgslcblas
-# -lgomp
-#-L/usr/lib/x86_64-linux-gnu 
+LFLAGS	= -L/usr/local/lib -lgsl -lgslcblas -lgomp -L/usr/lib/x86_64-linux-gnu 
 
 
 main: $(AUNTIE)
