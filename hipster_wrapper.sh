@@ -177,7 +177,7 @@ if ! $PRELOAD;  then
     echo "COMPUTING SURVEY CORRECTION FUNCTION"
     echo
     if $PERIODIC; then
-        python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE
+        python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $PERIODIC_TAG
     else
         python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $PERIODIC_TAG $R0 $R0 100 $NTHREADS
     fi
@@ -229,7 +229,7 @@ if ! (test -f "$DR_FILE"); then
 fi
 
 
-# Compute DR pair counts (always need to be computed)
+# Compute DD pair counts (always need to be computed)
 echo
 echo "COMPUTING DD PAIR COUNTS"
 $CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG

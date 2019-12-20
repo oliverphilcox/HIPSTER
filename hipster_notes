@@ -1,0 +1,10 @@
+Notes:
+- We choose axis as the z-axis here (fixed for simulation) (though can be changed relatively easily)
+
+
+To Do:
+- Removed functionality for periodic correction function - must compute in C++ file.
+- We should remove periodic option from the usual wrapper
+- Preload interpolation grid?
+- Can we get rid of Phi file entirely if periodic? - no this stores normalization information
+- Must create reconstruct_power_periodic.py file

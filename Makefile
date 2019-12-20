@@ -1,7 +1,7 @@
 ## MAKEFILE FOR grid_power.cpp. This compiles the grid_power.cpp file into the ./power exececutable.
 CC = gcc
 CFLAGS = -O3 -Wall
-CXXFLAGS = -DPOWER -Wall -O3 -DOPENMP
+CXXFLAGS = -DPOWER -Wall -O3 -DOPENMP -DPERIODIC
 # disable OPENMP to run single threaded
 #-DPERIODIC # use this to enable periodic behavior
 

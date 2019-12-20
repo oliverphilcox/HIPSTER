@@ -1,6 +1,6 @@
 ## Function to compute the survey correction function for a given survey geometry (specified an input random particle file).
 ## This is based on a simple wrapper for Corrfunc, to compute RR counts which are compared to an idealized model
-## If the periodic flag is set, we assume a periodic simulation and measure mu from the Z-axis.
+## NB: This requires an aperiodic survey.
 ## Results are stored as fits to the multipoles of 1/Phi = RR_true / RR_model, which is read by the C++ code
 
 import sys
@@ -24,7 +24,10 @@ if not periodic:
     nmu_bins = int(sys.argv[6])
     nthreads = int(sys.argv[7])
     mu_max = 1.;
-
+else:
+    print("We don't need to compute a correction function for periodic data! Exiting.")
+    sys.exit()
+    
 ## First read in weights and positions:
 dtype = np.double
 
