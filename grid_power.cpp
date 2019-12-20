@@ -138,7 +138,7 @@ int main(int argc, char *argv[]) {
 
     // Compute kernel interpolation functions
     printf("Creating kernel interpolator function\n");
-    KernelInterp interp_func(par.R0,par.rmax);
+    KernelInterp interp_func(par.R0,par.rmin,par.rmax);
 
     // RUN Pair Counter
 

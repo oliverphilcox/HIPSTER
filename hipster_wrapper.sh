@@ -161,9 +161,9 @@ let K_BINS++
 
 # Define file names
 CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0}_lmax${MAX_L}.txt
-RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}_full.txt
-DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}_full.txt
-DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_full.txt
+RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}.txt
+DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}.txt
+DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}.txt
 OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
 
 # If correction file does not exist re-create it!
@@ -212,7 +212,7 @@ fi
 if ! $PRELOAD; then
       echo
       echo "COMPUTING RR PAIR COUNTS"
-      $CODE_DIR/power -in $RAN_RR -in2 $RAN_RR -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_RR -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
+      $CODE_DIR/power -in $RAN_RR -in2 $RAN_RR -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING}_RR -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
       # Ensure that the files have actually been created
       if ! (test -f "$RR_FILE"); then
           echo
@@ -224,7 +224,7 @@ fi
 # Compute DR pair counts (always need to be computed)
 echo
 echo "COMPUTING DR PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $RAN_RR -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_DR -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
+$CODE_DIR/power -in $DATA -in2 $RAN_RR -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING}_DR -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
 # Ensure that the files have actually been created
 if ! (test -f "$DR_FILE"); then
     echo
@@ -236,7 +236,7 @@ fi
 # Compute DD pair counts (always need to be computed)
 echo
 echo "COMPUTING DD PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output/ -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
+$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
 # Ensure that the files have actually been created
 if ! (test -f "$DD_FILE"); then
     echo
@@ -256,4 +256,6 @@ if ! (test -f "$OUTPUT_FILE"); then
     exit 1;
 fi
 
+echo
 echo "COMPUTATIONS COMPLETE"
+echo
