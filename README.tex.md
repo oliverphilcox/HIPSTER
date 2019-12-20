@@ -2,12 +2,22 @@
 
 ## HIgh-k Power Spectrum EstimatoR
 
-Code to compute configuration-space power spectra for N-body simulations and galaxy surveys of arbitrary shape, based on the work of Philcox & Eisenstein (2019, accepted by MNRAS). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation in real- or redshift-space.
+Code to compute small-scale power spectra for N-body simulations and galaxy surveys of arbitrary shape, based on the configuration space estimators of Philcox & Eisenstein (2019, accepted by MNRAS, [arXiv](https://arxiv.org/abs/1912.01010)) and Philcox 2020 (in prep.). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the simulation box or survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation in real- or redshift-space.
 
-Full documentation of HIPSTER is available on [ReadTheDocs](https://HIPSTER.readthedocs.io). To compute a galaxy power spectrum up to $\ell=L$ with weighted pair counts from galaxies (``galaxies.dat``) and randoms (``randoms.dat``) truncated at radius $R_0$ with $k$-binning file ``binning.csv``, the basic usage is simply:
+The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys or N-body simulations respectively. The 'periodic' mode contains various optimizations relating to the periodic geometry, as detailed in the second paper.
+
+### Basic Usage
+
+To compute a power spectrum from particles in a *periodic* simulation box (``data.dat``) up to $\ell=L$ with pair-counts truncated at radius $R_0$ using $k$-space binning file ``binning.csv``, run:
+
+    ./hipster_wrapper_periodic.sh --dat data.dat --l_max L -R0 R0 -k_bin binning.csv
+
+To compute a power spectrum from galaxies in a *non-periodic* survey (``data.dat``), defined by a set of randoms (``randoms.dat``), up to $\ell=L$, truncating pair-counts at $R_0$ and using $k$-space binning file ``binning.csv`` run:
 
     ./hipster_wrapper.sh --dat galaxies.dat --ran_DR randoms.dat --ran_RR randoms.dat -l_max L -R0 R0 -k_bin binning.csv
 
 For any queries regarding the code please contact [Oliver Philcox](mailto:ohep2@alumni.cam.ac.uk).
 
-New for version 2: Optimizations for Periodic N-body Simulations
+**New for version 2**: Optimizations for periodic N-body simulations
+
+Full documentation of HIPSTER is available on [ReadTheDocs](https://HIPSTER.readthedocs.io). 

@@ -14,9 +14,8 @@ To Do:
 - Removed functionality for periodic correction function - must compute in C++ file.
 - We should remove periodic option from the usual wrapper
 - Preload interpolation grid?
-- Must create reconstruct_power_periodic.py file
-- Do normalization in code if periodic
-- Do all output processing in script
+- Rewrite README
+- Update docs
 
 To Test:
 Periodic power mode
