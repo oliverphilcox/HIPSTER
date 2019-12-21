@@ -11,6 +11,7 @@ Notes:
 - note there's no aliasing - v important
 - note that we can add odd monopoles if necessary
 - Note file names for periodic + aperiodic - removed `full`
+- To test validity; compute halo Pk from 100 Quijote sims - with subsampling and different R0 -> get to see errors!
 
 To Do:
 - We should remove periodic option from the usual wrapper
@@ -20,6 +21,7 @@ To Do:
 - add aperiodic subsampling
 - Must check normal wrapper still works
 - Remove periodicity in Phi correction entirely?
+- Note that subsampling is good for testing + on-the-fly estimates. Would be better to properly subsample + keep files else.
 
 To Test:
 Periodic power mode

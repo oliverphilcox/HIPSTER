@@ -114,7 +114,7 @@ fi
 if ! ( test -f "$BINFILE" ); then
     echo "Binning file: $BINFILE does not exist. Exiting;"; exit 1;
 fi
-if [[ $(bc <<< "$SUBSAMPLE < 1.") -eq 1 ]]; then echo "Subsampling parameter must be greater than or equal to unity. Exiting;" exit 1; fi;
+if [[ $(bc <<< "$SUBSAMPLE < 1.") -eq 1 ]]; then echo "Subsampling parameter must be greater than or equal to unity. Exiting;"; exit 1; fi;
 
 # Work out where the code is installed
 CODE_DIR=`dirname "$0"`

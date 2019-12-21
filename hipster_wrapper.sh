@@ -3,7 +3,7 @@
 
 # Define Inputs
 SHORT=h
-LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,load_RR
+LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,subsample:,load_RR
 
 # read the options
 OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
@@ -16,10 +16,10 @@ eval set -- "$OPTS"
  # set initial values
 PRELOAD=false
 PERIODIC=false
-PERIODIC_TAG=0
 PERIODIC_MAKEFLAG=
 PARAM_COUNT=0
 NTHREADS=10
+SUBSAMPLE=1
 
 # Help dialogue
 function usageText ()
@@ -36,6 +36,7 @@ function usageText ()
     echo "--string (Optional): Identification string for output file names."
     echo "--nthreads (Optional): Number of CPU threads on which to run. Default: 10"
     echo "--load_RR: If set, load previously computed RR pair counts and survey correction functions for a large speed boost."
+    echo "--subsample (Optional): Factor by which to sub-sample the data. Default: 1 (no subsampling)"
     echo
 }
 
@@ -85,6 +86,10 @@ while true ; do
       NTHREADS="$2"
       shift 2
       ;;
+    --subsample )
+      SUBSAMPLE="$2"
+      shift 2
+      ;;
     --load_RR )
       PRELOAD=true
       shift
@@ -118,6 +123,7 @@ echo "k-space binning file: $BINFILE"
 echo "Output string: $STRING"
 echo "CPU-threads: $NTHREADS"
 echo "Periodic: $PERIODIC"
+echo "Subsampling: $SUBSAMPLE"
 echo
 
 # Check some variables:
@@ -143,6 +149,7 @@ fi
 if ! ( test -f "$BINFILE" ); then
     echo "Binning file: $BINFILE does not exist. Exiting;"; exit 1;
 fi
+if [[ $(bc <<< "$SUBSAMPLE < 1.") -eq 1 ]]; then echo "Subsampling parameter must be greater than or equal to unity. Exiting;"; exit 1; fi;
 
 # Work out where the code is installed
 CODE_DIR=`dirname "$0"`
@@ -150,6 +157,50 @@ CODE_DIR=`dirname "$0"`
 # Compute number of k bins in file
 K_BINS=`wc -l < $BINFILE`
 let K_BINS++
+
+# Subsample files if necessary
+if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
+  # Count number of particles in file
+  N_GAL=`wc -l < $DATA`
+  let N_GAL++
+  if ! $PRELOAD;  then
+    LEN_RAND_RR=`wc -l < $RAN_RR`
+    let LEN_RAND_RR++
+  fi
+  LEN_RAND_DR=`wc -l < $RAN_DR`
+  let LEN_RAND_DR++
+
+  # Compute number after subsampling and ensure it's an integer
+  N_SUB=`echo "$N_GAL/$SUBSAMPLE" | bc`
+  N_SUB=`echo "($N_SUB+0.5)/1" | bc`
+  if ! $PRELOAD;  then
+    N_SUB_RR=`echo "$LEN_RAND_RR/$SUBSAMPLE" | bc`
+    N_SUB_RR=`echo "($N_SUB_RR+0.5)/1" | bc`
+  fi
+  N_SUB_DR=`echo "$LEN_RAND_DR/$SUBSAMPLE" | bc`
+  N_SUB_DR=`echo "($N_SUB_DR+0.5)/1" | bc`
+
+  # Run subsampling script and create new file names
+  NEW_DATA=$DATA.sub
+  echo "Subsampling data with subsampling ratio $SUBSAMPLE"
+  python $CODE_DIR/python/take_subset_of_particles.py $DATA $NEW_DATA $N_SUB
+  DATA=$NEW_DATA
+
+  if ! $PRELOAD;  then
+    NEW_RR=$RAN_RR.sub
+    echo "Subsampling RR file with subsampling ratio $SUBSAMPLE"
+    python $CODE_DIR/python/take_subset_of_particles.py $RAN_RR $NEW_RR $N_SUB_RR
+    RAN_RR=$NEW_RR
+  fi
+
+  NEW_DR=$RAN_DR.sub
+  echo "Subsampling DR file with subsampling ratio $SUBSAMPLE"
+  python $CODE_DIR/python/take_subset_of_particles.py $RAN_DR $NEW_DR $N_SUB_DR
+  RAN_DR=$NEW_DR
+
+  echo "Using $N_SUB particles in $DATA, from $N_GAL particles originally"
+fi
+
 
 # Define file names
 CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0}_lmax${MAX_L}.txt
@@ -171,7 +222,7 @@ if ! $PRELOAD;  then
     echo
     echo "COMPUTING SURVEY CORRECTION FUNCTION"
     echo
-    python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $PERIODIC_TAG $R0 $R0 100 $NTHREADS
+    python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $R0 $R0 100 $NTHREADS
 fi
 
 # Count number of randoms in each file
@@ -236,7 +287,7 @@ fi
 echo
 echo "COMBINING PAIR COUNTS TO FORM POWER SPECTRUM"
 echo
-python $CODE_DIR/python/reconstruct_power.py $DD_FILE $DR_FILE $RR_FILE $DATA $N_RAND_RR $N_RAND_DR $PERIODIC_TAG $OUTPUT_FILE
+python $CODE_DIR/python/reconstruct_power.py $DD_FILE $DR_FILE $RR_FILE $DATA $N_RAND_RR $N_RAND_DR $OUTPUT_FILE
 # Ensure this ran as expected
 if ! (test -f "$OUTPUT_FILE"); then
     echo

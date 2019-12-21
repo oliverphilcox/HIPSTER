@@ -20,7 +20,7 @@ For pair-count analysis, we usually require random particle files larger than th
 
     python python/take_subset_of_particles/py {INPUT_FILE} {OUTPUT_FILE} {N_PARTICLES}
 
-For periodic boxes, we do not need to generate random particle files, but the above script can be useful for subsampling the data, for faster runtimes.
+For periodic boxes, we do not need to generate random particle files, but the above script can be useful for subsampling the data, for faster runtimes. Note also that the HIPSTER wrapper has an option for subsampling; if set, this uses a random subset of the data (and random particles), with the fraction specified by the user. Whilst this is useful to get an idea of run-times and for fast evaluation, we recommend applying subsampling separately for full analyses, to ensure that the subsampled data is the same each time the code is run.
 
 .. _binning_function_input
 
@@ -32,6 +32,6 @@ In addition to the sets of data/random positions, we require a file to specify t
         python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
         python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
 
-with the output file saved to the specified destination.
+with the output file saved to the specified destination. See :ref:`truncation-radius-note` for more information on choosing the :math:`k`-space binning.
 
 The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each :math:`k`-bin (in comoving :math:`h\,\mathrm{Mpc}^{-1}`` units). Note that the bins are required to be contiguous (i.e. the upper limit of the :math:`n`-th bin should equal the lower limit of the :math:`(n+1)`-th bin.
