@@ -32,6 +32,6 @@ In addition to the sets of data/random positions, we require a file to specify t
         python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
         python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
 
-with the output file saved to the specified destination. See :ref:`truncation-radius-note` for more information on choosing the :math:`k`-space binning.
+with the output file saved to the specified destination.
 
 The binning file can also be manually specified as an ASCII file with each line specifying the upper and lower coordinates of each :math:`k`-bin (in comoving :math:`h\,\mathrm{Mpc}^{-1}`` units). Note that the bins are required to be contiguous (i.e. the upper limit of the :math:`n`-th bin should equal the lower limit of the :math:`(n+1)`-th bin.

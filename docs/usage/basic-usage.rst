@@ -51,7 +51,7 @@ Similarly, for a simulation with periodic boundary conditions with data-file ``d
 
 Here, we've set the subsampling to 2, meaning that we'll use (a randomly selected) half of the available data, to get faster computation.
 
-The output of the wrapper is saved as ``output/{STRING}_power_spectrum_n{K_BINS}_l{MAX_L}.txt`` where {STRING} is the identification string described above, {MAX_L} is the maximum Legendre multipole and {K_BINS} is the number of :math:`k` bins in the binning file. The output file contains power spectrum estimates for each :math:`k`-bin on a separate line, with the column indicating the (even) Legendre multipole.
+The output of the wrapper is saved in the HIPSTER directory as ``output/{STRING}_power_spectrum_n{K_BINS}_l{MAX_L}.txt`` where {STRING} is the identification string described above, {MAX_L} is the maximum Legendre multipole and {K_BINS} is the number of :math:`k` bins in the binning file. The output file contains power spectrum estimates for each :math:`k`-bin on a separate line, with the column indicating the (even) Legendre multipole.
 
 .. _periodicity-note:
 
