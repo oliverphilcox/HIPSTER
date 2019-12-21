@@ -40,7 +40,7 @@ Main Authors:
 
 Additional Collaborators:
 
-- David Spergel (CCA / Princeton)
+- David N. Spergel (CCA / Princeton)
 - Francisco Villaescusa-Navarro (CCA / Princeton)
 
 Please cite the initial theory paper (Philcox & Eisenstein 2019, accepted by MNRAS, `arXiv <https://arxiv.org/abs/1912.01010>`_) and the periodic power spectrum and bispectrum paper (Philcox 2020, in prep.) when using this code in your research.

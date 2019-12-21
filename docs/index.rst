@@ -10,13 +10,13 @@ The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys
 
 The source code is publicly available on `Github <https://github.com/oliverphilcox/HIPSTER>`_, and contains many modules modified from the `RascalC <https://github.com/oliverphilcox/HIPSTER>`_ covariance matrix code.
 
-To compute a 'periodic' matter power spectrum up to :math:`\ell=L` from a particles in a simulation box (``data.dat``), with pair counts truncated at radius ``R0`` with :math:`k`-space binning file ``binning.csv`` we simply run::
+To compute a 'periodic' matter power spectrum up to :math:`\ell=L` from a particles in a simulation box (``data.dat``), with pair counts truncated at radius ``R0`` with :math:`k`-space binning file ``binning.csv`` on 4 CPU-cores, we simply run::
 
-  ./hipster_wrapper_periodic.sh --dat data.dat --l_max L -R0 R0 -k_bin binning.csv
+  ./hipster_wrapper_periodic.sh --dat data.dat --l_max L -R0 R0 -k_bin binning.csv --nthreads 4
 
 For a galaxy power spectrum with a non-trivial survey geometry, we also need random particle files (``randoms.dat``) and the usage is simply::
 
-    ./hipster_wrapper.sh --dat data.dat --ran_DR randoms.dat --ran_RR randoms.dat -l_max L -R0 R0 -k_bin binning.csv
+    ./hipster_wrapper.sh --dat data.dat --ran_DR randoms.dat --ran_RR randoms.dat -l_max L -R0 R0 -k_bin binning.csv --nthreads 4
 
 This is described in detail in the accompanying pages.
 
