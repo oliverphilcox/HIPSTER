@@ -113,7 +113,7 @@ fi
 if ! ( test -f "$BINFILE" ); then
     echo "Binning file: $BINFILE does not exist. Exiting;"; exit 1;
 fi
-if [[ $(bc <<< "$SUBSAMPLE <= 0.") -eq 1 ]]; then echo "Subsampling parameter must be greater than or equal to unity. Exiting;" exit 1; fi;
+if [[ $(bc <<< "$SUBSAMPLE < 1.") -eq 1 ]]; then echo "Subsampling parameter must be greater than or equal to unity. Exiting;" exit 1; fi;
 
 # Work out where the code is installed
 CODE_DIR=`dirname "$0"`
@@ -127,9 +127,10 @@ if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
   # Count number of particles in file
   N_GAL=`wc -l < $DATA`
   let N_GAL++
-
-  # Compute number after subsampling
+  
+  # Compute number after subsampling and ensure it's an integer
   N_SUB=`echo "$N_GAL/$SUBSAMPLE" | bc`
+  N_SUB=`echo "($N_SUB+0.5)/1" | bc`
 
   # Run subsampling script and create new file name
   NEW_DATA=$DATA.sub

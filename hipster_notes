@@ -17,6 +17,7 @@ To Do:
 - Preload interpolation grid?
 - Rewrite README
 - Update docs
+- add aperiodic subsampling
 - Must check normal wrapper still works
 - Remove periodicity in Phi correction entirely?
 
