@@ -33,8 +33,8 @@ function usageText ()
     echo "--l_max: Maximum Legendre multipole"
     echo "--R0: Pair count truncation radius"
     echo "--k_bin: k-space binning file"
-    echo "--string: (Optional): Identification string for output file names."
-    echo "--nthreads: (Optional): Number of CPU threads on which to run. Default: 10"
+    echo "--string (Optional): Identification string for output file names."
+    echo "--nthreads (Optional): Number of CPU threads on which to run. Default: 10"
     echo "--load_RR: If set, load previously computed RR pair counts and survey correction functions for a large speed boost."
     echo
 }

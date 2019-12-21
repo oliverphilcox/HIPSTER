@@ -8,7 +8,9 @@ Notes:
 - To run on Mac need gcc + gnu-getopt
 - usual wrapper currently broken
 - removed suffices from counts
-- Note file names for periodic
+- note there's no aliasing - v important
+- note that we can add odd monopoles if necessary
+- Note file names for periodic + aperiodic - removed `full`
 
 To Do:
 - We should remove periodic option from the usual wrapper

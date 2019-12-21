@@ -11,7 +11,7 @@ if len(sys.argv)<4:
 infile_name = str(sys.argv[1])
 outfile_name = str(sys.argv[2])
 N=int(sys.argv[3])
-    
+
 # First count number of lines
 print('Counting particles in file')
 with open(infile_name) as f:
@@ -33,7 +33,7 @@ with open(infile_name) as infile:
     with open(outfile_name,"w") as outfile:
         for l,line in enumerate(infile):
             if l==random_indices[count]:
-                count +=1
+                count +=10
                 perc=float(count)/float(N)*100.
                 if perc>=perc_count:
                     print("Read in particle %d of %d: %d%% Complete" %(count,N,perc_count))
@@ -43,6 +43,6 @@ with open(infile_name) as infile:
                 break
             else:
                 pass
-            
+
 end=time.time()-init_time
-print('Task took %d seconds in total and uses %.2f%% of the available particles' %(end,float(N)/float(total_lines)*100.)) 
+print('Task took %d seconds in total and uses %.2f%% of the available particles' %(end,float(N)/float(total_lines)*100.))
