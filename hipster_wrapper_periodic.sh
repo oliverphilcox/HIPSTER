@@ -139,11 +139,6 @@ if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
   python $CODE_DIR/python/take_subset_of_particles.py $DATA $NEW_DATA $N_SUB
   DATA=$NEW_DATA
 
-  N_SUB2=`wc -l < $DATA`
-  let N_SUB2++
-  echo "Want $N_SUB; got $N_SUB2"
-  exit 1;
-
   echo "Using $N_SUB particles in $DATA, from $N_GAL particles originally"
 fi
 
