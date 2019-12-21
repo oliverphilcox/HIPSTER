@@ -116,8 +116,8 @@ K_BINS=`wc -l < $BINFILE`
 let K_BINS++
 
 # Define file names
-DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_full.txt
-RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_L${MAX_L}_full.txt
+DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}.txt
+RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_L${MAX_L}.txt
 OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
 
 # Compile code
