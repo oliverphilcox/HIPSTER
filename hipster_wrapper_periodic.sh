@@ -16,6 +16,7 @@ eval set -- "$OPTS"
  # set initial values
 PARAM_COUNT=0
 NTHREADS=10
+SUBSAMPLE=1
 
 # Help dialogue
 function usageText ()
@@ -127,7 +128,7 @@ if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
   # Count number of particles in file
   N_GAL=`wc -l < $DATA`
   let N_GAL++
-  
+
   # Compute number after subsampling and ensure it's an integer
   N_SUB=`echo "$N_GAL/$SUBSAMPLE" | bc`
   N_SUB=`echo "($N_SUB+0.5)/1" | bc`
@@ -138,12 +139,17 @@ if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
   python $CODE_DIR/python/take_subset_of_particles.py $DATA $NEW_DATA $N_SUB
   DATA=$NEW_DATA
 
+  N_SUB2=`wc -l < $DATA`
+  let N_SUB2++
+  echo "Want $N_SUB; got $N_SUB2"
+  exit 1;
+
   echo "Using $N_SUB particles in $DATA, from $N_GAL particles originally"
 fi
 
 # Define file names
 DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}.txt
-RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_L${MAX_L}.txt
+RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_l${MAX_L}.txt
 OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
 
 # Compile code

@@ -33,11 +33,11 @@ with open(infile_name) as infile:
     with open(outfile_name,"w") as outfile:
         for l,line in enumerate(infile):
             if l==random_indices[count]:
-                count +=10
+                count +=1
                 perc=float(count)/float(N)*100.
                 if perc>=perc_count:
                     print("Read in particle %d of %d: %d%% Complete" %(count,N,perc_count))
-                    perc_count+=5
+                    perc_count+=10
                 outfile.write(line)
             if count>=N:
                 break
