@@ -4,7 +4,7 @@ HIPSTER: HIgh-k Power SpecTrum EstimatoR
 Overview
 ----------
 
-HIPSTER is a code to quickly compute small-scale power spectra for galaxy surveys and N-body simulations, based on the work of Philcox & Eisenstein (2019, accepted by MNRAS, `arXiv <https://arxiv.org/abs/1912.01010>`_) and Philcox (2020, in prep.). This computes the Legendre multipoles of the power spectrum, :math:`P_\ell(k)` in *configuration space*, by computing weighted pair counts over the survey or simulation box truncated at some maximum radius. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation.
+HIPSTER is a code to quickly compute small-scale power spectra for galaxy surveys and N-body simulations, based on the work of Philcox & Eisenstein (2019, accepted by MNRAS, `arXiv <https://arxiv.org/abs/1912.01010>`_) and Philcox (2020, in prep.). This computes the Legendre multipoles of the power spectrum, :math:`P_\ell(k)` in *configuration space*, by computing weighted pair counts over the survey or simulation box truncated at some maximum radius. This does not include shot-noise or aliasing, fully accounts for window function effects and is optimized for small-scale power spectrum computation.
 
 The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys or N-body simulations respectively. The 'periodic' mode contains various optimizations relating to the periodic geometry, as detailed in the second paper.
 

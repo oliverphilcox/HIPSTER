@@ -2,7 +2,7 @@
 
 ## HIgh-k Power Spectrum EstimatoR
 
-Code to compute small-scale power spectra for N-body simulations and galaxy surveys of arbitrary shape, based on the configuration space estimators of Philcox & Eisenstein (2019, accepted by MNRAS, [arXiv](https://arxiv.org/abs/1912.01010)) and Philcox 2020 (in prep.). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the simulation box or survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise, and is optimized for small-scale power spectrum computation in real- or redshift-space.
+Code to compute small-scale power spectra for N-body simulations and galaxy surveys of arbitrary shape, based on the configuration space estimators of Philcox & Eisenstein (2019, accepted by MNRAS, [arXiv](https://arxiv.org/abs/1912.01010)) and Philcox 2020 (in prep.). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ by computing weighted pair counts over the simulation box or survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise or aliasing, and is optimized for small-scale power spectrum computation in real- or redshift-space.
 
 The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys or N-body simulations respectively. The 'periodic' mode contains various optimizations relating to the periodic geometry, as detailed in the second paper.
 
