@@ -29,14 +29,14 @@ m=10:    x^10 - 45 x^8 y^2 + 210 x^6 y^4  - 210 x^4 y^6 + 45 x^2 y^8 + y^10
 int _n = 0;
 // 0,0:   1
 almbin[_n++] = CM(0,0,0);
-if (max_legendre==0) continue;
+if (max_legendre==0) break;
 
 // 1,0:   z
 // 1,1:   1
 almbin[_n++] = CM(0,0,1);
 almbin[_n++] = Complex(CM(1,0,0),
                     CM(0,1,0));
-if (max_legendre==1) continue;
+if (max_legendre==1) break;
 
 // 2,0:   3 z^2 - 1
 // 2,1:   z
@@ -47,7 +47,7 @@ almbin[_n++] = Complex( CM(1,0,1)
 almbin[_n++] = Complex( CM(2,0,0)
 		    -CM(0,2,0)
                     ,2*CM(1,1,0));
-if (max_legendre==2) continue;
+if (max_legendre==2) break;
 
 // 3,0:   5 z^3 - 3 z
 // 3,1:   5 z^2 - 1
@@ -72,7 +72,7 @@ almbin[_n++] =
 	,3*CM(2,1,0)
 	  -CM(0,3,0)
    );
-if (max_legendre==3) continue;
+if (max_legendre==3) break;
 
 // 4,0:   35 z^4 - 30 z^2 + 3
 // 4,1:   7 z^3 - 3 z
@@ -106,7 +106,7 @@ almbin[_n++] =
 	,4*CM(3,1,0)
 	-4*CM(1,3,0)
    );
-if (max_legendre==4) continue;
+if (max_legendre==4) break;
 
 // 5,0:   63 z^5 - 70 z^3 + 15
 // 5,1:   21 z^4 - 14 z^2 + 1
@@ -150,7 +150,7 @@ almbin[_n++] =
    	-10*CM(2,3,0)
    	   +CM(0,5,0)
    );
-if (max_legendre==5) continue;
+if (max_legendre==5) break;
 
 // 6,0:   231 z^6 - 315 z^4 + 105 z^2 - 5
 // 6,1:   33 z^5 - 30 z^3 + 5
@@ -205,7 +205,7 @@ almbin[_n++] =
    	-20*CM(3,3,0)
    	 +6*CM(1,5,0)
    );
-if (max_legendre==6) continue;
+if (max_legendre==6) break;
 
 // 7,0:   429 z^7 - 693 z^5 + 315 z^3 - 35 z
 // 7,1:   429 z^6 - 495 z^4 + 135 z^2 - 5
@@ -272,7 +272,7 @@ almbin[_n++] =
    	+21*CM(2,5,0)
    	   -CM(0,7,0)
    );
-if (max_legendre==7) continue;
+if (max_legendre==7) break;
 
 // 8,0:   6435 z^8 - 12012 z^6 + 6930 z^4 - 1260 z^2 + 35
 // 8,1:   715 z^7 - 1001 z^5 + 385 z^3 - 35 z
@@ -352,7 +352,7 @@ almbin[_n++] =
 	+56*CM(3,5,0)
 	 -8*CM(1,7,0)
    );
-if (max_legendre==8) continue;
+if (max_legendre==8) break;
 
 // 9,0:   12155 z^9 - 25740 z^7 + 18018 z^5 - 4620 z^3 + 315 z
 // 9,1:   2431 z^8 - 4004 z^6 + 2002 z^4 - 308 z^2 + 7
@@ -446,7 +446,7 @@ almbin[_n++] =
 	 -36*CM(2,7,0)
 	    +CM(0,9,0)
    );
-if (max_legendre==9) continue;
+if (max_legendre==9) break;
 
 // 10,0:   46189 z^10 - 109395 z^8 + 90090 z^6 - 30030 z^4 + 3465 z^2 - 63
 // 10,1:   4199 z^9 - 7956 z^7 + 4914 z^5 - 1092 z^3 + 63 z
@@ -555,6 +555,6 @@ almbin[_n++] =
 	-120*CM(3,7,0)
 	 +10*CM(1,9,0)
    );
-if (max_legendre==10) continue;
+if (max_legendre==10) break;
 
 } // end insertion

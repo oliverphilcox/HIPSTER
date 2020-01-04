@@ -17,8 +17,7 @@ private:
     KernelInterp *kernel_interp;
 
     // Triple count arrays
-    Complex *alm;   // Y_lm (for m>0) for a particle
-    Float *m; // powers of x,y,z used for Y_lms
+    int map[MAXORDER+1][MAXORDER+1][MAXORDER+1]; // The multipole index of x^a y^b z^c
     Complex *Aa_lm; // A^a_lm vector
     Float *Cab_l; // C^{ab}_lm vector
     Float *kernel_arr; // j^a_ell(kr)W(r) for specific ell
@@ -53,25 +52,16 @@ public:
         max_legendre = par->max_l;
 
         n_lm = (max_legendre+1)*(max_legendre+2)/2; // number of Y_lm bins up to maximum ell
-        n_mult = ((max_legendre+1)*(max_legendre+2)*(max_legendre+3)/6) // total number of Cartesian multipoles, satisfying a+b+c<=max-legendre
+        n_mult = ((max_legendre+1)*(max_legendre+2)*(max_legendre+3)/6); // total number of Cartesian multipoles, satisfying a+b+c<=max-legendre
 
         // define power spectrum normalization if periodic = n^3 V = N^3 / V^2
         bispectrum_norm = pow(par->np,3.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],2.);
 
-
-            // Triple count arrays
-            Complex *alm[n_lm];   // Y_lm (for m>0) for a particle
-            Float *m[n_mult]; // powers of x,y,z used for Y_lms
-            Complex *Aa_lm[n_lm*nbin]; // A^a_lm vector
-            Float *Cab_l[nbin*nbin*mbin]; // C^{ab}_lm vector
-            Float *kernel_arr[nbin]; // j^a_ell(kr)W(r) for specific ell
-
-
         // Generate necessary arrays
         int ec=0;
         ec+=posix_memalign((void **) &bispectrum_counts, PAGE, sizeof(double)*nbin*nbin*mbin);
-        ec+=posix_memalign((void **) &alm, PAGE, sizeof(Complex)*n_lm);
-        ec+=posix_memalign((void **) &m, PAGE, sizeof(Float)*n_mult);
+        //ec+=posix_memalign((void **) &alm, PAGE, sizeof(Complex)*n_lm);
+        //ec+=posix_memalign((void **) &m, PAGE, sizeof(Float)*n_mult);
         ec+=posix_memalign((void **) &Aa_lm, PAGE, sizeof(Complex)*n_lm*nbin);
         ec+=posix_memalign((void **) &Cab_l, PAGE, sizeof(Float)*nbin*nbin*mbin);
         ec+=posix_memalign((void **) &kernel_arr, PAGE, sizeof(Float)*nbin);
@@ -97,8 +87,8 @@ public:
 
     ~BispectrumCounts(){
         free(bispectrum_counts);
-        free(alm);
-        free(m);
+        //free(alm);
+        //free(m);
         free(Aa_lm);
         free(Cab_l);
         free(kernel_arr);
@@ -147,7 +137,6 @@ public:
               old_kernel = new_kernel;
           }
       }
-
     // Now save output
     char RRR_periodic_name[1000];
     Float tmp_out;
@@ -167,7 +156,7 @@ public:
         }
     }
     fflush(NULL);
-
+    
     // Close open files
     fclose(RRR_periodic_file);
 
@@ -181,31 +170,33 @@ public:
         // Input is the list of all separations of a primary particle with secondaries and length of this list.
         // Full bispectrum kernel is made from this.
 
-        Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel;
+        Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
+        Float3 norm_sep;
 
         // Must first zero useful arrays
         for(int mm=0;mm<n_lm*nbin;mm++) Aa_lm[mm]=0;
         for(int mm=0;mm<nbin*nbin*mbin;mm++) Cab_l[mm]=0;
 
+        Complex alm[n_lm];   // Y_lm (for m>0) for a particle
+        Float m[n_mult]; // powers of x,y,z used for Y_lms
+
         // First iterate over all particles in register and compute W(r;R_0)j_ell^a and Y_lm;
         for(int n=0;n<register_size;n++){
             used_pairs++; // update number of pairs used
 
-            if(separation_register[n]==0){
+            // Compute separation length and check if in [0,R0];
+            particle_sep = separation_register[n].norm();
+            if((particle_sep>=R0)) continue;
+            if((particle_sep==0)){
                   fprintf(stderr,"Zero found in register; this suggests a self-count problem.\n");
                   exit(1);
             }
 
-            // Compute separation length and check if <R0;
-            particle_sep = separation_register.norm();
-            if(particle_sep<R0){
-                continue;
-            }
             sep_weight = pair_weight(particle_sep); // compute W(r;R_0)
 
             // Compute Y_lm for particle pair in the alm variable
             norm_sep = separation_register[n]/particle_sep;
-            compute_Ylm(norm_sep, &alm, m);
+            compute_Ylm(norm_sep, alm, m);
 
             // Now let's compute the k-binning kernels in each k-bin and ell
             int nn=0; //nn counts location in Y_lm array
@@ -333,10 +324,11 @@ public:
 }
 #endif
 
+
 // SPHERICAL HARMONIC INFORMATION
 
-inline void compute_Ylm(Float3 norm_sep, Complex alm, Float m){
-      // Compute Y_lm coefficients given input normalized vector and holder of coefficients + emptpy array for powers.
+inline void compute_Ylm(Float3 norm_sep, Complex* alm, Float* m){
+      // Compute Y_lm coefficients given input normalized vector and holder of coefficients + empty array for powers.
       Float *mm = m;
       Float fi, fij, fijk;
       // First consider all possible powers of separation vector x,y,z coordinates
@@ -355,11 +347,13 @@ inline void compute_Ylm(Float3 norm_sep, Complex alm, Float m){
           fi *= norm_sep.x;
       }
 
+while (true){
 #define CM(a,b,c) m[map[a][b][c]]
       Complex *almbin = &(alm[0]);
 
       // Next fill up Y_lms (using tedious spherical harmonic code in another file)
-      #include "spherical_harmonics.cpp"
+      #include "spherical_harmonics.h"
+}
 }
 
 void make_map() {
@@ -368,102 +362,15 @@ void make_map() {
             for(int j=0;j<=MAXORDER-i;j++)
                 for(int k=0;k<=MAXORDER-i-j;k++) map[i][j][k] = 0;
 	int n=0;
-        for(int i=0;i<=ORDER;i++)
-            for(int j=0;j<=ORDER-i;j++)
-                for(int k=0;k<=ORDER-i-j;k++) {
+        for(int i=0;i<=max_legendre;i++)
+            for(int j=0;j<=max_legendre-i;j++)
+                for(int k=0;k<=max_legendre-i-j;k++) {
 		    map[i][j][k] = n; n++;
 		}
 	return;
 }
 
-#define NLM_MAX ((MAXORDER+1)*(MAXORDER+2)/2)
-// Some global constants for the a_lm normalizations.
-// From: http://en.wikipedia.org/wiki/Table_of_spherical_harmonics
-// Including an extra factor of 2 in all m!=0 cases.
-
-// All factors are of the form a*sqrt(b/pi), so let's use that:
-#define YNORM(a,b) (2.0*(1.0*a)*(1.0*a)*(1.0*b)/M_PI)
-// This includes the factor of 2, so divide the m=0 by 2.
-
-static Float almnorm[NLM_MAX] = {
-    YNORM(1/2,1)/2.0,
-
-    YNORM(1/2,3)/2.0,
-    YNORM(1/2,3/2),
-
-    YNORM(1/4,5)/2.0,
-    YNORM(1/2,15/2),
-    YNORM(1/4,15/2),
-
-    YNORM(1/4,7)/2.0,
-    YNORM(1/8,21),
-    YNORM(1/4,105/2),
-    YNORM(1/8,35),
-
-    YNORM(3/16,1)/2.0,
-    YNORM(3/8,5),
-    YNORM(3/8,5/2),
-    YNORM(3/8, 35),
-    YNORM(3/16, 35/2),
-
-    YNORM(1/16, 11)/2.0,
-    YNORM(1/16, 165/2),
-    YNORM(1/8, 1155/2),
-    YNORM(1/32, 385),
-    YNORM(3/16, 385/2),
-    YNORM(3/32, 77),
-
-    YNORM(1/32, 13)/2.0,
-    YNORM(1/16, 273/2),
-    YNORM(1/64, 1365),
-    YNORM(1/32, 1365),
-    YNORM(3/32, 91/2),
-    YNORM(3/32, 1001),
-    YNORM(1/64, 3003),
-
-    YNORM(1/32, 15)/2.0,
-    YNORM(1/64, 105/2),
-    YNORM(3/64, 35),
-    YNORM(3/64, 35/2),
-    YNORM(3/32, 385/2),
-    YNORM(3/64, 385/2),
-    YNORM(3/64, 5005),
-    YNORM(3/64, 715/2),
-
-    YNORM(1/256, 17)/2.0,
-    YNORM(3/64, 17/2),
-    YNORM(3/128, 595),
-    YNORM(1/64, 19635/2),
-    YNORM(3/128, 1309/2),
-    YNORM(3/64, 17017/2),
-    YNORM(1/128, 7293),
-    YNORM(3/64, 12155/2),
-    YNORM(3/256, 12155/2),
-
-    YNORM(1/256, 19)/2.0,
-    YNORM(3/256, 95/2),
-    YNORM(3/128, 1045),
-    YNORM(1/256, 21945),
-    YNORM(3/128, 95095/2),
-    YNORM(3/256, 2717),
-    YNORM(1/128, 40755),
-    YNORM(3/512, 13585),
-    YNORM(3/256, 230945/2),
-    YNORM(1/512, 230945),
-
-    YNORM(1/512, 21)/2.0,
-    YNORM(1/256, 1155/2),
-    YNORM(3/512, 385/2),
-    YNORM(3/256, 5005),
-    YNORM(3/256, 5005/2),
-    YNORM(3/256, 1001),
-    YNORM(3/1024, 5005),
-    YNORM(3/512, 85085),
-    YNORM(1/512, 255255/2),
-    YNORM(1/512, 4849845),
-    YNORM(1/1024, 969969)
 };
 
-};
 
 #endif

@@ -43,7 +43,7 @@ public:
         one_grid=0;
         if((!strcmp(par->fname,par->fname2))&&(!strcmp(par->fname,par->fname3))) one_grid=1;
         if(one_grid!=1){
-            fprintf("Triple counts for non-identical fields are not yet supported! Exiting.");
+            fprintf(stderr,"Triple counts for non-identical fields are not yet supported! Exiting.");
             exit(1);
         }
         STimer initial, TotalTime; // time initialization

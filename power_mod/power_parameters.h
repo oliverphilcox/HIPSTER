@@ -13,19 +13,19 @@ public:
 
     // Name of the first particle field
     char *fname = NULL;
-    const char default_fname[500] = "";
+    const char default_fname[500] = "../hipster_data/mock_1.sub";
 
     // Name of second particle field
     char *fname2 = NULL;
-	const char default_fname2[500] = "";
+	const char default_fname2[500] = "../hipster_data/mock_1.sub";
 
     // Optional File Prefix for output
     char *out_string = NULL;
-    const char default_out_string[500] = "";
+    const char default_out_string[500] = "../hipster_data/mock_1.sub";
 
     // Name of the radial binning .csv file in k-space
     char *radial_bin_file = NULL;
-    const char default_radial_bin_file[500] = "";
+    const char default_radial_bin_file[500] = "../hipster_data/k_bins.txt";
 
     // Output directory
     char *out_file = NULL;
@@ -39,11 +39,11 @@ public:
 	int nside = 100;
 
     // Whether or not we are using a periodic box
-	bool perbox = false;
+	bool perbox = true;
 
-    int max_l = 2;; // max Legendre moment (must be even for power spectrum)
+    int max_l = 4;; // max Legendre moment (must be even for power spectrum)
 
-    Float R0 = 100; // kernel truncation radius (in Mpc/h)
+    Float R0 = 15; // kernel truncation radius (in Mpc/h)
 
     char *inv_phi_file = NULL; // Survey correction function coefficient file
     const char default_inv_phi_file[500] = "";
@@ -51,7 +51,7 @@ public:
     //-------- BISPECTRUM PARAMETERS -----------------------------------------
     // Name of third particle field
     char *fname3 = NULL;
-	  const char default_fname3[500] = "";
+	  const char default_fname3[500] = "../hipster_data/mock_1.sub";
 
     //-------- OTHER PARAMETERS ----------------------------------------------
 
@@ -169,12 +169,12 @@ public:
         }
 #endif
 
-        if(R0<20){
-            printf("\nTruncation radius (%.0f Mpc/h) is too small for accurate power computation. Exiting.\n\n",R0);
+        if(R0<10){
+            printf("\nTruncation radius (%.0f Mpc/h) is too small for accurate spectral computation. Exiting.\n\n",R0);
             exit(1);
         }
         if(R0>400){
-            printf("\nTruncation radius (%.0f Mpc/h) is too large for efficient power computation. Exiting.\n\n",R0);
+            printf("\nTruncation radius (%.0f Mpc/h) is too large for efficient spectral computation. Exiting.\n\n",R0);
             exit(1);
         }
 

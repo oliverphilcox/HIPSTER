@@ -4,11 +4,8 @@ Bispectrum:
 - How do we do normalization? x 6 or not? + Check with i<j<k thing
 - Indexing in RRR file has each ell in separate column and n^2 radial bins
 NB: some of the one-grid utilities in the group_counter script will fail for non-equal fields.
-NB: This is horribly inefficient currently. Can pre-compute lots of quantities in bisepctrum kernel.
 - We can probably pre-allocate memory to registers for speed in bisecptrum_counts
-- used_triples actually holds pairs... check this + relabel?
-
-- Currently computing DDD term in full (except normalization and factor of 6(-1)^ell etc.) -> includes A_lm*A_lm - C_l here
+- Could remove bispoectrum code from grid_power.cpp file?
 
 Still To Do:
 - Implement DDR in pair counts - can we do this with R separation on 2 legs?
@@ -16,6 +13,7 @@ Still To Do:
 - Add in (-1)^ell factor to DDD counts
 - Reduce number of bins by symmetry of k1->k2?
 - Many factors missing; e.g. in outer-product kernel sum; restricting to n2<n requires symmetrization and x2
+- Clean up parameter file
 
 To Do with Pk etc.:
 - Test subsampling behavior
