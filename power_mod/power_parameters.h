@@ -41,12 +41,17 @@ public:
     // Whether or not we are using a periodic box
 	bool perbox = false;
 
-    int max_l = 2;; // max Legendre moment (must be even)
+    int max_l = 2;; // max Legendre moment (must be even for power spectrum)
 
     Float R0 = 100; // kernel truncation radius (in Mpc/h)
 
     char *inv_phi_file = NULL; // Survey correction function coefficient file
     const char default_inv_phi_file[500] = "";
+
+    //-------- BISPECTRUM PARAMETERS -----------------------------------------
+    // Name of third particle field
+    char *fname3 = NULL;
+	  const char default_fname3[500] = "";
 
     //-------- OTHER PARAMETERS ----------------------------------------------
 
@@ -110,6 +115,7 @@ public:
                 }
         else if (!strcmp(argv[i],"-fname")) fname = argv[++i];
         else if (!strcmp(argv[i],"-fname2")) fname2 = argv[++i];
+        else if (!strcmp(argv[i],"-fname3")) fname3 = argv[++i];
         else if (!strcmp(argv[i],"-rescale")) rescale = atof(argv[++i]);
 	    else if (!strcmp(argv[i],"-R0")) R0 = atof(argv[++i]);
         else if (!strcmp(argv[i],"-nside")) nside = atoi(argv[++i]);
@@ -145,7 +151,11 @@ public:
 		}
 		i++;
 	    }
-
+#ifdef BISPECTRUM
+#ifndef PERIODIC
+        fprintf(stderr,"Code was compiled in BISPECTRUM mode without PERIODIC mode enabled. Support for this is not yet available. Exiting.\n\n");
+#endif
+#endif
 
 #ifdef PERIODIC
         if (perbox!=true){
@@ -174,13 +184,18 @@ public:
 
 	    assert(i==argc);  // For example, we might have omitted the last argument, causing disaster.
 
+#ifndef BISPECTRUM
         assert(max_l%2==0); // check maximum ell is even
         assert(max_l<=6); // ell>6 not yet implemented!
+        mbin = max_l/2+1; // number of angular bins is set to number of Legendre bins
+#else
+        assert(max_l<=10); // ell>10 not yet implemented!
+        mbin = max_l+1;
+#endif
         if (inv_phi_file==NULL) {inv_phi_file = (char *) default_inv_phi_file;} // no phi file specified
 #ifdef PERIODIC
         fprintf(stderr,"Survey correction function %s specified, but in PERIODIC mode. Survey correction function will be ignored.",inv_phi_file);
 #endif
-        mbin = max_l/2+1; // number of angular bins is set to number of Legendre bins
         if (rescale<=0.0) rescale = box_max;   // This would allow a unit cube to fill the periodic volume
 	    if (out_file==NULL) out_file = (char *) default_out_file; // no output savefile
 	    if (out_string==NULL) out_string = (char *) default_out_string; // no output string
@@ -188,6 +203,7 @@ public:
 
 	    if (fname==NULL) fname = (char *) default_fname;   // No name was given
 	    if (fname2==NULL) fname2 = (char *) default_fname2;   // No name was given
+      if (fname3==NULL) fname3 = (char *) default_fname3;   // No name was given
 
 	    create_directory();
 
@@ -215,38 +231,40 @@ public:
 	}
 private:
 	void usage() {
-	    fprintf(stderr, "\nUsage for HIPSTER:\n\n");
+	      fprintf(stderr, "\nUsage for HIPSTER:\n\n");
         fprintf(stderr, "   -def: This allows one to accept the defaults without giving other entries.\n");
-	    fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,w).\n");
-	    fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,w).\n");
+	      fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,w).\n");
+	      fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,w).\n");
+#ifdef BISPECTRUM
+        fprintf(stderr, "   -in3 <file>: The input file for particle-set 3 (space-separated x,y,z,w).\n");
+#endif
         fprintf(stderr, "   -binfile <filename>: File containing the desired k-space radial bins\n");
         fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");
         fprintf(stderr, "   -out_string: (Optional) String to add to file name to specify field type (e.g. RR)\n");
         fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
         fprintf(stderr, "   -perbox <perbox>: Boolean, whether the box is periodic is not\n");
         fprintf(stderr, "\n");
-	    fprintf(stderr, "   -max_l <max_l>: Maximum legendre multipole (must be even)\n");
+	      fprintf(stderr, "   -max_l <max_l>: Maximum legendre multipole (must be even for power spectra)\n");
         fprintf(stderr, "   -R0 <R0>: Truncation radius for pair-separation window (in Mpc/h)\n");
         fprintf(stderr, "   -inv_phi_file <filename>: Survey inverse correction function multipole coefficient file\n");
         fprintf(stderr, "\n");
         fprintf(stderr, "   -nside <nside>: The grid size for accelerating the pair count.  Default 250.\n");
-	    fprintf(stderr, "          There are {nside} cells along the longest dimension of the periodic box.\n");
-	    fprintf(stderr, "   -boxsize <boxsize> : If creating particles randomly, this is the periodic size of the cubic computational domain.\n");
+	      fprintf(stderr, "          There are {nside} cells along the longest dimension of the periodic box.\n");
+	      fprintf(stderr, "   -boxsize <boxsize> : If creating particles randomly, this is the periodic size of the cubic computational domain.\n");
         fprintf(stderr, "           Default 400. If reading from file, this is reset dynamically creating a cuboidal box.\n");
-	    fprintf(stderr, "   -rescale <rescale>: How much to dilate the input positions by.  Default 1.\n");
+	      fprintf(stderr, "   -rescale <rescale>: How much to dilate the input positions by.  Default 1.\n");
         fprintf(stderr, "            Zero or negative value causes =boxsize, rescaling unit cube to full periodicity\n");
         fprintf(stderr, "   -nmax <nmax>: The maximum number of particles to read in from the random particle files. Default 1000000000000\n");
-	    fprintf(stderr, "   -save <filename>: Triggers option to store probability grid. <filename> has to end on \".bin\"\n");
-	    fprintf(stderr, "      For advanced use, there is an option store the grid of probabilities used for sampling.\n");
-	    fprintf(stderr, "      The file can then be reloaded on subsequent runs\n");
-	    fprintf(stderr, "   -load <filename>: Triggers option to load the probability grid\n");
-	    fprintf(stderr, "   -invert: Multiply all the weights by -1.\n");
-	    fprintf(stderr, "   -balance: Rescale the negative weights so that the total weight is zero.\n");
+  	    fprintf(stderr, "   -save <filename>: Triggers option to store probability grid. <filename> has to end on \".bin\"\n");
+  	    fprintf(stderr, "      For advanced use, there is an option store the grid of probabilities used for sampling.\n");
+  	    fprintf(stderr, "      The file can then be reloaded on subsequent runs\n");
+  	    fprintf(stderr, "   -load <filename>: Triggers option to load the probability grid\n");
+  	    fprintf(stderr, "   -invert: Multiply all the weights by -1.\n");
+  	    fprintf(stderr, "   -balance: Rescale the negative weights so that the total weight is zero.\n");
         fprintf(stderr, "   -np <np>: Ignore any file and use np random perioidic points instead.\n");
         fprintf(stderr, "   -rs <rstart>:  If inverting particle weights, this sets the index from which to start weight inversion. Default 0\n");
-	    fprintf(stderr, "\n");
-	    fprintf(stderr, "\n");
-
+  	    fprintf(stderr, "\n");
+  	    fprintf(stderr, "\n");
 	    exit(1);
 	}
 

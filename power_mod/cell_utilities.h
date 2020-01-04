@@ -21,7 +21,7 @@ class Particle {
     Float3 pos;
     Float w;  // The weight for each particle
     Float JK; // The Jackknife region ID for each particle (stored as float for ease)
-    int rand_class; // Integer 0 or 1 which defines which set of random particles this is in. 
+    int rand_class; // Integer 0 or 1 which defines which set of random particles this is in.
     // This is set at read-in at random and used for the EE computation to avoid diagonal non-cancellation.
 };
 
@@ -48,3 +48,44 @@ class Cell {
 
 #endif
 
+// LEGENDRE MULTIPOLES
+// legendre[0]=1.;
+// if(max_legendre>0){
+//   legendre[1]=mu_ijk;
+//   if(max_legendre>1){
+//       Float mu2 = mu_ijk*mu_ijk;
+//       legendre[2]=0.5*(3.*mu2-1.);
+//       if(max_legendre>2){
+//         Float mu3 = mu2*mu_ijk;
+//         legendre[3] = 0.5*(-3.*mu_ijk+5.*mu3);
+//         if(max_legendre>3){
+//           Float mu4 = mu3*mu_ijk;
+//           legendre[4]=1./8.*(35.*mu4-30.*mu2+3.);
+//           if(max_legendre>4){
+//             Float mu5 = mu4*mu_ijk;
+//             legendre[5]=1./8.*(15.*mu_ijk-70.*mu3+63*mu5);
+//             if(max_legendre>5){
+//               Float mu6 = mu5*mu_ijk;
+//               legendre[6] = 1./16.*(231.*mu6-315.*mu4+105.*mu2-5.);
+//               if(max_legendre>6){
+//                 Float mu7 = mu6*mu_ijk;
+//                 legendre[7] = 1./16.*(-35.*mu_ijk+315*mu3-693.*mu5+429*mu7);
+//                 if(max_legendre>7){
+//                   Float mu8 = mu7*mu_ijk;
+//                   legendre[8] = 1./128.*(6435.*mu8-12012.*mu6+6930.*mu4-1260.*mu2+35.);
+//                   if(max_legendre>8){
+//                     Float mu9 = mu8*mu_ijk;
+//                     legendre[9] = 1./128.*(315.*mu_ijk-4620*mu3+18018.*mu5-25740.*mu7+12155.*mu9);
+//                     if(max_legendre>9){
+//                       legendre[5] = 1./256.*(46189.*mu8*mu2-109395.*mu8+90090.*mu6-30030.*mu4+3465.*mu2-63.);
+//                     }
+//                   }
+//                 }
+//               }
+//             }
+//           }
+//         }
+//       }
+//     }
+//   }
+//

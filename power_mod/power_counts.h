@@ -86,8 +86,8 @@ public:
     }
 
 #ifdef PERIODIC
-    void RR_analytic(Float* RR_analyt){
-      // Compute the analytic RR term from numerical integration of the window function in each bin.
+    void randoms_analytic(Float* RR_analyt){
+      // Compute the analytic randoms term from numerical integration of the window function in each bin.
 
       printf("\nComputing analytic RR term");
       fflush(NULL);
@@ -253,7 +253,7 @@ public:
       }
 
 #ifdef PERIODIC
-  void save_power(Float* RR_analytic){
+  void save_spectrum(Float* RR_analytic){
         // If periodic, we can output the whole power spectrum estimate here
         char pk_name[1000];
         Float output_pk;

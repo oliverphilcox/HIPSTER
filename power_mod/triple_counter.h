@@ -1,16 +1,15 @@
-// group_counter.h - Module to run the pair/triple counting for grid_power.cpp - Oliver Philcox 2019
+// triple_counter.h - Module to run the triple counting for grid_power.cpp in BISPECTRUM mode - Oliver Philcox 2019
 
 #ifndef GROUP_COUNTER_H
 #define GROUP_COUNTER_H
 
-#include "power_counts.h"
+#include "bispectrum_counts.h"
 
 class group_counter{
 
 private:
     int nbin,mbin;
     int one_grid; // boolean to check if grids are the same
-    uint64 cnt2; // number of pairs counted
 
 public:
     void check_threads(Parameters *par,int print){
@@ -34,7 +33,7 @@ public:
 
 public:
 
-    group_counter(Grid *grid1, Grid *grid2, Parameters *par, SurveyCorrection *sc, KernelInterp *kernel_interp, integer3 *cell_sep, int len_cell_sep){
+    group_counter(Grid *grid1, Grid *grid2, Grid *grid3, Parameters *par, SurveyCorrection *sc, KernelInterp *kernel_interp, integer3 *cell_sep, int len_cell_sep){
         // Define parameters
         nbin = par->nbin; // number of radial bins
         mbin = par->mbin; // number of Legendre bins
@@ -42,13 +41,16 @@ public:
         uint64 used_particles=0;
 
         one_grid=0;
-        if(!strcmp(par->fname,par->fname2)) one_grid=1;
-
+        if((!strcmp(par->fname,par->fname2))&&(!strcmp(par->fname,par->fname3))) one_grid=1;
+        if(one_grid!=1){
+            fprintf("Triple counts for non-identical fields are not yet supported! Exiting.");
+            exit(1);
+        }
         STimer initial, TotalTime; // time initialization
         initial.Start();
 
         //-----------INITIALIZE OPENMP + CLASSES----------
-        PowerCounts global_counts(par,sc,kernel_interp);
+        BispectrumCounts global_counts(par,sc,kernel_interp);
         check_threads(par,1); // define threads
 
         fprintf(stderr, "Init time: %g s\n",initial.Elapsed());
@@ -61,7 +63,7 @@ public:
 
 
 #ifdef OPENMP
-        #pragma omp parallel firstprivate(par,grid1,grid2,kernel_interp) shared(global_counts,TotalTime) reduction(+:percent_counter,used_cells,used_particles)
+        #pragma omp parallel firstprivate(par,grid1,grid2,grid3,kernel_interp) shared(global_counts,TotalTime) reduction(+:percent_counter,used_cells,used_particles)
         { // start parallel loop
         // Decide which thread we are in
         int thread = omp_get_thread_num();
@@ -80,13 +82,16 @@ public:
             integer3 prim_id,delta,sec_id; // particle positions in grid
             int mnp = grid1->maxnp; // max number of particles in grid1 cell
             Cell prim_cell,sec_cell; // cell objects
+            Particle particle_i; // primary particle
+            Float3* sep_register; // list of separation vectors between primary and secondary
+            int register_index; // index of register holding particle separations
 
-            PowerCounts loc_counts(par,sc,kernel_interp);
-
+            BispectrumCounts loc_counts(par,sc,kernel_interp);
             // Assign memory for intermediate steps
             int ec=0;
             ec+=posix_memalign((void **) &prim_list, PAGE, sizeof(Particle)*mnp);
             ec+=posix_memalign((void **) &prim_ids, PAGE, sizeof(int)*mnp);
+            ec+=posix_memalign((void **) &sep_register, PAGE, sizeof(Float3)*mnp*len_cell_sep); // hold maximum number of close particles
             assert(ec==0);
 
 #ifdef OPENMP
@@ -109,31 +114,42 @@ public:
 
                 cell_attempts+=len_cell_sep; // total number of cells used
 
-                // Iterate over all nearby second cells
-                for(int n2=0;n2<len_cell_sep;n2++){ // second cell index
-                    delta = cell_sep[n2]; // difference in cell positions
-                    sec_id = prim_id + delta;
-                    sec_id_1D = grid2->test_cell(sec_id);
-                #ifdef PERIODIC
-                    separation = grid2->cell_sep(delta); // separation vector between grid cells
-                #else
-                    separation = {0,0,0}; // zero vector (unused)
-                #endif
-                    if(sec_id_1D<0) continue; // if cell not in grid
-                    if((one_grid==1)&&(sec_id_1D<prim_id_1D)) continue; // already counted this pair of cells!
-                    sec_cell = grid2->c[sec_id_1D];
-                    if(sec_cell.np==0) continue; // if empty cell
+                // Select one particle from this cell at a time
+                for(int i=prim_cell.start;i<(prim_cell.start+prim_cell.np);i++){
+                    particle_i = grid1->p[i];
+                    register_index=0;
 
-                    used_cells++; // number of cells used
+                    // Now find all secondary particles in allowed region around this primary particle
+                    // Iterate over all nearby second cells
+                    for(int n2=0;n2<len_cell_sep;n2++){ // second cell index
+                        delta = cell_sep[n2]; // difference in cell positions
+                        sec_id = prim_id + delta;
+                        sec_id_1D = grid2->test_cell(sec_id);
+                    #ifdef PERIODIC
+                        separation = grid2->cell_sep(delta); // separation vector between grid cells
+                    #else
+                        separation = {0,0,0}; // zero vector (unused)
+                    #endif
+                        if(sec_id_1D<0) continue; // if cell not in grid
+                        if((one_grid==1)&&(sec_id_1D<prim_id_1D)) continue; // already counted this pair of cells!
+                        sec_cell = grid2->c[sec_id_1D];
+                        if(sec_cell.np==0) continue; // if empty cell
+                        if(i==prim_cell.start) used_cells++; // update number of cells used on first time round i-loop
 
-                    // Now iterate over particles
-                    for(int i=prim_cell.start;i<(prim_cell.start+prim_cell.np);i++){
+                        // Now we have a primary particle and a cell full of secondary particles
+                        // Iterate over secondary particles in the cell
+                        used_particles+=sec_cell.np*(sec_cell.np-1);
+
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
-                            used_particles++;
-                            loc_counts.count_pairs(grid1->p[i],grid2->p[j],separation);
+
+                            // Now save the distances and angles of the cells to the register
+                            sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
                         }
                     }
+
+                    // Now time to fill up the bispectrum counts
+                    loc_counts.fill_up_counts(sep_register, register_index);
                 }
             }
 #ifdef OPENMP
@@ -147,11 +163,11 @@ public:
 
     } // end OPENMP loop
 
-    // Compute RR/RRR analytic counts if periodic
+    // Compute RRR analytic counts if periodic
 #ifdef PERIODIC
-    Float* analytic_counts; // array to hold RR/RRR counts
+    Float* analytic_counts; // array to hold RRR counts
     int ec=0;
-    ec+=posix_memalign((void **) &analytic_counts, PAGE, sizeof(Float)*nbin);
+    ec+=posix_memalign((void **) &analytic_counts, PAGE, sizeof(Float)*nbin*nbin);
     assert(ec==0);
     global_counts.randoms_analytic(analytic_counts);
 #endif
@@ -160,7 +176,7 @@ public:
 
     int runtime = TotalTime.Elapsed();
     fflush(NULL);
-    printf("\nPAIR COUNTS COMPLETE\n\n");
+    printf("\nTRIPLE COUNTS COMPLETE\n\n");
     printf("\nTotal process time for %.2e particle pairs: %d s, i.e. %2.2d:%2.2d:%2.2d hms\n", double(global_counts.used_pairs),runtime, runtime/3600,runtime/60%60,runtime%60);
     printf("We tried %.2e pairs of cells and accepted %.2e pairs of cells.\n", double(cell_attempts),double(used_cells));
     printf("Cell acceptance ratio is %.3f.\n",(double)used_cells/cell_attempts);
@@ -172,9 +188,9 @@ public:
 
     global_counts.save_counts(one_grid);
 #ifdef PERIODIC
-    printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
     global_counts.save_spectrum(analytic_counts);
-    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
 #else
     printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
 #endif

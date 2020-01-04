@@ -121,7 +121,7 @@ public:
             Si_int = gsl_sf_Si(tmp_kw);
 
             // Compute multipole contributions
-            for(int ell=0;ell<=4;ell+=2){
+            for(int ell=0;ell<=6;ell+=2){
                 tmp_kernel = 3.*Float(pow(-1,ell/2)*(2*ell+1.));
                 if(ell==0){
                     tmp_bessel = tmp_sin - tmp_kw*tmp_cos;

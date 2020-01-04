@@ -26,6 +26,9 @@
 
 typedef unsigned long long int uint64;
 typedef unsigned int uint;
+#ifdef BISPECTRUM
+typedef std::complex<double> Complex;
+#endif
 
 // Could swap between single and double precision here.
 typedef double Float;
@@ -36,30 +39,40 @@ typedef double3 Float3;
 #include "power_mod/cell_utilities.h"
 #include "power_mod/grid.h"
 #include "power_mod/driver.h"
-#include "power_mod/kernel_interp.h"
 #include "power_mod/survey_correction_legendre.h"
-#include "power_mod/pair_counter.h"
-#include "power_mod/power_counts.h"
+#ifdef BISPECTRUM
+		#include "power_mod/kernel_interp_bispectrum.h"
+		#include "power_mod/triple_counter.h"
+		#include "power_mod/bispectrum_counts.h"
+#else
+		#include "power_mod/kernel_interp.h"
+		#include "power_mod/pair_counter.h"
+		#include "power_mod/power_counts.h"
+#endif
 
 STimer TotalTime;
 
 // =========================== main() ==================================
-
 
 int main(int argc, char *argv[]) {
 
 	Parameters par=Parameters(argc,argv);
 
     // Now read in particles to grid:
-    Grid all_grid[2]; // create empty grids
-
-    for(int index=0;index<2;index++){
+#ifdef BISPECTRUM
+		int n_grid = 3;
+#else
+		int n_grid = 2;
+#endif
+		Grid all_grid[n_grid]; // create empty grids
+    for(int index=0;index<n_grid;index++){
         Float3 shift;
         Particle *orig_p;
         if (!par.make_random){
             char *filename;
             if(index==0) filename=par.fname;
-            else filename=par.fname2;
+						else if(index==1) filename=par.fname2;
+            else filename=par.fname3;
             orig_p = read_particles(par.rescale, &par.np, filename, par.rstart, par.nmax);
             assert(par.np>0);
             par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
@@ -106,15 +119,15 @@ int main(int argc, char *argv[]) {
         fflush(NULL);
     }
 
-    // Read in survey correction fucntion
+    // Read in survey correction function
     SurveyCorrection sc(&par,1,1);
 
-    // Count number of second field cells enclosed by the maximum truncation radius
+    // Count number of second/third field cells enclosed by the maximum truncation radius
     Float cellsize = all_grid[1].cellsize;
     Float filled_vol = 4./3.*M_PI*pow(par.R0+2.*cellsize,3);
     int n_close = ceil(filled_vol/pow(cellsize,3)); // number of close cells
 
-    // Define cell separations (dimensionless) within truncation radius
+    // Define cell separations (dimensionless) within truncation radius (same for power spectrum or bispectrum)
     Float3 cell_sep_close_tmp[n_close];
     int len = ceil((par.R0+cellsize/2.)/cellsize);
     int len_cell_sep_close=0.; // counter
@@ -140,9 +153,12 @@ int main(int argc, char *argv[]) {
     printf("Creating kernel interpolator function\n");
     KernelInterp interp_func(par.R0,par.rmin,par.rmax);
 
-    // RUN Pair Counter
-
-    pair_counter(&all_grid[0],&all_grid[1],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
+    // RUN Pair/Triple Counter
+#ifdef BISPECTRUM
+		group_counter(&all_grid[0],&all_grid[1],&all_grid[2],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
+#else
+    group_counter(&all_grid[0],&all_grid[1],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
+#endif
 
     rusage ru;
     getrusage(RUSAGE_SELF, &ru);
