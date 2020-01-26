@@ -3,21 +3,21 @@
 ## Periodic flag from command line input?
 PERIODIC_FLAG=$(Periodic)
 
-CC = gcc-9.1
-CFLAGS = -O3 -Wall
+CC = gcc
+CFLAGS = -g -Wall
+#-O3 -Wall
 CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) -DBISPECTRUM -DPERIODIC
 #-DOPENMP
 # disable OPENMP to run single threaded
 # use -DPERIODIC to run in periodic mode, or set Periodic=-DPERIODIC on the command line
 
-CXX = g++-9.1 -fopenmp -lgomp -std=c++0x -ffast-math
+CXX = g++ -fopenmp -lgomp -std=c++0x -ffast-math
 
 AUNTIE	= power
 AOBJS	= grid_power.o
 
-LD	= g++-9.1
-LFLAGS	= -L/usr/local/lib -lgsl -lgslcblas
-#-lgomp -L/usr/lib/x86_64-linux-gnu
+LD	= g++
+LFLAGS	= -L/usr/local/lib -lgsl -lgslcblas -lgomp -L/usr/lib/x86_64-linux-gnu
 
 main: $(AUNTIE)
 
