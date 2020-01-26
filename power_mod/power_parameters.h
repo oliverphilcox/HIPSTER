@@ -13,15 +13,15 @@ public:
 
     // Name of the first particle field
     char *fname = NULL;
-    const char default_fname[500] = "../hipster_data/mock_1.sub";
+    const char default_fname[500] = "../hipster_data/rand_1e6";
 
     // Name of second particle field
     char *fname2 = NULL;
-	const char default_fname2[500] = "../hipster_data/mock_1.sub";
+	const char default_fname2[500] = "../hipster_data/rand_1e6";
 
     // Optional File Prefix for output
     char *out_string = NULL;
-    const char default_out_string[500] = "../hipster_data/mock_1.sub";
+    const char default_out_string[500] = "test";
 
     // Name of the radial binning .csv file in k-space
     char *radial_bin_file = NULL;
@@ -29,14 +29,14 @@ public:
 
     // Output directory
     char *out_file = NULL;
-    const char default_out_file[500] = "";
+    const char default_out_file[500] = "output";
 
     // The number of threads to run on
 	int nthread = 10;;
 
     // The grid size, which should be tuned to match boxsize.
 	// This uses the maximum width of the cuboidal box.
-	int nside = 100;
+	int nside = 30;
 
     // Whether or not we are using a periodic box
 	bool perbox = true;
@@ -51,7 +51,7 @@ public:
     //-------- BISPECTRUM PARAMETERS -----------------------------------------
     // Name of third particle field
     char *fname3 = NULL;
-	  const char default_fname3[500] = "../hipster_data/mock_1.sub";
+	  const char default_fname3[500] = "../hipster_data/rand_1e6";
 
     //-------- OTHER PARAMETERS ----------------------------------------------
 

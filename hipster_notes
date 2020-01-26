@@ -6,14 +6,22 @@ Bispectrum:
 NB: some of the one-grid utilities in the group_counter script will fail for non-equal fields.
 - We can probably pre-allocate memory to registers for speed in bisecptrum_counts
 - Could remove bispoectrum code from grid_power.cpp file?
+- RRR counts correctly give Wa*Wb*delta_{ell,0}. (No other normalization)
+- Can test DDD by comparing DDD and RRR with random catalog
+- There's a weird malloc error going on...
+
+- Seems like the make_map function isn't being called??
 
 Still To Do:
-- Implement DDR in pair counts - can we do this with R separation on 2 legs?
+- Implement DDR-II in pair counts - can we do this with R separation on 2 legs?
 - Implement RRR in C++
 - Add in (-1)^ell factor to DDD counts
 - Reduce number of bins by symmetry of k1->k2?
 - Many factors missing; e.g. in outer-product kernel sum; restricting to n2<n requires symmetrization and x2
 - Clean up parameter file
+- Clean up MAKEFILE
+- Remove MAXORDER in file?
+- Could autoset fields 2 + 3 if unspecified?
 
 To Do with Pk etc.:
 - Test subsampling behavior

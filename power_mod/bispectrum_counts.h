@@ -20,10 +20,11 @@ private:
     int map[MAXORDER+1][MAXORDER+1][MAXORDER+1]; // The multipole index of x^a y^b z^c
     Complex *Aa_lm; // A^a_lm vector
     Float *Cab_l; // C^{ab}_lm vector
+    Float *j0a_W; // j_0^a(|x_i-x_j|)W(|x_i-x_j|)
     Float *kernel_arr; // j^a_ell(kr)W(r) for specific ell
 
 #ifdef PERIODIC
-    Float bispectrum_norm;
+    Float bispectrum_norm,bispectrum_norm2;
 #endif
 
 public:
@@ -46,26 +47,29 @@ public:
 
         kernel_interp = new KernelInterp(_kernel_interp);
 
-        make_map(); // Generate spherical harmonic coefficients
-
         sc = _sc;
         max_legendre = par->max_l;
 
         n_lm = (max_legendre+1)*(max_legendre+2)/2; // number of Y_lm bins up to maximum ell
         n_mult = ((max_legendre+1)*(max_legendre+2)*(max_legendre+3)/6); // total number of Cartesian multipoles, satisfying a+b+c<=max-legendre
 
-        // define power spectrum normalization if periodic = n^3 V = N^3 / V^2
+        make_map(); // Generate spherical harmonic coefficients
+
+        // define power spectrum normalization if periodic = n^3 V = N^3 / V^2, and n^2V = N^2/V for DDR term
         bispectrum_norm = pow(par->np,3.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],2.);
+        bispectrum_norm2 = pow(par->np,2.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],1.);
 
         // Generate necessary arrays
         int ec=0;
         ec+=posix_memalign((void **) &bispectrum_counts, PAGE, sizeof(double)*nbin*nbin*mbin);
-        //ec+=posix_memalign((void **) &alm, PAGE, sizeof(Complex)*n_lm);
-        //ec+=posix_memalign((void **) &m, PAGE, sizeof(Float)*n_mult);
         ec+=posix_memalign((void **) &Aa_lm, PAGE, sizeof(Complex)*n_lm*nbin);
         ec+=posix_memalign((void **) &Cab_l, PAGE, sizeof(Float)*nbin*nbin*mbin);
+        ec+=posix_memalign((void **) &j0a_W, PAGE, sizeof(Float)*nbin);
         ec+=posix_memalign((void **) &kernel_arr, PAGE, sizeof(Float)*nbin);
         assert(ec==0);
+
+        // Zero relevant arrays;
+        for(int i=0;i<nbin;i++) j0a_W[i]=0;
 
         reset();
 
@@ -91,6 +95,7 @@ public:
         //free(m);
         free(Aa_lm);
         free(Cab_l);
+        free(j0a_W);
         free(kernel_arr);
     }
 
@@ -141,7 +146,7 @@ public:
     char RRR_periodic_name[1000];
     Float tmp_out;
 
-    snprintf(RRR_periodic_name, sizeof RRR_periodic_name, "%s/%s_analyt_RRR_counts_n%d_l%d.txt", out_file, out_string, nbin, 2*(mbin-1));
+    snprintf(RRR_periodic_name, sizeof RRR_periodic_name, "%s/%s_analyt_RRR_counts_n%d_l%d.txt", out_file, out_string, nbin, (mbin-1));
     FILE * RRR_periodic_file = fopen(RRR_periodic_name,"w");
 
     for (int i1=0;i1<nbin;i1++){
@@ -156,7 +161,7 @@ public:
         }
     }
     fflush(NULL);
-    
+
     // Close open files
     fclose(RRR_periodic_file);
 
@@ -170,19 +175,24 @@ public:
         // Input is the list of all separations of a primary particle with secondaries and length of this list.
         // Full bispectrum kernel is made from this.
 
+        if(register_size==0) return;
         Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
         Float3 norm_sep;
+        int start_n;
+        Float m[n_mult]; // powers of x,y,z used for Y_lms
+        Complex alm[n_lm];   // Y_lm (for m>0) for a particle
 
-        // Must first zero useful arrays
+        // Must first zero useful arrays - ARE ALL THESE NECESSARY?
         for(int mm=0;mm<n_lm*nbin;mm++) Aa_lm[mm]=0;
         for(int mm=0;mm<nbin*nbin*mbin;mm++) Cab_l[mm]=0;
-
-        Complex alm[n_lm];   // Y_lm (for m>0) for a particle
-        Float m[n_mult]; // powers of x,y,z used for Y_lms
 
         // First iterate over all particles in register and compute W(r;R_0)j_ell^a and Y_lm;
         for(int n=0;n<register_size;n++){
             used_pairs++; // update number of pairs used
+
+            // Zero arrays - Needed?
+            for(int mm=0;mm<n_mult;mm++) m[mm]=0; // powers of x,y,z used for Y_lms
+            for(int mm=0;mm<n_lm;mm++) alm[mm]=0;
 
             // Compute separation length and check if in [0,R0];
             particle_sep = separation_register[n].norm();
@@ -197,10 +207,27 @@ public:
             // Compute Y_lm for particle pair in the alm variable
             norm_sep = separation_register[n]/particle_sep;
             compute_Ylm(norm_sep, alm, m);
+            //
+            // // Compute L_ell for checking
+            // #define RealProduct(a,b) (a.real()*b.real()+a.imag()*b.imag())
+            // int nnn=0;
+            // for(int elll=0;elll<=max_legendre;elll++){
+            //     tmp_count=0.;
+            //     for(int mmm=0;mmm<=elll;mmm++,nnn++){
+            //         printf("%.2e ",RealProduct(alm[nnn],alm[nnn]));
+            //         tmp_count+=RealProduct(alm[nnn],alm[nnn])*almnorm[nnn];
+            //     }
+            //     Float Lell = tmp_count*4*M_PI/(2*elll+1);
+            //
+            //     Float mu_ang = norm_sep.z/norm_sep.norm(); // z-axis angle
+            //     printf("l = %d, L_l = %.2e vs %.2e\n",elll,Lell,Pn(mu_ang,elll));
+            //  }
+
+            //for(int nn=0;nn<n_lm;nn++) printf("%.2e %.2e\n",alm[nn].real(),alm[nn].imag());
 
             // Now let's compute the k-binning kernels in each k-bin and ell
-            int nn=0; //nn counts location in Y_lm array
-            for(int ell=0;ell<max_legendre;ell++){
+            start_n=0; // counts starting location in Y_lm array for certain ell
+            for(int ell=0;ell<=max_legendre;ell++){
 
                 // Now iterate over k-bin (assuming they are contiguous)
                 for(int i=0;i<nbin;i++){
@@ -218,18 +245,23 @@ public:
                     // Compute W(r)j^a_ell(r) values
                     tmp_kernel = sep_weight*(new_kernel-old_kernel)/(new_kr3-old_kr3);
 
-                    // Fill up array of (binned) j^a_ell(kr)W(r)
+                    // Fill up array of (binned) j^a_ell(r)W(r)
                     kernel_arr[i]=tmp_kernel;
 
-                    // Fill up array of (binned) j^a_ell(kr)W(r)Y_lm(r) values
-                    for(int mm=0;mm<=ell;mm++,nn++) Aa_lm[i*n_lm+nn]+= tmp_kernel*alm[nn];
+                    // Assign j0a_W to array
+                    if(ell==0) j0a_W[i]+=tmp_kernel;
 
+                    // Fill up array of (binned) j^a_ell(r)W(r)Y_lm(r) values
+                    for(int mm=0;mm<=ell;mm++){
+                      Aa_lm[i*n_lm+start_n+mm]+= tmp_kernel*alm[start_n+mm];
+                    }
                     // Save the kernel functions for the next bin
                     old_kr = new_kr;
                     old_kr3 = new_kr3;
                     old_kernel = new_kernel;
 
                 }
+                start_n+=ell+1;
 
                 // Now these are filled we can compute Cab_l;
                 for(int i=0;i<nbin;i++){
@@ -247,7 +279,7 @@ public:
         // Loop over bispectrum bins
         for(int i=0;i<nbin;i++){
             for(int i2=0;i2<nbin;i2++){
-                for(int ell=0, nn=0;ell<max_legendre;ell++){
+                for(int ell=0, nn=0;ell<=max_legendre;ell++){
                     tmp_count=0;
                     for (int mm=0; mm<=ell; mm++, nn++){ // Loop over m
                         tmp_count+=RealProduct(Aa_lm[i*n_lm+nn],Aa_lm[i2*n_lm+nn])*almnorm[nn];
@@ -272,16 +304,19 @@ public:
     void save_counts(int one_grid) {
         // Print bispectrum-count output to file.
         // Create output files
+        // DDD contains unnormalized bispectrum counts
+        // DDR-I contains sum over j_0^a(r)W(r;R_0)  - must be multiplied by -2 delta^K_{ell,0}/n^2V * tilde{W}^a for spectral contribution
 
         char count_name[1000];
-  #ifdef PERIODIC
+        char count_name2[1000];
         snprintf(count_name, sizeof count_name, "%s/%s_DDD_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
-  #else
-        snprintf(count_name, sizeof count_name, "%s/%s_bispectrum_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
-  #endif
+        snprintf(count_name2, sizeof count_name2, "%s/%s_DDR_I_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
+
         FILE * CountFile = fopen(count_name,"w");
+        FILE * CountFile2 = fopen(count_name2,"w");
 
         for (int i=0;i<nbin;i++){
+            fprintf(CountFile2,"%le\n",j0a_W[i]); // print the DDR-I term stochastic component
             for(int i2=0;i2<nbin;i2++){
                 for(int j=0;j<mbin;j++){
                     //if(one_grid==1) power_counts[(i*nbin+i2)*mbin+j]*=2.; // since we ignore i-j switches
@@ -301,16 +336,26 @@ public:
   void save_spectrum(Float* RRR_analytic){
         // If periodic, we can output the whole bispectrum estimate here
         char bkk_name[1000];
-        Float output_bkk;
+        Float output_bkk, tmp_Wka;
         printf("Norm = %.2e\n",bispectrum_norm);
         snprintf(bkk_name, sizeof bkk_name, "%s/%s_bispectrum_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
         FILE * BkkFile = fopen(bkk_name,"w");
 
         for (int i=0;i<nbin;i++){
+            // Compute W(k) in bin i (this is square-root of diagonal of RRR_analytic)
+            tmp_Wka = pow(RRR_analytic[i*nbin+i],0.5);
             for (int i2=0;i2<nbin;i2++){
                 for(int j=0;j<mbin;j++){
+                    // Compute DDD term
                     output_bkk = bispectrum_counts[(i*nbin+i2)*mbin+j]/bispectrum_norm;
-                    if(j==0) output_bkk+=2*RRR_analytic[i];
+
+                    // Add DDR-I term
+                    if(j==0) output_bkk-=2.*j0a_W[i2]*tmp_Wka/bispectrum_norm2;
+
+                    // Add DDR-II term
+                    printf("Need to add DDR-II term");
+
+                    if(j==0) output_bkk+=2*RRR_analytic[i*nbin+i2];
                 fprintf(BkkFile,"%le\t",output_bkk);
                 }
             fprintf(BkkFile,"\n");
@@ -354,18 +399,19 @@ while (true){
       // Next fill up Y_lms (using tedious spherical harmonic code in another file)
       #include "spherical_harmonics.h"
 }
+      //for(int mm=0;mm<n_lm;mm++) printf("%d %.2e %.2e\n",mm,alm[mm].real(),alm[mm].imag());
 }
 
-void make_map() {
-	// Construct the index number in our multipoles for x^a y^b z^c
+inline void make_map() {
+  // Construct the index number in our multipoles for x^a y^b z^c
         for(int i=0;i<=MAXORDER;i++)
             for(int j=0;j<=MAXORDER-i;j++)
                 for(int k=0;k<=MAXORDER-i-j;k++) map[i][j][k] = 0;
-	int n=0;
+  int n=0;
         for(int i=0;i<=max_legendre;i++)
             for(int j=0;j<=max_legendre-i;j++)
                 for(int k=0;k<=max_legendre-i-j;k++) {
-		    map[i][j][k] = n; n++;
+        map[i][j][k] = n; n++;
 		}
 	return;
 }

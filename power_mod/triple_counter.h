@@ -138,11 +138,10 @@ public:
 
                         // Now we have a primary particle and a cell full of secondary particles
                         // Iterate over secondary particles in the cell
-                        used_particles+=sec_cell.np*(sec_cell.np-1);
 
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
-
+                            used_particles++;
                             // Now save the distances and angles of the cells to the register
                             sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
                         }
@@ -188,11 +187,11 @@ public:
 
     global_counts.save_counts(one_grid);
 #ifdef PERIODIC
-    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1));
     global_counts.save_spectrum(analytic_counts);
-    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1));
 #else
-    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin,(mbin-1));
 #endif
     }
 };
