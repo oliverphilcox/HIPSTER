@@ -21,7 +21,11 @@ private:
     Complex *Aa_lm; // A^a_lm vector
     Float *Cab_l; // C^{ab}_lm vector
     Float *j0a_W; // j_0^a(|x_i-x_j|)W(|x_i-x_j|)
+    Float *DDR_II_sum; // E_l^{II,ab}(|x_i-x_j|) sum
     Float *kernel_arr; // j^a_ell(kr)W(r) for specific ell
+
+    Float *m; // powers of x,y,z used for Y_lms
+    Complex *alm;   // Y_lm (for m>0) for a particle
 
 #ifdef PERIODIC
     Float bispectrum_norm,bispectrum_norm2;
@@ -33,7 +37,9 @@ public:
 public:
     void sum_counts(BispectrumCounts *bc){
         // Add counts accumulated in different threads
-        for(int i=0;i<nbin*nbin*mbin;i++) bispectrum_counts[i]+=bc->bispectrum_counts[i];
+        for(int i=0;i<nbin*nbin*mbin;i++) bispectrum_counts[i] += bc->bispectrum_counts[i];
+        for(int i=0;i<nbin;i++) j0a_W[i] += bc->j0a_W[i];
+        for(int i=0;i<nbin*nbin*mbin;i++) DDR_II_sum[i] += bc->DDR_II_sum[i];
         used_pairs+=bc->used_pairs;
     }
 
@@ -64,13 +70,15 @@ public:
         ec+=posix_memalign((void **) &bispectrum_counts, PAGE, sizeof(double)*nbin*nbin*mbin);
         ec+=posix_memalign((void **) &Aa_lm, PAGE, sizeof(Complex)*n_lm*nbin);
         ec+=posix_memalign((void **) &Cab_l, PAGE, sizeof(Float)*nbin*nbin*mbin);
+        ec+=posix_memalign((void **) &DDR_II_sum, PAGE, sizeof(Float)*nbin*nbin*mbin);
         ec+=posix_memalign((void **) &j0a_W, PAGE, sizeof(Float)*nbin);
         ec+=posix_memalign((void **) &kernel_arr, PAGE, sizeof(Float)*nbin);
+
+        ec+=posix_memalign((void **) &m, PAGE, sizeof(Float)*n_mult); // powers of x,y,z used for Y_lms
+        ec+=posix_memalign((void **) &alm, PAGE, sizeof(Complex)*n_lm);   // Y_lm (for m>0) for a particle
         assert(ec==0);
 
         // Zero relevant arrays;
-        for(int i=0;i<nbin;i++) j0a_W[i]=0;
-
         reset();
 
         box=par->perbox;
@@ -85,17 +93,18 @@ public:
     void reset(){
         for(int j=0;j<nbin*nbin*mbin;j++){
             bispectrum_counts[j]=0.;
+            DDR_II_sum[j]=0.;
         }
+        for(int i=0;i<nbin;i++) j0a_W[i]=0;
         used_pairs=0.;
     }
 
     ~BispectrumCounts(){
         free(bispectrum_counts);
-        //free(alm);
-        //free(m);
         free(Aa_lm);
         free(Cab_l);
         free(j0a_W);
+        free(DDR_II_sum);
         free(kernel_arr);
     }
 
@@ -176,11 +185,9 @@ public:
         // Full bispectrum kernel is made from this.
 
         if(register_size==0) return;
-        Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
+        Float sep_weight,particle_sep, tmp_kernel,tmp_E,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
         Float3 norm_sep;
         int start_n;
-        Float m[n_mult]; // powers of x,y,z used for Y_lms
-        Complex alm[n_lm];   // Y_lm (for m>0) for a particle
 
         // Must first zero useful arrays - ARE ALL THESE NECESSARY?
         for(int mm=0;mm<n_lm*nbin;mm++) Aa_lm[mm]=0;
@@ -190,17 +197,32 @@ public:
         for(int n=0;n<register_size;n++){
             used_pairs++; // update number of pairs used
 
-            // Zero arrays - Needed?
-            for(int mm=0;mm<n_mult;mm++) m[mm]=0; // powers of x,y,z used for Y_lms
-            for(int mm=0;mm<n_lm;mm++) alm[mm]=0;
-
-            // Compute separation length and check if in [0,R0];
+            // Compute separation length
             particle_sep = separation_register[n].norm();
+
+            // Compute the E_II sum for all particles up to 2*R0;
+            if((particle_sep>=2*R0)) continue;
+            for(int n1=0;n1<nbin;n1++){
+                for(int n2=n1;n2<nbin;n2++){
+                    for(int ell=0;ell<=max_legendre;ell++){
+                        tmp_E = kernel_interp->kernel_E_II(n1,n2,ell,particle_sep);
+                        DDR_II_sum[(n1*nbin+n2)*mbin+ell] += tmp_E;
+                        // Use symmetry to fill other bin
+                        if(n1!=n2) DDR_II_sum[(n2*nbin+n1)*mbin+ell] += tmp_E;
+                    }
+                }
+            }
+
+            // Only need separation up to R0 for all other terms
             if((particle_sep>=R0)) continue;
             if((particle_sep==0)){
                   fprintf(stderr,"Zero found in register; this suggests a self-count problem.\n");
                   exit(1);
             }
+
+            // Zero arrays - Needed?
+            for(int mm=0;mm<n_mult;mm++) m[mm]=0; // powers of x,y,z used for Y_lms
+            for(int mm=0;mm<n_lm;mm++) alm[mm]=0;
 
             sep_weight = pair_weight(particle_sep); // compute W(r;R_0)
 
@@ -306,14 +328,16 @@ public:
         // Create output files
         // DDD contains unnormalized bispectrum counts
         // DDR-I contains sum over j_0^a(r)W(r;R_0)  - must be multiplied by -2 delta^K_{ell,0}/n^2V * tilde{W}^a for spectral contribution
+        // DDR-II contains sum over E^{II,ab}_ell(r) - unnormalized
 
-        char count_name[1000];
-        char count_name2[1000];
+        char count_name[1000], count_name2[1000], count_name3[1000];
         snprintf(count_name, sizeof count_name, "%s/%s_DDD_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
         snprintf(count_name2, sizeof count_name2, "%s/%s_DDR_I_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
+        snprintf(count_name3, sizeof count_name3, "%s/%s_DDR_II_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
 
         FILE * CountFile = fopen(count_name,"w");
         FILE * CountFile2 = fopen(count_name2,"w");
+        FILE * CountFile3 = fopen(count_name3,"w");
 
         for (int i=0;i<nbin;i++){
             fprintf(CountFile2,"%le\n",j0a_W[i]); // print the DDR-I term stochastic component
@@ -321,8 +345,10 @@ public:
                 for(int j=0;j<mbin;j++){
                     //if(one_grid==1) power_counts[(i*nbin+i2)*mbin+j]*=2.; // since we ignore i-j switches
                     fprintf(CountFile,"%le\t",bispectrum_counts[(i*nbin+i2)*mbin+j]);
+                    fprintf(CountFile3,"%le\t",DDR_II_sum[(i*nbin+i2)*mbin+j]);
                 }
                 fprintf(CountFile,"\n");
+                fprintf(CountFile3,"\n");
             }
         }
 
@@ -330,6 +356,8 @@ public:
 
         // Close open files
         fclose(CountFile);
+        fclose(CountFile2);
+        fclose(CountFile3);
       }
 
 #ifdef PERIODIC
@@ -353,7 +381,7 @@ public:
                     if(j==0) output_bkk-=2.*j0a_W[i2]*tmp_Wka/bispectrum_norm2;
 
                     // Add DDR-II term
-                    printf("Need to add DDR-II term");
+                    output_bkk -= DDR_II_sum[(i*nbin+i2)*mbin+j]/bispectrum_norm2;
 
                     if(j==0) output_bkk+=2*RRR_analytic[i*nbin+i2];
                 fprintf(BkkFile,"%le\t",output_bkk);

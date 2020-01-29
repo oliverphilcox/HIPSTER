@@ -7,7 +7,7 @@ class KernelInterp{
     // Compute a interpolation kernel function
 
 public:
-    int npoint=100000;
+    int npoint=1000000;
     Float min_val,max_val;
     double *sep, *kernel_vals_0, *kernel_vals_2, *kernel_vals_4, *kernel_vals_6;
     gsl_interp_accel *sep_a;
@@ -109,8 +109,8 @@ public:
         kernel_vals_4 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_6 = (double *)malloc(sizeof(double)*npoint);
 
-        min_val = 0.1*(R0*k_min)/double(npoint); // minimum interpolation value
-        max_val = 2.*(R0*k_max); // maximum interpolation value
+        min_val = 0.01*(R0*k_min)/double(npoint); // minimum interpolation value
+        max_val = 2.01*(R0*k_max); // maximum interpolation value
 
         for(int i=0;i<npoint;i++){
             tmp_kw = min_val + double(i)/double(npoint-1)*(max_val-min_val);

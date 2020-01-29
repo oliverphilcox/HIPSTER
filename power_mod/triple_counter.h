@@ -51,6 +51,7 @@ public:
 
         //-----------INITIALIZE OPENMP + CLASSES----------
         BispectrumCounts global_counts(par,sc,kernel_interp);
+
         check_threads(par,1); // define threads
 
         fprintf(stderr, "Init time: %g s\n",initial.Elapsed());
@@ -60,7 +61,6 @@ public:
         fflush(NULL);
 
         TotalTime.Start(); // Start timer
-
 
 #ifdef OPENMP
         #pragma omp parallel firstprivate(par,grid1,grid2,grid3,kernel_interp) shared(global_counts,TotalTime) reduction(+:percent_counter,used_cells,used_particles)
@@ -74,6 +74,7 @@ public:
         printf("# Starting power-spectrum particle-count computation single threaded.\n");
         { // start loop
 #endif
+
             // DEFINE LOCAL THREAD VARIABLES
             Particle *prim_list; // list of particles in first cell
             Float3 separation; // separation vector
@@ -100,6 +101,7 @@ public:
             // Loop over all filled n1 cells
             for(int n1=0;n1<grid1->nf;n1++){
 
+
                 // Print time left
                 if((float(n1)/float(grid1->nf)*100)>=percent_counter){
                     printf("Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
@@ -118,6 +120,7 @@ public:
                 for(int i=prim_cell.start;i<(prim_cell.start+prim_cell.np);i++){
                     particle_i = grid1->p[i];
                     register_index=0;
+
 
                     // Now find all secondary particles in allowed region around this primary particle
                     // Iterate over all nearby second cells
@@ -142,7 +145,7 @@ public:
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
                             used_particles++;
-                            // Now save the distances and angles of the cells to the register
+                            // Now save the distances of the cells to the register
                             sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
                         }
                     }

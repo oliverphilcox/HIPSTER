@@ -115,7 +115,10 @@ public:
                 }
         else if (!strcmp(argv[i],"-fname")) fname = argv[++i];
         else if (!strcmp(argv[i],"-fname2")) fname2 = argv[++i];
+#ifdef BISPECTRUM
         else if (!strcmp(argv[i],"-fname3")) fname3 = argv[++i];
+        else if (!strcmp(argv[i],"-in3")) fname3 = argv[++i];
+#endif
         else if (!strcmp(argv[i],"-rescale")) rescale = atof(argv[++i]);
 	    else if (!strcmp(argv[i],"-R0")) R0 = atof(argv[++i]);
         else if (!strcmp(argv[i],"-nside")) nside = atoi(argv[++i]);
@@ -203,8 +206,9 @@ public:
 
 	    if (fname==NULL) fname = (char *) default_fname;   // No name was given
 	    if (fname2==NULL) fname2 = (char *) default_fname2;   // No name was given
+#ifdef BISPECTRUM
       if (fname3==NULL) fname3 = (char *) default_fname3;   // No name was given
-
+#endif
 	    create_directory();
 
 	    // Read in the radial binning
@@ -233,10 +237,10 @@ private:
 	void usage() {
 	      fprintf(stderr, "\nUsage for HIPSTER:\n\n");
         fprintf(stderr, "   -def: This allows one to accept the defaults without giving other entries.\n");
-	      fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,w).\n");
-	      fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,w).\n");
+	      fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,[w]).\n");
+	      fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,[w]).\n");
 #ifdef BISPECTRUM
-        fprintf(stderr, "   -in3 <file>: The input file for particle-set 3 (space-separated x,y,z,w).\n");
+        fprintf(stderr, "   -in3 <file>: The input file for particle-set 3 (space-separated x,y,z,[w]).\n");
 #endif
         fprintf(stderr, "   -binfile <filename>: File containing the desired k-space radial bins\n");
         fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");

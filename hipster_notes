@@ -9,17 +9,23 @@ NB: some of the one-grid utilities in the group_counter script will fail for non
 - RRR counts correctly give Wa*Wb*delta_{ell,0}. (No other normalization)
 - Can test DDD by comparing DDD and RRR with random catalog
 - There's a weird malloc error going on...
-
 - Seems like the make_map function isn't being called??
 
 Still To Do:
-- Implement DDR-II in pair counts - can we do this with R separation on 2 legs?
-- Implement RRR in C++
+- Only need to store values for a<=b;
+- Remove testing output files, e.g. DDR_I,II
+- Maybe more accurate to switch to gsl qag integration rather than summing
+- Maybe add more integration steps to internal integrals in E_II kernel
 - Add in (-1)^ell factor to DDD counts
-- Reduce number of bins by symmetry of k1->k2?
+- Why is second part of the integration kernel so slow??
 - Many factors missing; e.g. in outer-product kernel sum; restricting to n2<n requires symmetrization and x2
 - Clean up parameter file
+- Should speed up j0 computation somehow, + reorder arrays in integral
+- Have checked E_II kernel against Python + is consistent.
+- Can we speed up the E_II part? maybe don't pass full list of particles with R0>100?
 - Clean up MAKEFILE
+- Should multithread integration kernels
+- Should the kernel_interps be shared or used on each core? test!
 - Remove MAXORDER in file?
 - Could autoset fields 2 + 3 if unspecified?
 

@@ -93,7 +93,7 @@ public:
       fflush(NULL);
       // Define r
       Float integrand,tmp_r,old_kr,old_kr3,old_kernel,new_kernel,new_kr,new_kr3,diff_kr;
-      int npoint=100000;
+      int npoint=200000;
       Float delta_r = R0/double(npoint);
 
       for(int i=0;i<nbin;i++) RR_analyt[i]=0; // initialize array
@@ -164,7 +164,7 @@ public:
 #endif
         cleanup_l(pi.pos,pj.pos,r_ij,mu_ij); // define distance and angle
 
-        if(r_ij>R0) return; // outside correct size
+        if(r_ij>=R0) return; // outside correct size
 
         used_pairs++; // update number of pairs used
 
@@ -218,11 +218,11 @@ public:
 
     inline Float pair_weight(Float sep){
         // Compute weight function W(r;R_0)
-        if(sep<R0/2) return 1.;
+        if(sep<R0/2.) return 1.;
         else{
             Float x = sep/R0;
-            if(sep<3*R0/4) return 1.-8.*pow(2*x-1,3)+8.*pow(2*x-1,4);
-            else return -64.*pow(x-1,3)-128.*pow(x-1,4);
+            if(sep<3.*R0/4.) return 1.-8.*pow(2.*x-1.,3.)+8.*pow(2.*x-1.,4.);
+            else return -64.*pow(x-1.,3.)-128.*pow(x-1.,4.);
         }
     }
 

@@ -102,7 +102,7 @@ public:
                 }
 
                 // Pick first cell
-                prim_id_1D = grid1-> filled[n1]; // 1d ID for cell i
+                prim_id_1D = grid1->filled[n1]; // 1d ID for cell i
                 prim_id = grid1->cell_id_from_1d(prim_id_1D); // define first cell
                 prim_cell = grid1->c[prim_id_1D];
                 if(prim_cell.np==0) continue; // skip if empty
@@ -147,7 +147,7 @@ public:
 
     } // end OPENMP loop
 
-    // Compute RR/RRR analytic counts if periodic
+    // Compute RR analytic counts if periodic
 #ifdef PERIODIC
     Float* analytic_counts; // array to hold RR/RRR counts
     int ec=0;
