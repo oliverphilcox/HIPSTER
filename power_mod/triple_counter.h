@@ -121,7 +121,6 @@ public:
                     particle_i = grid1->p[i];
                     register_index=0;
 
-
                     // Now find all secondary particles in allowed region around this primary particle
                     // Iterate over all nearby second cells
                     for(int n2=0;n2<len_cell_sep;n2++){ // second cell index
@@ -134,7 +133,7 @@ public:
                         separation = {0,0,0}; // zero vector (unused)
                     #endif
                         if(sec_id_1D<0) continue; // if cell not in grid
-                        if((one_grid==1)&&(sec_id_1D<prim_id_1D)) continue; // already counted this pair of cells!
+                        //if((one_grid==1)&&(sec_id_1D<prim_id_1D)) continue; // already counted this pair of cells!
                         sec_cell = grid2->c[sec_id_1D];
                         if(sec_cell.np==0) continue; // if empty cell
                         if(i==prim_cell.start) used_cells++; // update number of cells used on first time round i-loop
@@ -143,7 +142,8 @@ public:
                         // Iterate over secondary particles in the cell
 
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
-                            if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
+                            if(j==i) continue; // skip if identical particles
+                            //if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
                             used_particles++;
                             // Now save the distances of the cells to the register
                             sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
@@ -167,11 +167,11 @@ public:
 
     // Compute RRR analytic counts if periodic
 #ifdef PERIODIC
-    Float* analytic_counts; // array to hold RRR counts
+    Float* Wka; // array to hold W_a(R0) functions (with RRR_ab = W_a(R0) * W_b(R0))
     int ec=0;
-    ec+=posix_memalign((void **) &analytic_counts, PAGE, sizeof(Float)*nbin*nbin);
+    ec+=posix_memalign((void **) &Wka, PAGE, sizeof(Float)*nbin);
     assert(ec==0);
-    global_counts.randoms_analytic(analytic_counts);
+    global_counts.randoms_analytic(Wka);
 #endif
     // ----- REPORT AND SAVE OUTPUT ------------
     TotalTime.Stop();
@@ -188,13 +188,13 @@ public:
     printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
     printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
 
-    global_counts.save_counts(one_grid);
+    global_counts.save_counts(one_grid,Wka);
 #ifdef PERIODIC
-    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1));
-    global_counts.save_spectrum(analytic_counts);
-    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1));
+    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(R0));
+    global_counts.save_spectrum(Wka);
+    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(R0));
 #else
-    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin,(mbin-1));
+    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin,(mbin-1),int(R0));
 #endif
     }
 };

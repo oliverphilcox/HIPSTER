@@ -109,19 +109,19 @@ public:
     }
 
 #ifdef PERIODIC
-    void randoms_analytic(Float* RRR_analyt){
+    void randoms_analytic(Float* Wka){
       // Compute the analytic randoms term from numerical integration of the window function in each bin.
-      // NB: This is the outer product of two W(k) functions in each bin
+      // NB: Here we compute the W(k) function in each bin. The RRR counts are given by W_a W_b for ell = 0 and 0 else.
 
       printf("\nComputing analytic RRR term");
       fflush(NULL);
       // Define r
       Float integrand,tmp_r,old_kr,old_kr3,old_kernel,new_kernel,new_kr,new_kr3,diff_kr;
       int npoint=100000;
+      Float RRR_analyt[nbin*nbin];
       Float delta_r = R0/double(npoint);
-      Float RRR_analyt_tmp[nbin];
 
-      for(int i=0;i<nbin;i++) RRR_analyt_tmp[i]=0; // initialize array which will hold W(k) in correct bin.
+      for(int i=0;i<nbin;i++) Wka[i]=0; // initialize array which will hold W(k) in correct bin.
 
       for(int j=0;j<npoint;j++){ // iterate over all r in [0,R0]
           tmp_r = double(j+1)/double(npoint)*R0;
@@ -143,7 +143,7 @@ public:
               new_kernel = kernel_interp->kernel(0,new_kr);
 
               // Add contribution to integral
-              RRR_analyt_tmp[i]+=integrand*(new_kernel-old_kernel)/diff_kr; // ie 4 pi r^2 W(r) j_0^a(r) dr
+              Wka[i]+=integrand*(new_kernel-old_kernel)/diff_kr; // ie 4 pi r^2 W(r) j_0^a(r) dr
 
               // Update values for next time
               old_kr = new_kr;
@@ -151,16 +151,16 @@ public:
               old_kernel = new_kernel;
           }
       }
-    // Now save output
+    // Now save RRR counts for posterity
     char RRR_periodic_name[1000];
     Float tmp_out;
 
-    snprintf(RRR_periodic_name, sizeof RRR_periodic_name, "%s/%s_analyt_RRR_counts_n%d_l%d.txt", out_file, out_string, nbin, (mbin-1));
+    snprintf(RRR_periodic_name, sizeof RRR_periodic_name, "%s/%s_analyt_RRR_counts_n%d_l%d_R0%d.txt", out_file, out_string, nbin, (mbin-1),int(R0));
     FILE * RRR_periodic_file = fopen(RRR_periodic_name,"w");
 
     for (int i1=0;i1<nbin;i1++){
         for (int i2=0;i2<nbin;i2++){
-            RRR_analyt[i1*nbin+i2]=RRR_analyt_tmp[i1]*RRR_analyt_tmp[i2];
+            RRR_analyt[i1*nbin+i2]=Wka[i1]*Wka[i2];
             for(int j=0;j<mbin;j++){
                 if(j==0) tmp_out = RRR_analyt[i1*nbin+i2];
                 else tmp_out = 0.;
@@ -174,7 +174,7 @@ public:
     // Close open files
     fclose(RRR_periodic_file);
 
-    printf("\nComputation complete, and saved to %s.",RRR_periodic_name);
+    printf("\nComputation complete, and RRR counts saved to %s.",RRR_periodic_name);
 
     }
 #endif
@@ -185,11 +185,10 @@ public:
         // Full bispectrum kernel is made from this.
 
         if(register_size==0) return;
-        Float sep_weight,particle_sep, tmp_kernel,tmp_E,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
+        Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
         Float3 norm_sep;
         int start_n;
 
-        // Must first zero useful arrays - ARE ALL THESE NECESSARY?
         for(int mm=0;mm<n_lm*nbin;mm++) Aa_lm[mm]=0;
         for(int mm=0;mm<nbin*nbin*mbin;mm++) Cab_l[mm]=0;
 
@@ -200,52 +199,33 @@ public:
             // Compute separation length
             particle_sep = separation_register[n].norm();
 
+            if((particle_sep==0)){
+                  fprintf(stderr,"Zero found in register; this suggests a self-count problem.\n");
+                  exit(1);
+            }
+
             // Compute the E_II sum for all particles up to 2*R0;
             if((particle_sep>=2*R0)) continue;
             for(int n1=0;n1<nbin;n1++){
                 for(int n2=n1;n2<nbin;n2++){
                     for(int ell=0;ell<=max_legendre;ell++){
-                        tmp_E = kernel_interp->kernel_E_II(n1,n2,ell,particle_sep);
-                        DDR_II_sum[(n1*nbin+n2)*mbin+ell] += tmp_E;
-                        // Use symmetry to fill other bin
-                        if(n1!=n2) DDR_II_sum[(n2*nbin+n1)*mbin+ell] += tmp_E;
+                        DDR_II_sum[(n1*nbin+n2)*mbin+ell] += kernel_interp->kernel_E_II(n1,n2,ell,particle_sep);
                     }
                 }
             }
 
             // Only need separation up to R0 for all other terms
             if((particle_sep>=R0)) continue;
-            if((particle_sep==0)){
-                  fprintf(stderr,"Zero found in register; this suggests a self-count problem.\n");
-                  exit(1);
-            }
 
-            // Zero arrays - Needed?
+            // Zero arrays
             for(int mm=0;mm<n_mult;mm++) m[mm]=0; // powers of x,y,z used for Y_lms
-            for(int mm=0;mm<n_lm;mm++) alm[mm]=0;
+            //for(int mm=0;mm<n_lm;mm++) alm[mm]=0; // seemingly not needed
 
             sep_weight = pair_weight(particle_sep); // compute W(r;R_0)
 
             // Compute Y_lm for particle pair in the alm variable
             norm_sep = separation_register[n]/particle_sep;
             compute_Ylm(norm_sep, alm, m);
-            //
-            // // Compute L_ell for checking
-            // #define RealProduct(a,b) (a.real()*b.real()+a.imag()*b.imag())
-            // int nnn=0;
-            // for(int elll=0;elll<=max_legendre;elll++){
-            //     tmp_count=0.;
-            //     for(int mmm=0;mmm<=elll;mmm++,nnn++){
-            //         printf("%.2e ",RealProduct(alm[nnn],alm[nnn]));
-            //         tmp_count+=RealProduct(alm[nnn],alm[nnn])*almnorm[nnn];
-            //     }
-            //     Float Lell = tmp_count*4*M_PI/(2*elll+1);
-            //
-            //     Float mu_ang = norm_sep.z/norm_sep.norm(); // z-axis angle
-            //     printf("l = %d, L_l = %.2e vs %.2e\n",elll,Lell,Pn(mu_ang,elll));
-            //  }
-
-            //for(int nn=0;nn<n_lm;nn++) printf("%.2e %.2e\n",alm[nn].real(),alm[nn].imag());
 
             // Now let's compute the k-binning kernels in each k-bin and ell
             start_n=0; // counts starting location in Y_lm array for certain ell
@@ -288,7 +268,7 @@ public:
                 // Now these are filled we can compute Cab_l;
                 for(int i=0;i<nbin;i++){
                   this_kernel = kernel_arr[i];
-                    for(int i2=0;i2<nbin;i2++){
+                    for(int i2=i;i2<nbin;i2++){
                         Cab_l[(i*nbin+i2)*mbin+ell]+=this_kernel*kernel_arr[i2];
                     }
                 }
@@ -300,7 +280,7 @@ public:
 
         // Loop over bispectrum bins
         for(int i=0;i<nbin;i++){
-            for(int i2=0;i2<nbin;i2++){
+            for(int i2=i;i2<nbin;i2++){
                 for(int ell=0, nn=0;ell<=max_legendre;ell++){
                     tmp_count=0;
                     for (int mm=0; mm<=ell; mm++, nn++){ // Loop over m
@@ -323,31 +303,39 @@ public:
         }
     }
 
-    void save_counts(int one_grid) {
+    void save_counts(int one_grid, Float* Wka) {
         // Print bispectrum-count output to file.
         // Create output files
+        // NB: we only print upper triangle of array here. b<a bins are identical to b>a bins.
         // DDD contains unnormalized bispectrum counts
-        // DDR-I contains sum over j_0^a(r)W(r;R_0)  - must be multiplied by -2 delta^K_{ell,0}/n^2V * tilde{W}^a for spectral contribution
+        // DDR-I contains sum over j_0^a(r)W(r;R_0) * \tilde{W}^a  - must be multiplied by -2 delta^K_{ell,0}/(n^2V) for spectral contribution
         // DDR-II contains sum over E^{II,ab}_ell(r) - unnormalized
 
         char count_name[1000], count_name2[1000], count_name3[1000];
-        snprintf(count_name, sizeof count_name, "%s/%s_DDD_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
-        snprintf(count_name2, sizeof count_name2, "%s/%s_DDR_I_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
-        snprintf(count_name3, sizeof count_name3, "%s/%s_DDR_II_counts_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
+        snprintf(count_name, sizeof count_name, "%s/%s_DDD_counts_n%d_l%d_R0%d.txt", out_file,out_string,nbin, (mbin-1),int(R0));
+        snprintf(count_name2, sizeof count_name2, "%s/%s_DDR_I_counts_n%d_l%d_R0%d.txt", out_file,out_string,nbin, (mbin-1),int(R0));
+        snprintf(count_name3, sizeof count_name3, "%s/%s_DDR_II_counts_n%d_l%d_R0%d.txt", out_file,out_string,nbin, (mbin-1),int(R0));
 
         FILE * CountFile = fopen(count_name,"w");
         FILE * CountFile2 = fopen(count_name2,"w");
         FILE * CountFile3 = fopen(count_name3,"w");
 
         for (int i=0;i<nbin;i++){
-            fprintf(CountFile2,"%le\n",j0a_W[i]); // print the DDR-I term stochastic component
             for(int i2=0;i2<nbin;i2++){
                 for(int j=0;j<mbin;j++){
                     //if(one_grid==1) power_counts[(i*nbin+i2)*mbin+j]*=2.; // since we ignore i-j switches
-                    fprintf(CountFile,"%le\t",bispectrum_counts[(i*nbin+i2)*mbin+j]);
-                    fprintf(CountFile3,"%le\t",DDR_II_sum[(i*nbin+i2)*mbin+j]);
+                    if(j==0) fprintf(CountFile2,"%le\n",0.5*(j0a_W[i]*Wka[i2]+j0a_W[i2]*Wka[i])); // print the DDR-I term stochastic
+                    if(i<=i2){
+                        fprintf(CountFile,"%le\t",bispectrum_counts[(i*nbin+i2)*mbin+j]);
+                        fprintf(CountFile3,"%le\t",DDR_II_sum[(i*nbin+i2)*mbin+j]);
+                    }
+                    else{
+                        fprintf(CountFile,"%le\t",bispectrum_counts[(i2*nbin+i)*mbin+j]);
+                        fprintf(CountFile3,"%le\t",DDR_II_sum[(i2*nbin+i)*mbin+j]);
+                    }
                 }
                 fprintf(CountFile,"\n");
+                fprintf(CountFile2,"\n");
                 fprintf(CountFile3,"\n");
             }
         }
@@ -360,30 +348,31 @@ public:
         fclose(CountFile3);
       }
 
-#ifdef PERIODIC
-  void save_spectrum(Float* RRR_analytic){
-        // If periodic, we can output the whole bispectrum estimate here
+  void save_spectrum(Float* Wka){
+        // Save the complete bispectrum, given the W(a) counts
         char bkk_name[1000];
-        Float output_bkk, tmp_Wka;
+        Float output_bkk,prefactor;
         printf("Norm = %.2e\n",bispectrum_norm);
-        snprintf(bkk_name, sizeof bkk_name, "%s/%s_bispectrum_n%d_l%d.txt", out_file,out_string,nbin, (mbin-1));
+        snprintf(bkk_name, sizeof bkk_name, "%s/%s_bispectrum_n%d_l%d_R0%d.txt", out_file,out_string,nbin, (mbin-1),int(R0));
         FILE * BkkFile = fopen(bkk_name,"w");
 
+        // We also fill in the b<a bins here
         for (int i=0;i<nbin;i++){
-            // Compute W(k) in bin i (this is square-root of diagonal of RRR_analytic)
-            tmp_Wka = pow(RRR_analytic[i*nbin+i],0.5);
             for (int i2=0;i2<nbin;i2++){
                 for(int j=0;j<mbin;j++){
+                    prefactor = pow(-1.,j)*(2.*j+1.);
                     // Compute DDD term
-                    output_bkk = bispectrum_counts[(i*nbin+i2)*mbin+j]/bispectrum_norm;
-
+                    if(i<=i2) output_bkk = prefactor*bispectrum_counts[(i*nbin+i2)*mbin+j]/bispectrum_norm;
+                    else output_bkk = prefactor*bispectrum_counts[(i2*nbin+i)*mbin+j]/bispectrum_norm;
                     // Add DDR-I term
-                    if(j==0) output_bkk-=2.*j0a_W[i2]*tmp_Wka/bispectrum_norm2;
+                    if(j==0) output_bkk -= j0a_W[i2]*Wka[i]/bispectrum_norm2;
+                    if(j==0) output_bkk -= j0a_W[i]*Wka[i2]/bispectrum_norm2;
 
                     // Add DDR-II term
-                    output_bkk -= DDR_II_sum[(i*nbin+i2)*mbin+j]/bispectrum_norm2;
+                    if(i<=i2) output_bkk -= prefactor*DDR_II_sum[(i*nbin+i2)*mbin+j]/bispectrum_norm2;
+                    else output_bkk -= prefactor*DDR_II_sum[(i2*nbin+i)*mbin+j]/bispectrum_norm2;
 
-                    if(j==0) output_bkk+=2*RRR_analytic[i*nbin+i2];
+                    if(j==0) output_bkk+=2*Wka[i]*Wka[i2];
                 fprintf(BkkFile,"%le\t",output_bkk);
                 }
             fprintf(BkkFile,"\n");
@@ -395,7 +384,6 @@ public:
         // Close open files
         fclose(BkkFile);
 }
-#endif
 
 
 // SPHERICAL HARMONIC INFORMATION

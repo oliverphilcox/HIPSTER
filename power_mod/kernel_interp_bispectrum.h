@@ -143,6 +143,7 @@ public:
         // NB: This isn't currently used, so may have memory leaks.
         npoint = kern->npoint;
         min_val = kern->min_val;
+        max_val = kern->max_val;
         nbin = kern->nbin;
         mbin = kern->mbin;
 
@@ -193,10 +194,11 @@ public:
     }
 
 private:
-    void copy(int& _npoint, int& _nbin, int&  _mbin, Float& _min_val, double **_sep, double **_kernel_vals_0,double **_kernel_vals_1,double **_kernel_vals_2,double **_kernel_vals_3,double **_kernel_vals_4,double **_kernel_vals_5,double **_kernel_vals_6,double **_kernel_vals_7,double **_kernel_vals_8,double **_kernel_vals_9,double **_kernel_vals_10,
+    void copy(int& _npoint, int& _nbin, int&  _mbin, Float& _min_val, Float& _max_val, double **_sep, double **_kernel_vals_0,double **_kernel_vals_1,double **_kernel_vals_2,double **_kernel_vals_3,double **_kernel_vals_4,double **_kernel_vals_5,double **_kernel_vals_6,double **_kernel_vals_7,double **_kernel_vals_8,double **_kernel_vals_9,double **_kernel_vals_10,
     KernelInterpSingle **_E_II_interpolators){
         _npoint = npoint;
         _min_val = min_val;
+        _max_val = max_val;
         _nbin = nbin;
         _mbin = mbin;
 
@@ -272,7 +274,7 @@ public:
     KernelInterp(KernelInterp *kern){
         // Copy constructor
 
-        kern->copy(npoint,nbin, mbin, min_val,&sep,&kernel_vals_0,&kernel_vals_1,&kernel_vals_2,&kernel_vals_3,&kernel_vals_4,&kernel_vals_5,&kernel_vals_6,&kernel_vals_7,&kernel_vals_8,&kernel_vals_9,&kernel_vals_10,&E_II_interpolators);
+        kern->copy(npoint,nbin, mbin, min_val,max_val,&sep,&kernel_vals_0,&kernel_vals_1,&kernel_vals_2,&kernel_vals_3,&kernel_vals_4,&kernel_vals_5,&kernel_vals_6,&kernel_vals_7,&kernel_vals_8,&kernel_vals_9,&kernel_vals_10,&E_II_interpolators);
         interpolate();
     }
 
@@ -512,7 +514,7 @@ public:
       // TODO: Only store kernel for a <= b since symmetric
 
       // Zero array
-      for(int i=0;i<npoint*(nbin+1)/2*nbin*mbin;i++) kernel_II_vals[i]=0;
+      for(int i=0;i<npoint*nbin*nbin*mbin;i++) kernel_II_vals[i]=0;
 
       percent = 0;
       // First iterate over p array
@@ -522,7 +524,7 @@ public:
               percent+=10;
           }
           p_value = dp*pi + dp/100.;
-          p2 = pow(p_value,2)/(2.*M_PI)*dp;
+          p2 = pow(p_value,2)/(2.*pow(M_PI,2.))*dp;
 
           // Now iterate over real-space array
           for(int xi=0;xi<npoint;xi++){
@@ -540,7 +542,7 @@ public:
               }
           }
       }
-      
+
       // Save output kernel grid
       char output_name[1000];
       snprintf(output_name, sizeof output_name, "%s/E_II_kernel_values_n%d_l%d_R0%d.txt",out_file, nbin, (mbin-1),int(R0));

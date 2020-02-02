@@ -56,7 +56,7 @@ public:
     //-------- OTHER PARAMETERS ----------------------------------------------
 
 	// The periodicity of the position-space cube.
-	Float boxsize = 1200; // this is only used if the input particles are made randomly
+	Float boxsize = 1000; // this is only used if the input particles are made randomly
 
 	// The particles will be read from the unit cube, but then scaled by boxsize.
 	Float rescale = 1.;   // If left zero or negative, set rescale=boxsize

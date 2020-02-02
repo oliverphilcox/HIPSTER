@@ -11,19 +11,24 @@ NB: some of the one-grid utilities in the group_counter script will fail for non
 - There's a weird malloc error going on...
 - Seems like the make_map function isn't being called??
 
+NEW ROUTINE
+- Have two nearby cell lists - and iterate over first then second with different routines
+- Note we currently have ONLY particles below R0
+
 Still To Do:
 - Only need to store values for a<=b;
+- Should we stop counting both i<j and i>j? Not sure how kernels respond to this
 - Remove testing output files, e.g. DDR_I,II
 - Maybe more accurate to switch to gsl qag integration rather than summing
 - Maybe add more integration steps to internal integrals in E_II kernel
-- Add in (-1)^ell factor to DDD counts
 - Why is second part of the integration kernel so slow??
-- Many factors missing; e.g. in outer-product kernel sum; restricting to n2<n requires symmetrization and x2
+- Make routine for particles where cellsep > R0 always - i.e. avoid other routine
 - Clean up parameter file
+- Sort out compilation errors when PERIODIC not specified
 - Should speed up j0 computation somehow, + reorder arrays in integral
 - Have checked E_II kernel against Python + is consistent.
-- Can we speed up the E_II part? maybe don't pass full list of particles with R0>100?
 - Clean up MAKEFILE
+- Should add R0 to file names - also do in power spectrum?
 - Should multithread integration kernels
 - Should the kernel_interps be shared or used on each core? test!
 - Remove MAXORDER in file?

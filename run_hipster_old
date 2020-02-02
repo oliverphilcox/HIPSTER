@@ -1,0 +1,3 @@
+dat=/tigress/ophilcox/hipster_data/quijote_mass_cut_halo_1.txt 
+#halos_1.txt.sub
+ ./power -in $dat -in2 $dat -in3 $dat -binfile /tigress/ophilcox/hipster_data/k_bin_small3.csv  -output /tigress/ophilcox/hipster_data -out_string test_run -perbox -max_l 4 -R0 50 -nthread 20 -boxsize 1000
