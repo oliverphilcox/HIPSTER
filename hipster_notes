@@ -1,32 +1,33 @@
 
 Bispectrum:
 - Currently storing all nearby separations and angles -> faster to analyze each separately? There's O(100-1000) of them.
-- How do we do normalization? x 6 or not? + Check with i<j<k thing
-- Indexing in RRR file has each ell in separate column and n^2 radial bins
 NB: some of the one-grid utilities in the group_counter script will fail for non-equal fields.
 - We can probably pre-allocate memory to registers for speed in bisecptrum_counts
 - Could remove bispoectrum code from grid_power.cpp file?
-- RRR counts correctly give Wa*Wb*delta_{ell,0}. (No other normalization)
-- Can test DDD by comparing DDD and RRR with random catalog
 - There's a weird malloc error going on...
 - Seems like the make_map function isn't being called??
 
-NEW ROUTINE
-- Have two nearby cell lists - and iterate over first then second with different routines
-- Note we currently have ONLY particles below R0
+INTERPOLATOR
+- Slow point doesn't seem to be Bessel function call - instead raw speed of calculations - since there's many particles
+- can this be parallelized efficiently?
+- probably remove interpolator?
+- clean this up
+
+E_II SUM IS KILLING SPEED!!
+It might actually be faster to run with a random catalog for the D-R-D term with R in the center
+
 
 Still To Do:
-- Only need to store values for a<=b;
+- Fully remove a<b in interpolators
 - Should we stop counting both i<j and i>j? Not sure how kernels respond to this
 - Remove testing output files, e.g. DDR_I,II
 - Maybe more accurate to switch to gsl qag integration rather than summing
 - Maybe add more integration steps to internal integrals in E_II kernel
 - Why is second part of the integration kernel so slow??
-- Make routine for particles where cellsep > R0 always - i.e. avoid other routine
 - Clean up parameter file
+- Is having two nearby cell lists actually quicker??
 - Sort out compilation errors when PERIODIC not specified
 - Should speed up j0 computation somehow, + reorder arrays in integral
-- Have checked E_II kernel against Python + is consistent.
 - Clean up MAKEFILE
 - Should add R0 to file names - also do in power spectrum?
 - Should multithread integration kernels

@@ -169,6 +169,11 @@ int main(int argc, char *argv[]) {
             if(index==0) filename=par.fname;
 						else if(index==1) filename=par.fname2;
             else filename=par.fname3;
+						if(index>0) if(strcmp(filename,par.fname)==0){
+								all_grid[index].copy(&all_grid[0]);
+								continue;
+						}
+
 	          orig_p = read_particles(par.rescale, &par.np, filename, par.rstart, par.nmax);
             assert(par.np>0);
             par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
@@ -218,21 +223,27 @@ int main(int argc, char *argv[]) {
     // Read in survey correction function
     SurveyCorrection sc(&par,1,1);
 
+#ifdef BISPECTRUM
+		Float max_sep = 2.*par.R0;
+#else
+		Float max_sep = par.R0;
+#endif
+
     // Count number of second/third field cells enclosed by the maximum truncation radius
     Float cellsize = all_grid[1].cellsize;
-    Float filled_vol = 4./3.*M_PI*pow(par.R0+2.*cellsize,3);
+    Float filled_vol = 4./3.*M_PI*pow(max_sep+2.*cellsize,3);
     int n_close = ceil(filled_vol/pow(cellsize,3)); // number of close cells
 
     // Define cell separations (dimensionless) within truncation radius
     Float3 cell_sep_close_tmp[n_close];
-    int len = ceil((par.R0+cellsize/2.)/cellsize);
+    int len = ceil((max_sep+cellsize/2.)/cellsize);
     int len_cell_sep_close=0.; // counter
     integer3 this_pos;
 
     for(int i=-1*len;i<=len;i++){
         for(int j=-1*len;j<=len;j++){
             for(int k=-1*len;k<=len;k++){
-                if((sqrt(pow(i,2)+pow(j,2)+pow(k,2))*cellsize)<(par.R0+cellsize)){
+                if((sqrt(pow(i,2)+pow(j,2)+pow(k,2))*cellsize)<(max_sep+cellsize)){
                     this_pos = {i,j,k};
                     cell_sep_close_tmp[len_cell_sep_close] = this_pos;
                     len_cell_sep_close++;
@@ -245,43 +256,8 @@ int main(int argc, char *argv[]) {
     integer3 cell_sep_close[len_cell_sep_close]; // proper array to house cell separations of correct length
     for(int i=0;i<len_cell_sep_close;i++) cell_sep_close[i] = cell_sep_close_tmp[i];
 
-#ifdef BISPECTRUM
-		printf("Need to write second list of almost nearby particles from R0-width  to R0+width");
-
-		// Count number of second/third field cells enclosed by [R0,2*R0] region
-		printf("HERE@!!!");
-		Float filled_vol2 = 4./3.*M_PI*pow(par.R0+2.*cellsize,3);
-		int n_close = ceil(filled_vol/pow(cellsize,3)); // number of close cells
-
-		// Define cell separations (dimensionless) within truncation radius
-		Float3 cell_sep_close_tmp[n_close];
-		int len = ceil((par.R0+cellsize/2.)/cellsize);
-		int len_cell_sep_close=0.; // counter
-		integer3 this_pos;
-
-		for(int i=-1*len;i<=len;i++){
-				for(int j=-1*len;j<=len;j++){
-						for(int k=-1*len;k<=len;k++){
-								if((sqrt(pow(i,2)+pow(j,2)+pow(k,2))*cellsize)<(par.R0+cellsize)){
-										this_pos = {i,j,k};
-										cell_sep_close_tmp[len_cell_sep_close] = this_pos;
-										len_cell_sep_close++;
-								}
-						}
-				}
-		}
-		assert(len_cell_sep_close<=n_close);
-
-		integer3 cell_sep_close[len_cell_sep_close]; // proper array to house cell separations of correct length
-		for(int i=0;i<len_cell_sep_close;i++) cell_sep_close[i] = cell_sep_close_tmp[i];
-
-
-#endif
-
-
-    // Compute kernel interpolation functions
-    printf("Creating kernel interpolator function\n");
-		KernelInterp interp_func(&par);
+	  // Compute kernel interpolation functions
+    KernelInterp interp_func(&par);
 
     // RUN Pair/Triple Counter
 #ifdef BISPECTRUM

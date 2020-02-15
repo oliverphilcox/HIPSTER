@@ -6,7 +6,7 @@ PERIODIC_FLAG=$(Periodic)
 CC = gcc
 CFLAGS = -g -Wall -O3
 #-O3 -Wall
-CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) -DOPENMP -DBISPECTRUM
+CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) -DBISPECTRUM -DOPENMP
 #-DBISPECTRUM
 # disable OPENMP to run single threaded
 # use -DPERIODIC to run in periodic mode, or set Periodic=-DPERIODIC on the command line

@@ -26,10 +26,7 @@ private:
 
     Float *m; // powers of x,y,z used for Y_lms
     Complex *alm;   // Y_lm (for m>0) for a particle
-
-#ifdef PERIODIC
     Float bispectrum_norm,bispectrum_norm2;
-#endif
 
 public:
     uint64 used_pairs; // total number of pairs used
@@ -205,6 +202,7 @@ public:
             }
 
             // Compute the E_II sum for all particles up to 2*R0;
+            //tmp_time.Start();
             if((particle_sep>=2*R0)) continue;
             for(int n1=0;n1<nbin;n1++){
                 for(int n2=n1;n2<nbin;n2++){
@@ -213,7 +211,7 @@ public:
                     }
                 }
             }
-
+            
             // Only need separation up to R0 for all other terms
             if((particle_sep>=R0)) continue;
 
@@ -420,9 +418,9 @@ while (true){
 
 inline void make_map() {
   // Construct the index number in our multipoles for x^a y^b z^c
-        for(int i=0;i<=MAXORDER;i++)
-            for(int j=0;j<=MAXORDER-i;j++)
-                for(int k=0;k<=MAXORDER-i-j;k++) map[i][j][k] = 0;
+        for(int i=0;i<=max_legendre;i++)
+            for(int j=0;j<=max_legendre-i;j++)
+                for(int k=0;k<=max_legendre-i-j;k++) map[i][j][k] = 0;
   int n=0;
         for(int i=0;i<=max_legendre;i++)
             for(int j=0;j<=max_legendre-i;j++)

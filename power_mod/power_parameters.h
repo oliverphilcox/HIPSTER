@@ -41,7 +41,7 @@ public:
     // Whether or not we are using a periodic box
 	bool perbox = true;
 
-    int max_l = 4;; // max Legendre moment (must be even for power spectrum)
+    int max_l = 4; // max Legendre moment (must be even for power spectrum)
 
     Float R0 = 15; // kernel truncation radius (in Mpc/h)
 

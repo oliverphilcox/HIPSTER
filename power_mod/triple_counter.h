@@ -188,13 +188,13 @@ public:
     printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
     printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
 
-    global_counts.save_counts(one_grid,Wka);
 #ifdef PERIODIC
-    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(R0));
+    global_counts.save_counts(one_grid,Wka);
+    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
     global_counts.save_spectrum(Wka);
-    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(R0));
+    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
 #else
-    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin,(mbin-1),int(R0));
+    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin,(mbin-1),int(par->R0));
 #endif
     }
 };
