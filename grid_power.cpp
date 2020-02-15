@@ -223,11 +223,7 @@ int main(int argc, char *argv[]) {
     // Read in survey correction function
     SurveyCorrection sc(&par,1,1);
 
-#ifdef BISPECTRUM
-		Float max_sep = 2.*par.R0;
-#else
 		Float max_sep = par.R0;
-#endif
 
     // Count number of second/third field cells enclosed by the maximum truncation radius
     Float cellsize = all_grid[1].cellsize;
@@ -261,7 +257,12 @@ int main(int argc, char *argv[]) {
 
     // RUN Pair/Triple Counter
 #ifdef BISPECTRUM
-		group_counter(&all_grid[0],&all_grid[1],&all_grid[2],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
+		// First compute all the counts involving only data points
+		group_counter(&data_grid,&data_grid,&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close,true);
+
+		// Now compute the cxounts with randoms
+		group_counter(&rand_grid,&data_grid,&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close,false);
+
 #else
     group_counter(&all_grid[0],&all_grid[1],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
 #endif
