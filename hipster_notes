@@ -7,33 +7,28 @@ NB: some of the one-grid utilities in the group_counter script will fail for non
 - There's a weird malloc error going on...
 - Seems like the make_map function isn't being called??
 
-INTERPOLATOR
-- Slow point doesn't seem to be Bessel function call - instead raw speed of calculations - since there's many particles
-- can this be parallelized efficiently?
-- probably remove interpolator?
-- clean this up
-
-E_II SUM IS KILLING SPEED!!
 It might actually be faster to run with a random catalog for the D-R-D term with R in the center
+Need to remove E_II_interpolators
 
+Now removing option to generate particles randomly
 
 Still To Do:
+- Sort out all the output + number of counts etc.
+- Relook at input options
+- Test how many randoms we need
 - Fully remove a<b in interpolators
 - Should we stop counting both i<j and i>j? Not sure how kernels respond to this
 - Remove testing output files, e.g. DDR_I,II
-- Maybe more accurate to switch to gsl qag integration rather than summing
-- Maybe add more integration steps to internal integrals in E_II kernel
-- Why is second part of the integration kernel so slow??
 - Clean up parameter file
-- Is having two nearby cell lists actually quicker??
+- must check we havent screwed up Pk
+- Remove phi file from bisepctrum and parameters
 - Sort out compilation errors when PERIODIC not specified
-- Should speed up j0 computation somehow, + reorder arrays in integral
 - Clean up MAKEFILE
 - Should add R0 to file names - also do in power spectrum?
 - Should multithread integration kernels
 - Should the kernel_interps be shared or used on each core? test!
 - Remove MAXORDER in file?
-- Could autoset fields 2 + 3 if unspecified?
+- Note we only need 1 field now
 
 To Do with Pk etc.:
 - Test subsampling behavior

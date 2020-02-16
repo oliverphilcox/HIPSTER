@@ -13,7 +13,7 @@
 
 Particle *make_particles(Float3 rect_boxsize, int np) {
     // Make np random particles
-    srand48(1);      // For reproducibility
+    srand48(time(NULL));      // set to a fixed value for reproducibility
     Particle *p = (Particle *)malloc(sizeof(Particle)*np);
     for (int j=0; j<np; j++) {
         p[j].pos.x = drand48()*rect_boxsize.x;

@@ -4,91 +4,6 @@
 #ifndef KERNEL_INTERP_H
 #define KERNEL_INTERP_H
 
-
-class KernelInterpSingle{
-    // Store an interpolator for a single E_II^{ab}_l function
-
-  public:
-      int npoint;
-      Float R0;
-      gsl_interp_accel *sep_a;
-      gsl_spline *interp_func;
-      double *r_vals, *kernel_vals;
-
-  public:
-
-      // empty initializer
-      KernelInterpSingle(){}
-
-      KernelInterpSingle(KernelInterpSingle *kern){
-          // Copy constructor
-          kern->copy(npoint,R0,&r_vals,&kernel_vals);
-
-          interpolate();
-      }
-
-
-      void initialize(Float _R0, Float *_r_vals, Float *_kernel_vals, int _npoint){
-          // Create the initializer
-
-          //TODO - all use same accel vector?
-        R0 = _R0;
-        npoint = _npoint;
-
-        r_vals = (double *)malloc(sizeof(double)*npoint);
-        kernel_vals = (double *)malloc(sizeof(double)*npoint);
-
-        for(int i=0;i<npoint;i++){
-            r_vals[i] = _r_vals[i];
-            kernel_vals[i] = _kernel_vals[i];
-        }
-
-        // TODO: do we actually need to carry all these arrays around?
-
-        interpolate();
-
-      }
-
-      void interpolate(){
-        // Construct interpolation object
-        interp_func = gsl_spline_alloc(gsl_interp_cspline, npoint);
-        gsl_spline_init(interp_func,r_vals, kernel_vals, npoint);
-        sep_a = gsl_interp_accel_alloc();
-      }
-
-      ~KernelInterpSingle(){
-          // Destructor
-          free(kernel_vals);
-          free(r_vals);
-          gsl_spline_free(interp_func);
-          gsl_interp_accel_free(sep_a);
-      }
-
-      void copy(int& _npoint, Float& _R0, double **_r_vals, double** _kernel_vals){
-          _npoint = npoint;
-          _R0 = R0;
-
-          *_r_vals = (double *)malloc(sizeof(double)*npoint);
-          *_kernel_vals = (double *)malloc(sizeof(double)*npoint);
-
-          for(int i=0;i<npoint;i++){
-            (*_r_vals)[i]=r_vals[i];
-            (*_kernel_vals)[i] = kernel_vals[i];
-          }
-
-      }
-
-      inline double kernel(double this_sep){
-          // Compute kernel function accelerated by interpolation
-          if(this_sep>=2*R0) return 0.; // kernel is identically zero beyond this
-          return gsl_spline_eval(interp_func, this_sep, sep_a);
-
-      }
-
-
-};
-
-
 class KernelInterp{
     // Compute a interpolation kernel function
 
@@ -109,11 +24,6 @@ public:
     gsl_spline *interp_kernel_0, *interp_kernel_1, *interp_kernel_2,*interp_kernel_3;
     gsl_spline *interp_kernel_4, *interp_kernel_5, *interp_kernel_6,*interp_kernel_7;
     gsl_spline *interp_kernel_8, *interp_kernel_9, *interp_kernel_10;
-
-    // E_II functions
-    Float *kernel_II_vals, *r_vals;
-    // Create interpolators
-    KernelInterpSingle *E_II_interpolators;
 
 public:
     inline double kernel(int ell, double this_sep){
@@ -162,9 +72,6 @@ public:
         kernel_vals_9 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_10 = (double *)malloc(sizeof(double)*npoint);
 
-        kernel_II_vals = (double *)malloc(sizeof(double)*npoint*nbin*(nbin+1)/2*mbin);
-        r_vals = (double *)malloc(sizeof(double)*npoint);
-
         // Read in grids
         for(int i=0;i<npoint;i++){
             sep[i]=kern->sep[i];
@@ -179,15 +86,6 @@ public:
             kernel_vals_8[i]=kern->kernel_vals_8[i];
             kernel_vals_9[i]=kern->kernel_vals_9[i];
             kernel_vals_10[i]=kern->kernel_vals_10[i];
-
-            r_vals[i]=kern->r_vals[i];
-        }
-
-        for(int i=0;i<npoint*(nbin+1)/2*nbin*mbin;i++) kernel_II_vals[i] = kern->kernel_II_vals[i];
-
-        // Remake E_II interpolators
-        for(int i=0;i<nbin*(nbin+1)/2*mbin;i++){
-            E_II_interpolators[i] = KernelInterpSingle(kern->E_II_interpolators[i]);
         }
 
         // activate interpolator
@@ -195,8 +93,7 @@ public:
     }
 
 private:
-    void copy(int& _npoint, int& _nbin, int&  _mbin, Float& _min_val, Float& _max_val, double **_sep, double **_kernel_vals_0,double **_kernel_vals_1,double **_kernel_vals_2,double **_kernel_vals_3,double **_kernel_vals_4,double **_kernel_vals_5,double **_kernel_vals_6,double **_kernel_vals_7,double **_kernel_vals_8,double **_kernel_vals_9,double **_kernel_vals_10,
-    KernelInterpSingle **_E_II_interpolators){
+    void copy(int& _npoint, int& _nbin, int&  _mbin, Float& _min_val, Float& _max_val, double **_sep, double **_kernel_vals_0,double **_kernel_vals_1,double **_kernel_vals_2,double **_kernel_vals_3,double **_kernel_vals_4,double **_kernel_vals_5,double **_kernel_vals_6,double **_kernel_vals_7,double **_kernel_vals_8,double **_kernel_vals_9,double **_kernel_vals_10){
         _npoint = npoint;
         _min_val = min_val;
         _max_val = max_val;
@@ -216,8 +113,6 @@ private:
         *_kernel_vals_9 = (double *)malloc(sizeof(double)*npoint);
         *_kernel_vals_10 = (double *)malloc(sizeof(double)*npoint);
 
-        *_E_II_interpolators = (KernelInterpSingle *)malloc(sizeof(KernelInterpSingle)*nbin*(nbin+1)/2*mbin);
-
         for(int i=0;i<npoint;i++){
             (*_sep)[i]=sep[i];
             (*_kernel_vals_0)[i]=kernel_vals_0[i];
@@ -233,15 +128,9 @@ private:
             (*_kernel_vals_10)[i]=kernel_vals_10[i];
         }
 
-        for(int i=0;i<nbin*(nbin+1)/2*mbin;i++){
-            (*_E_II_interpolators)[i] = KernelInterpSingle(E_II_interpolators[i]);
         }
 
-;    }
-
-
     void interpolate(){
-
         interp_kernel_0 = gsl_spline_alloc(gsl_interp_cspline,npoint);
         interp_kernel_1 = gsl_spline_alloc(gsl_interp_cspline,npoint);
         interp_kernel_2 = gsl_spline_alloc(gsl_interp_cspline,npoint);
@@ -275,7 +164,7 @@ public:
     KernelInterp(KernelInterp *kern){
         // Copy constructor
 
-        kern->copy(npoint,nbin, mbin, min_val,max_val,&sep,&kernel_vals_0,&kernel_vals_1,&kernel_vals_2,&kernel_vals_3,&kernel_vals_4,&kernel_vals_5,&kernel_vals_6,&kernel_vals_7,&kernel_vals_8,&kernel_vals_9,&kernel_vals_10,&E_II_interpolators);
+        kern->copy(npoint,nbin, mbin, min_val,max_val,&sep,&kernel_vals_0,&kernel_vals_1,&kernel_vals_2,&kernel_vals_3,&kernel_vals_4,&kernel_vals_5,&kernel_vals_6,&kernel_vals_7,&kernel_vals_8,&kernel_vals_9,&kernel_vals_10);
         interpolate();
     }
 
@@ -310,10 +199,6 @@ public:
         kernel_vals_8 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_9 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_10 = (double *)malloc(sizeof(double)*npoint);
-
-        r_vals = (double *)malloc(sizeof(double)*npoint);
-        kernel_II_vals = (double *)malloc(sizeof(double)*npoint*nbin*nbin*mbin);
-
 
         min_val = 0.1*(R0*k_min)/double(npoint); // minimum interpolation value
         max_val = 2.1*(R0*k_max); // maximum interpolation value
@@ -384,8 +269,6 @@ public:
         // activate interpolator function
         interpolate();
 
-        // Now compute the E_II kernel
-        load_E_II_interpolators();
     }
 
     inline Float pair_weight(Float sep){
@@ -396,223 +279,6 @@ public:
             if(sep<3.*R0/4.) return 1.-8.*pow(2.*x-1.,3.)+8.*pow(2.*x-1.,4.);
             else return -64.*pow(x-1.,3.)-128.*pow(x-1.,4.);
         }
-    }
-
-    void load_E_II_interpolators(){
-        // Load the E_ell^{II,ab}(r;R_0) kernel from file or compute if not yet written.
-
-        // Load output kernel grid if it exists.
-        char output_name[1000];
-        snprintf(output_name, sizeof output_name, "%s/E_II_kernel_values_n%d_l%d_R0%d.txt",out_file, nbin, (mbin-1),int(R0));
-        int ec = read_interpolation_grid(output_name);
-        if (ec==1){
-            fprintf(stderr,"\nInterpolation grid has not been computed for this choice of k-bins. This will be recomputed.\n");
-            compute_E_II_kernel();
-        }
-
-        // Now we have the kernel values for each a,b pair of k values and ell
-        // Next, we create the interpolators
-        printf("Generating interpolator functions\n");
-
-        // Allocate memory to interpolators
-        E_II_interpolators = (KernelInterpSingle *)malloc(sizeof(KernelInterpSingle)*nbin*(nbin+1)/2*mbin);
-
-        Float tmp_kernel[npoint];
-        for(int ell=0;ell<=max_legendre;ell++){
-            for(int n_val=0;n_val<nbin*(nbin+1)/2;n_val++){
-              // copy kernel into local grid
-              for(int pi=0;pi<npoint;pi++) tmp_kernel[pi] = kernel_II_vals[(n_val*mbin+ell)*npoint+pi];
-              E_II_interpolators[n_val*mbin+ell].initialize(R0, r_vals, tmp_kernel, npoint);
-            }
-        }
-        // now done with this array
-        free(kernel_II_vals);
-        free(r_vals);
-    }
-
-    void compute_E_II_kernel(){
-      // Compute the E_ell^{II,ab}(r;R_0) kernel for each radial bin pair and ell
-      // First, compute the omega_ell^a functions for each radial bin and ell
-      // This writes the interpolation grid to file which can be reread easily.
-
-      printf("Computing E_II_kernel from scratch\n");
-
-      Float dr = R0/(Float(npoint)-1); // step size in r array
-      Float dx = 2.*R0/(Float(npoint)-1); // step-size in x array
-      Float max_p = 2.01*k_max;
-      Float dp = max_p/(Float(npoint)-1); // step-size in p array
-      Float old_kr, old_kr3, old_kernel,new_kr,new_kr3,new_kernel,r_value, tmp_r2_W, p_value, tmp_int;
-      Float p2, tmp_om_1,tmp_om_2;
-      //Float j0_tmp;
-      int tmp_ind;
-      Float bessel_array[mbin]; // array of j_ell(pr) values
-
-      //TODO: memalign this?
-      Float omega_ell_a[nbin*mbin*npoint]; // array to hold omega_ell values
-
-      // First initialize omega vector
-      for(int i=0;i<nbin*mbin*npoint;i++) omega_ell_a[i]=0;
-
-      int percent=0;
-
-      for(int j=0;j<npoint;j++){
-          Float tmp_j_ell_a[nbin*mbin]; // array to hold temporate j_ell^a for single r
-
-          if (Float(j)/Float(npoint)*100.>=Float(percent)){
-              printf("Computing numerical integral 1 of 2: %d%% complete.\n",percent);
-              percent+=10;
-          }
-
-          // Create real-space array and do ell, k independent pieces first
-          r_value = Float(j)*dr+dr/100.; // avoid zero errors
-          tmp_r2_W = 4.*M_PI*pow(r_value,2)*pair_weight(r_value)*dr;
-
-          // Compute j_l^a(r) functions
-          for(int ell=0;ell<=max_legendre;ell++){
-              // Iterate over k-bins (assuming contiguous)
-              for(int i=0;i<nbin;i++){
-                  if(i==0){
-                      old_kr = r_value*k_low[0];
-                      old_kr3 = pow(old_kr,3);
-                      old_kernel = kernel(ell,old_kr);
-                  }
-                  new_kr = r_value*k_high[i];
-                  new_kr3 = pow(new_kr,3);
-                  new_kernel = kernel(ell,new_kr);
-
-                  // compute j_ell^a
-                  tmp_j_ell_a[i*mbin+ell] = (new_kernel-old_kernel)/(new_kr3-old_kr3);
-
-                  //Save kernel functions for next time
-                  old_kr = new_kr;
-                  old_kr3 = new_kr3;
-                  old_kernel = new_kernel;
-              }
-          }
-
-          // Iterate over p array
-          for(int n=0;n<npoint;n++){
-              p_value = dp*Float(n) + dp/100.; // avoid zero errors
-
-              // Compute j_l(pr) array
-              gsl_sf_bessel_jl_array(max_legendre, p_value*r_value, bessel_array);
-
-              // Now fill up array with integral contribution
-              for(int ell=0;ell<=max_legendre;ell++){
-                  tmp_int = tmp_r2_W*bessel_array[ell];
-                  for(int i=0;i<nbin;i++){
-                      omega_ell_a[(n*mbin+ell)*nbin+i] += tmp_int * tmp_j_ell_a[i*mbin+ell];
-                  }
-              }
-          }
-      }
-      // NB: omega functions tested against python and are correct
-      printf("\n");
-
-      // We now have omega_ell^a(p) functions for all multipoles and k-bins
-      // NB: probably don't need to store this for each ell separately - just compute each ell at once
-
-      // Zero array
-      for(int i=0;i<npoint*nbin*(nbin+1)/2*mbin;i++) kernel_II_vals[i]=0;
-
-      // // First create interpolator for j0(pr) for efficiency
-      // gsl_interp_accel *r_accel;
-      // gsl_spline *j0_interp;
-      // double pr_vals[npoint*10], j0_vals[npoint*10];
-      // Float max_pr = 2.*R0*max_p, dpr = max_pr/Float(npoint-1);
-      //
-      // printf("Generating a Bessel function interpolator\n");
-      // for(int i=0;i<npoint*10;i++){
-      //     pr_vals[i] = dpr*i + dp*dx/15000.;
-      //     j0_vals[i] = gsl_sf_bessel_j0(pr_vals[i]);
-      // }
-      // j0_interp = gsl_spline_alloc(gsl_interp_cspline, npoint*10);
-      // gsl_spline_init(j0_interp,pr_vals, j0_vals, npoint*10);
-      // r_accel = gsl_interp_accel_alloc();
-
-      percent = 0;
-      // Store array of r values
-      for(int xi=0;xi<npoint;xi++) r_vals[xi] = xi*dx + dx/100.;
-
-      // Maybe quicker to first compute all kernel values
-      printf("Computing required Bessel functions\n");
-      Float tmp_kernel[npoint*npoint];
-      #ifdef OPENMP
-      #pragma omp parallel for
-      #endif
-      for(int pi=0;pi<npoint;pi++){
-          for(int xi=0;xi<npoint;xi++) tmp_kernel[pi*npoint+xi] = gsl_sf_bessel_j0((dp*pi + dp/100.)*r_vals[xi]); // j0(pr)
-      }
-
-      // TODO: parallelize this?
-      // Now iterate over real-space array
-      for(int pi=0;pi<npoint;pi++){
-          if (Float(pi)/Float(npoint)*100.>=Float(percent)){
-            printf("Computing numerical integral 2 of 2: %d%% complete.\n",percent);
-            percent+=10;
-          }
-          p_value = dp*pi + dp/100.;
-          p2 = pow(p_value,2)/(2.*pow(M_PI,2.))*dp;
-
-          for(int ell=0;ell<=max_legendre;ell++){
-              for(int n1=0,n_val=0;n1<nbin;n1++){
-                  tmp_om_1 = omega_ell_a[(pi*mbin+ell)*nbin+n1]*p2; // p^2 omega_ell^a
-                  for(int n2=n1;n2<nbin;n2++,n_val++){
-                      tmp_om_2 = tmp_om_1 * omega_ell_a[(pi*mbin+ell)*nbin+n2]; // p^2 omega_ell^a omega_ell^b
-                      tmp_ind = (n_val*mbin+ell)*npoint;
-                      for(int xi=0;xi<npoint;xi++){
-                          kernel_II_vals[tmp_ind+xi] +=  tmp_kernel[pi*npoint+xi] * tmp_om_2;
-
-      // // First iterate over p array
-      // for(int pi=0;pi<npoint;pi++){
-      //     if (Float(pi)/Float(npoint)*100.>=Float(percent)){
-      //       printf("Computing numerical integral 2 of 2: %d%% complete.\n",percent);
-      //       percent+=10;
-      //     }
-      //     p_value = dp*pi + dp/100.;
-      //     p2 = pow(p_value,2)/(2.*pow(M_PI,2.))*dp;
-      //
-      //     // Now iterate over real-space array
-      //     for(int ell=0;ell<=max_legendre;ell++){
-      //         for(int n1=0,n_val=0;n1<nbin;n1++){
-      //             tmp_om_1 = omega_ell_a[(pi*mbin+ell)*nbin+n1]*p2; // p^2 omega_ell^a
-      //             for(int n2=n1;n2<nbin;n2++,n_val++){
-      //                 tmp_om_2 = tmp_om_1 * omega_ell_a[(pi*mbin+ell)*nbin+n2]; // p^2 omega_ell^a omega_ell^b
-      //                 tmp_ind = (n_val*mbin+ell)*npoint;
-      //                 for(int xi=0;xi<npoint;xi++){
-      //                     j0_tmp = gsl_spline_eval(j0_interp,p_value*r_vals[xi],r_accel);//gsl_sf_bessel_j0(p_value*r_vals[xi]); // j0(pr)
-      //                     kernel_II_vals[tmp_ind+xi] +=  j0_tmp * tmp_om_2;
-                      }
-                  }
-              }
-          }
-      }
-
-      // Save output kernel grid
-      char output_name[1000];
-      snprintf(output_name, sizeof output_name, "%s/E_II_kernel_values_n%d_l%d_R0%d.txt",out_file, nbin, (mbin-1),int(R0));
-      FILE *output_file = fopen(output_name,"w");
-
-      printf("Saving interpolation grid to %s\n",output_name);
-      int n_val;
-      for(int i=0;i<npoint;i++){
-          n_val = 0;
-          for(int n1=0;n1<nbin;n1++){
-              for(int n2=n1;n2<nbin;n2++){
-                  fprintf(output_file,"%le\t%le\t%le\t%le\t%le\t",k_low[n1],k_high[n1],k_low[n2],k_high[n2],r_vals[i]);
-                  for(int ell=0;ell<=max_legendre;ell++) fprintf(output_file,"%le\t",kernel_II_vals[(n_val*mbin+ell)*npoint+i]);
-                  fprintf(output_file,"\n");
-                  n_val++;
-              }
-          }
-      }
-      fflush(NULL);
-  }
-
-    Float kernel_E_II(int n1, int n2, int ell, Float r){
-        // Compute the E_l^{II,ab}(r) kernel from prebuilt interpolators
-        // n1,n2 specify the radial bins
-        return E_II_interpolators[((2*nbin-1-n1)*n1/2+n2)*mbin+ell].kernel(r);
     }
 
     ~KernelInterp() {
@@ -629,9 +295,6 @@ public:
         gsl_spline_free(interp_kernel_9);
         gsl_spline_free(interp_kernel_10);
         gsl_interp_accel_free(sep_a);
-
-        free(E_II_interpolators);
-
         free(sep);
         free(kernel_vals_0);
         free(kernel_vals_1);
@@ -645,72 +308,6 @@ public:
         free(kernel_vals_9);
         free(kernel_vals_10);
     }
-
-    int read_interpolation_grid(char* interp_name){
-        // Read the saved interpolation grid
-        // Returns 1 if fails, in which case grid will be remade
-        char line[100000];
-
-        FILE *fp;
-        fp = fopen(interp_name,"r");
-        if (fp==NULL){
-            fprintf(stderr,"Interpolation grid file %s not found\n",interp_name);
-            return 1;
-        }
-        fprintf(stderr,"\nReading interpolation grid file %s\n",interp_name);
-
-        int line_count=0; // line counter
-        int counter=0; // counts which element in line
-        int i=0; //counts index of interpolation vector
-
-        int n1=0,n2=0,n_val=0;
-
-        // Read in values to file
-        while (fgets(line,100000,fp)!=NULL) {
-            // Select required lines in file
-            if (line[0]=='#') continue;
-            if (line[0]=='\n') continue;
-
-            // Split into variables
-            char * split_string;
-            split_string = strtok(line, "\t");
-            counter=0;
-
-            int ell;
-            // Iterate over line
-            while (split_string!=NULL){
-                // Check we have the same radial bins (to reasonable precision)
-                if(counter==0) if(abs(atof(split_string)-k_low[n1])>0.0001) return 1;
-                if(counter==1) if(abs(atof(split_string)-k_high[n1])>0.0001) return 1;
-                if(counter==2) if(abs(atof(split_string)-k_low[n2])>0.0001) return 1;
-                if(counter==3) if(abs(atof(split_string)-k_high[n2])>0.0001) return 1;
-                // Read in radial bin on first iteration only
-                if((counter==4)&&(n1==0)&&(n2==0)) r_vals[i] = atof(split_string);
-                // Read in angular bins
-                if((counter>4)&&(counter<=max_legendre+5)){
-                    ell=counter-5;
-                    kernel_II_vals[(n_val*mbin+ell)*npoint+i] = atof(split_string);
-                }
-                split_string = strtok(NULL,"\t");
-                counter++;
-            }
-            if((i==0)&&(n1==0)&&(n2==0)){
-                if(counter<(max_legendre+6)) return 1;
-            }
-            line_count++;
-
-        // Move through the n1,n2,i bins
-        if(line_count%(nbin*(nbin+1)/2)==0) i++,n1=0,n2=0,n_val=0;
-        else{
-          n2++,n_val++;
-          if(n2>=nbin) n1++,n2=n1; // next n1 bin
-        }
-        }
-        if(npoint!=i) return 1;
-        printf("Read in interpolation grid with %d points\n",npoint);
-        return 0; // if all went well
-    }
-
 };
 
 

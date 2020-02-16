@@ -133,12 +133,12 @@ typedef double3 Float3;
 #include "power_mod/cell_utilities.h"
 #include "power_mod/grid.h"
 #include "power_mod/driver.h"
+#include "power_mod/survey_correction_legendre.h"
 #ifdef BISPECTRUM
 		#include "power_mod/kernel_interp_bispectrum.h"
 		#include "power_mod/triple_counter.h"
 		#include "power_mod/bispectrum_counts.h"
 #else
-		#include "power_mod/survey_correction_legendre.h"
 		#include "power_mod/kernel_interp.h"
 		#include "power_mod/pair_counter.h"
 		#include "power_mod/power_counts.h"
@@ -161,7 +161,6 @@ int main(int argc, char *argv[]) {
     for(int index=0;index<n_grid;index++){
         Float3 shift;
         Particle *orig_p;
-				Float this_np;
 				// Load in particles.
 				// NB: For bispectrum the second grid is a random particle file created internally
 #ifdef BISPECTRUM
@@ -170,37 +169,31 @@ int main(int argc, char *argv[]) {
 				if(true){
 #endif
             char *filename;
-#ifndef BISPECTRUM
             if(index==0) filename=par.fname;
 						else filename=par.fname2;
-#else
-						filename=par.fname;
-#endif
 						if(index>0) if(strcmp(filename,par.fname)==0){
 								all_grid[index].copy(&all_grid[0]);
 								continue;
 						}
 	          orig_p = read_particles(par.rescale, &par.np, filename, par.rstart, par.nmax);
             assert(par.np>0);
-						this_np = par.np;
             par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
         }
 				else {
         // If you want to just make random particles instead (as appropriate for bispectra)
         assert(par.np>0);
-				// Generate some number of randoms (scaled to number of data points)
-				this_np = par.np*par.f_rand;
-				orig_p = make_particles(par.rect_boxsize, this_np);
+				// Generate the same number of randoms as data points
+        orig_p = make_particles(par.rect_boxsize, par.np);
         }
 
-        if (par.qinvert) invert_weights(orig_p, this_np);
-        if (par.qbalance) balance_weights(orig_p, this_np);
+        if (par.qinvert) invert_weights(orig_p, par.np);
+        if (par.qbalance) balance_weights(orig_p, par.np);
 
         // Now ready to compute!
         // Sort the particles into the grid.
-        Grid tmp_grid(orig_p, this_np, par.rect_boxsize, par.cellsize, par.nside, shift, 1.);
+        Grid tmp_grid(orig_p, par.np, par.rect_boxsize, par.cellsize, par.nside, shift, 1.);
 
-        Float grid_density = (double)this_np/tmp_grid.nf;
+        Float grid_density = (double)par.np/tmp_grid.nf;
         printf("\n CATALOG %d DIAGNOSTICS:\n",index+1);
         printf("Grid cell-size = %.2fMpc/h\n", tmp_grid.cellsize);
         printf("Average number of particles per grid cell = %6.2f\n", grid_density);
@@ -217,7 +210,7 @@ int main(int argc, char *argv[]) {
         printf("# Done gridding the particles\n");
         printf("# %d particles in use, %d with positive weight\n", tmp_grid.np, tmp_grid.np_pos);
         printf("# Weights: Positive particles sum to %f\n", tmp_grid.sumw_pos);
-        printf("#          Negative particles sum to %f\n\n", tmp_grid.sumw_neg);
+        printf("#          Negative particles sum to %f\n", tmp_grid.sumw_neg);
 
         // Now save grid to global memory:
         all_grid[index].copy(&tmp_grid);
@@ -227,6 +220,9 @@ int main(int argc, char *argv[]) {
 
         fflush(NULL);
 		}
+
+    // Read in survey correction function
+    SurveyCorrection sc(&par,1,1);
 
 		Float max_sep = par.R0;
 
@@ -263,18 +259,15 @@ int main(int argc, char *argv[]) {
 
     // RUN Pair/Triple Counter
 #ifdef BISPECTRUM
-		Float DDRII_counts[par.nbin*par.nbin*par.mbin]; // these are the random counts we will generate below + pass to data-data counter
+		Float DDRII_counts[nbin*nbin*mbin]; // these are the random counts we will generate below + pass to data-data counter
 
 		// First compute the counts with randoms
-		group_counter(&all_grid[1],&all_grid[0],&par,&interp_func,cell_sep_close,len_cell_sep_close,true,DDRII_counts);
+		group_counter(&all_grid[1],&all_grid[0],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close,true,DDRII_counts);
 
 		// Now compute all the counts involving only data points
-		group_counter(&all_grid[0],&all_grid[0],&par,&interp_func,cell_sep_close,len_cell_sep_close,false,DDRII_counts);
+		group_counter(&all_grid[0],&all_grid[0],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close,false,DDRII_counts);
 
 #else
-		// Read in survey correction function
-		SurveyCorrection sc(&par,1,1);
-
     group_counter(&all_grid[0],&all_grid[1],&par,&sc,&interp_func,cell_sep_close,len_cell_sep_close);
 #endif
 

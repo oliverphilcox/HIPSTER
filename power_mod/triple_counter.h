@@ -9,7 +9,6 @@ class group_counter{
 
 private:
     int nbin,mbin;
-    int one_grid; // boolean to check if grids are the same
 
 public:
     void check_threads(Parameters *par,int print){
@@ -33,24 +32,21 @@ public:
 
 public:
 
-    group_counter(Grid *grid1, Grid *grid2, Grid *grid3, Parameters *par, SurveyCorrection *sc, KernelInterp *kernel_interp, integer3 *cell_sep, int len_cell_sep){
+    group_counter(Grid *grid1, Grid *grid2, Parameters *par, KernelInterp *kernel_interp, integer3 *cell_sep, int len_cell_sep, bool random_counts, Float *DDRII_counts){
+        // if random_counts = true, we just need to compute a DDR term with R at the center of the triangle
+        // this is the same as for the DDD counts
+
         // Define parameters
         nbin = par->nbin; // number of radial bins
         mbin = par->mbin; // number of Legendre bins
         Float percent_counter=0.,used_cells=0,cell_attempts=0;
         uint64 used_particles=0;
 
-        one_grid=0;
-        if((!strcmp(par->fname,par->fname2))&&(!strcmp(par->fname,par->fname3))) one_grid=1;
-        if(one_grid!=1){
-            fprintf(stderr,"Triple counts for non-identical fields are not yet supported! Exiting.");
-            exit(1);
-        }
         STimer initial, TotalTime; // time initialization
         initial.Start();
 
         //-----------INITIALIZE OPENMP + CLASSES----------
-        BispectrumCounts global_counts(par,sc,kernel_interp);
+        BispectrumCounts global_counts(par,kernel_interp,random_counts);
 
         check_threads(par,1); // define threads
 
@@ -62,8 +58,11 @@ public:
 
         TotalTime.Start(); // Start timer
 
+        if(random_counts) printf("\n### COMPUTING THE DATA+RANDOM PARTICLE COUNTS\n\n");
+        else printf("\n### COMPUTING THE DATA+DATA PARTICLE COUNTS\n\n");
+
 #ifdef OPENMP
-        #pragma omp parallel firstprivate(par,grid1,grid2,grid3,kernel_interp) shared(global_counts,TotalTime) reduction(+:percent_counter,used_cells,used_particles)
+        #pragma omp parallel firstprivate(par,grid1,grid2,kernel_interp) shared(global_counts,TotalTime) reduction(+:percent_counter,used_cells,used_particles)
         { // start parallel loop
         // Decide which thread we are in
         int thread = omp_get_thread_num();
@@ -87,7 +86,7 @@ public:
             Float3* sep_register; // list of separation vectors between primary and secondary
             int register_index; // index of register holding particle separations
 
-            BispectrumCounts loc_counts(par,sc,kernel_interp);
+            BispectrumCounts loc_counts(par,kernel_interp,random_counts);
             // Assign memory for intermediate steps
             int ec=0;
             ec+=posix_memalign((void **) &prim_list, PAGE, sizeof(Particle)*mnp);
@@ -101,15 +100,15 @@ public:
             // Loop over all filled n1 cells
             for(int n1=0;n1<grid1->nf;n1++){
 
-
                 // Print time left
                 if((float(n1)/float(grid1->nf)*100)>=percent_counter){
-                    printf("Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
-                        percent_counter+=5.;
+                    if(random_counts) printf("Data+Random Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
+                    else printf("Data+Data Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
+                        percent_counter+=10.;
                 }
 
                 // Pick first cell
-                prim_id_1D = grid1-> filled[n1]; // 1d ID for cell i
+                prim_id_1D = grid1->filled[n1]; // 1d ID for cell i
                 prim_id = grid1->cell_id_from_1d(prim_id_1D); // define first cell
                 prim_cell = grid1->c[prim_id_1D];
                 if(prim_cell.np==0) continue; // skip if empty
@@ -165,20 +164,14 @@ public:
 
     } // end OPENMP loop
 
-    // Compute RRR analytic counts if periodic
-#ifdef PERIODIC
-    Float* Wka; // array to hold W_a(R0) functions (with RRR_ab = W_a(R0) * W_b(R0))
-    int ec=0;
-    ec+=posix_memalign((void **) &Wka, PAGE, sizeof(Float)*nbin);
-    assert(ec==0);
-    global_counts.randoms_analytic(Wka);
-#endif
+
     // ----- REPORT AND SAVE OUTPUT ------------
     TotalTime.Stop();
 
     int runtime = TotalTime.Elapsed();
     fflush(NULL);
-    printf("\nTRIPLE COUNTS COMPLETE\n\n");
+    if(random_counts) printf("\nDATA+RANDOM TRIPLE COUNTS COMPLETE\n\n");
+    else printf("\nDATA+DATA TRIPLE COUNTS COMPLETE\n\n");
     printf("\nTotal process time for %.2e particle pairs: %d s, i.e. %2.2d:%2.2d:%2.2d hms\n", double(global_counts.used_pairs),runtime, runtime/3600,runtime/60%60,runtime%60);
     printf("We tried %.2e pairs of cells and accepted %.2e pairs of cells.\n", double(cell_attempts),double(used_cells));
     printf("Cell acceptance ratio is %.3f.\n",(double)used_cells/cell_attempts);
@@ -188,15 +181,26 @@ public:
     printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
     printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
 
-#ifdef PERIODIC
-    global_counts.save_counts(one_grid,Wka);
+  if(random_counts){
+    global_counts.save_counts2();
+    printf("Printed counts to file as %s/%s_DRR_II_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
+    // Now copy in DDR counts to local array
+    for(int i=0;i<nbin*nbin*mbin;i++) DDRII_counts[i] = global_counts.bispectrum_counts[i];
+  }
+  // Compute RRR analytic counts (only need to do this once)
+  else{
+    Float* Wka; // array to hold W_a(R0) functions (with RRR_ab = W_a(R0) * W_b(R0))
+    int ec=0;
+    ec+=posix_memalign((void **) &Wka, PAGE, sizeof(Float)*nbin);
+    assert(ec==0);
+    global_counts.randoms_analytic(Wka);
+
+    global_counts.save_counts(Wka);
     printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
-    global_counts.save_spectrum(Wka);
+    global_counts.save_spectrum(Wka,DDRII_counts);
     printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
-#else
-    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin,(mbin-1),int(par->R0));
-#endif
-    }
+  }
+}
 };
 
 #endif
