@@ -1,13 +1,14 @@
-Computing Configuration-Space Power Spectra
-============================================
+Computing Configuration-Space Spectra
+=======================================
 
 Overview
 --------
 
-For standard usage, we provide simple bash wrappers for HIPSTER, which compute the power spectrum given (a) a set of galaxy or simulation particle positions, and (b) a :math:`k`-space binning file (with formats discussed in :doc:`pre-processing`). For non-periodic data-sets (e.g. galaxy surveys), a set of random particle positions is also required. These are basic wrappers around the C++ and Python scripts, which, for more advanced usage, can be run separately, as discussed in :doc:`advanced-usage`.
+For standard usage, we provide simple bash wrappers for HIPSTER, which compute the power spectrum or bispectrum given (a) a set of galaxy or simulation particle positions, and (b) a :math:`k`-space binning file (with formats discussed in :doc:`pre-processing`). For non-periodic data-sets (e.g. galaxy surveys), a set of random particle positions is also required for the power spectrum. (Though the periodic bispectrum also requires random particles, these are created internally.) These are basic wrappers around the C++ and Python scripts, which, for more advanced usage, can be run separately, as discussed in :doc:`advanced-usage`.
 
-The basic structure of the wrappers is as follows:
+The basic structure of the wrappers is as follows.
 
+**Power Spectrum**:
   1) *(Optional)* Subsample the data (and random) files, such that the analysis uses only a fraction of the full dataset. This can be useful to speed up slow pair counts.
   2) *(Non-Periodic Only)* Compute the geometry correction function :math:`\Phi^{-1}` and fit it to a smooth model.
   3) *(Non-Periodic Only)* Compute the weighted random-random (RR) pair counts.
@@ -15,12 +16,16 @@ The basic structure of the wrappers is as follows:
   5) Compute the weighted data-data (DD) pair counts.
   6) Combine the pair counts and output the power spectrum estimates.
 
-Note that steps (2) and (3) depend only on the survey geometry and random particle files, thus, if multiple mocks are being analyzed, they need only be run once. If the relevant option is specified, the wrapper will look for pre-computed survey-correction functions and RR pair counts and only re-create them if they do not exist. For aperiodic surveys with large truncation radii or many random particles, these steps are slow, thus this provides a significant speed boost. For aperiodic surveys, step (6) is done via a Python script, whilst for periodic simulations, it takes place in the main C++ code.
+**Bispectrum**:
+  1) *(Optional)* Subsample the data file, as above.
+  2) Compute the weighted pair counts and construct the bispectrum estimate.
+
+Note that, for the power spectrum, steps (2) and (3) depend only on the survey geometry and random particle files, thus, if multiple mocks are being analyzed, they need only be run once. If the relevant option is specified, the wrapper will look for pre-computed survey-correction functions and RR pair counts and only re-create them if they do not exist. For aperiodic surveys with large truncation radii or many random particles, these steps are slow, thus this provides a significant speed boost. For aperiodic surveys, step (6) is done via a Python script, whilst for periodic simulations and bispectra, it takes place in the main C++ code.
 
 Using the HIPSTER Wrapper
 --------------------------
 
-The HIPSTER wrappers can be run simply via ``./hipster_wrapper.sh`` or ``./hipster_wrapper_periodic.sh``. The following arguments are required:
+The HIPSTER wrappers can be run simply via ``./hipster_wrapper.sh``, ``./hipster_wrapper_periodic.sh`` or ``./hipster_wrapper_bispectrum.sh``. The following arguments are required:
 
     - ``--dat``: Data file in (x,y,z,weight) co-ordinates.
     - ``--ran_DR``: *(Non-Periodic Only)* Random file for DR pair counting.
