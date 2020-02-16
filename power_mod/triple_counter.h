@@ -17,7 +17,7 @@ public:
         cpu_set_t mask[par->nthread+1];
         int tnum=0;
         sched_getaffinity(0, sizeof(cpu_set_t), &mask[par->nthread]);
-        if(print==1) fprintf(stderr, " CPUs used are: ");
+        if(print==1) fprintf(stderr, "CPUs used are: ");
         for(int ii=0;ii<64;ii++){
             if(CPU_ISSET(ii, &mask[par->nthread])){
                 if(print==1) fprintf(stderr,"%d ", ii);
@@ -67,10 +67,10 @@ public:
         // Decide which thread we are in
         int thread = omp_get_thread_num();
         assert(omp_get_num_threads()<=par->nthread);
-        if (thread==0) printf("# Starting power-spectrum particle-count computation on %d threads.\n", omp_get_num_threads());
+        if (thread==0) printf("# Starting power-spectrum particle-count computation on %d threads.\n\n", omp_get_num_threads());
 #else
         int thread = 0;
-        printf("# Starting power-spectrum particle-count computation single threaded.\n");
+        printf("# Starting power-spectrum particle-count computation single threaded.\n\n");
         { // start loop
 #endif
 
@@ -102,9 +102,11 @@ public:
 
                 // Print time left
                 if((float(n1)/float(grid1->nf)*100)>=percent_counter){
-                    if(random_counts) printf("Data+Random Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
-                    else printf("Data+Data Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
-                        percent_counter+=10.;
+                    if(percent_counter>0){
+                        if(random_counts) printf("Data+Random Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
+                        else printf("Data+Data Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
+                    }
+                    percent_counter+=10.;
                 }
 
                 // Pick first cell
@@ -170,20 +172,20 @@ public:
 
     int runtime = TotalTime.Elapsed();
     fflush(NULL);
-    if(random_counts) printf("\nDATA+RANDOM TRIPLE COUNTS COMPLETE\n\n");
-    else printf("\nDATA+DATA TRIPLE COUNTS COMPLETE\n\n");
+    if(random_counts) printf("\nDATA+RANDOM TRIPLE COUNTS COMPLETE\n");
+    else printf("\nDATA+DATA TRIPLE COUNTS COMPLETE\n");
     printf("\nTotal process time for %.2e particle pairs: %d s, i.e. %2.2d:%2.2d:%2.2d hms\n", double(global_counts.used_pairs),runtime, runtime/3600,runtime/60%60,runtime%60);
     printf("We tried %.2e pairs of cells and accepted %.2e pairs of cells.\n", double(cell_attempts),double(used_cells));
     printf("Cell acceptance ratio is %.3f.\n",(double)used_cells/cell_attempts);
     printf("We tried %.2e pairs of particles and accepted %.2e pairs of particles.\n", double(used_particles),double(global_counts.used_pairs));
     printf("Particle acceptance ratio is %.3f.\n",(double)global_counts.used_pairs/used_particles);
     printf("Average of %.2f pairs accepted per primary particle.\n\n",(Float)global_counts.used_pairs/grid1->np);
-    printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
-    printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
+    printf("Trial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
+    printf("Acceptance speed: %.2e particle pairs per core per second\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
 
   if(random_counts){
     global_counts.save_counts2();
-    printf("Printed counts to file as %s/%s_DRR_II_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
+    printf("DDRII counts saved to %s/%s_DRR_II_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
     // Now copy in DDR counts to local array
     for(int i=0;i<nbin*nbin*mbin;i++) DDRII_counts[i] = global_counts.bispectrum_counts[i];
   }
@@ -196,9 +198,9 @@ public:
     global_counts.randoms_analytic(Wka);
 
     global_counts.save_counts(Wka);
-    printf("Printed counts to file as %s/%s_DDD_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
+    printf("DDD counts saved to %s/%s_DDD_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
     global_counts.save_spectrum(Wka,DDRII_counts);
-    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
+    printf("Printed full bispectrum to file as %s/%s_bispectrum_n%d_l%d_R0%d.txt\n\n", par->out_file,par->out_string,nbin, (mbin-1),int(par->R0));
   }
 }
 };

@@ -5,6 +5,8 @@
 
 class KernelInterp{
     // Compute a interpolation kernel function
+private:
+    Float R0, k_min, k_max;
 
 public:
     int npoint=1000000;
@@ -98,7 +100,12 @@ public:
         interpolate();
     }
 
-    KernelInterp(Float R0, Float k_min, Float k_max){
+    KernelInterp(Parameters *par){
+
+        R0 = par->R0;
+        k_min = par->rmin;
+        k_max = par->rmax;
+
         // Construct interpolation object
         Float tmp_kw,Si_int,tmp_bessel, tmp_sin, tmp_cos, tmp_kernel;
 

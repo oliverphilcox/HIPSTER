@@ -1,14 +1,14 @@
 ## MAKEFILE FOR grid_power.cpp. This compiles the grid_power.cpp file into the ./power exececutable.
 
-## Periodic flag from command line input?
+## Check flags from command line input?
 PERIODIC_FLAG=$(Periodic)
+BISPECTRUM_FLAG=$(Bispectrum)
 
 CC = gcc
 CFLAGS = -g -Wall -O3
-#-O3 -Wall
-CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) -DBISPECTRUM -DOPENMP
-#-DBISPECTRUM
+CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) $(BISPECTRUM_FLAG) -DOPENMP
 # disable OPENMP to run single threaded
+# use -DBISPECTRUM to run in bispectrum mode, or set Bispectrum=-DBISPECTRUM on the command line
 # use -DPERIODIC to run in periodic mode, or set Periodic=-DPERIODIC on the command line
 
 CXX = g++ -fopenmp -lgomp -std=c++0x -ffast-math

@@ -185,6 +185,7 @@ int main(int argc, char *argv[]) {
 						this_np = par.np;
             par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
         }
+#ifdef BISPECTRUM
 				else {
         // If you want to just make random particles instead (as appropriate for bispectra)
         assert(par.np>0);
@@ -192,6 +193,7 @@ int main(int argc, char *argv[]) {
 				this_np = par.np*par.f_rand;
 				orig_p = make_particles(par.rect_boxsize, this_np);
         }
+#endif
 
         if (par.qinvert) invert_weights(orig_p, this_np);
         if (par.qbalance) balance_weights(orig_p, this_np);
@@ -201,7 +203,7 @@ int main(int argc, char *argv[]) {
         Grid tmp_grid(orig_p, this_np, par.rect_boxsize, par.cellsize, par.nside, shift, 1.);
 
         Float grid_density = (double)this_np/tmp_grid.nf;
-        printf("\n CATALOG %d DIAGNOSTICS:\n",index+1);
+        printf("\nCATALOG %d DIAGNOSTICS:\n",index+1);
         printf("Grid cell-size = %.2fMpc/h\n", tmp_grid.cellsize);
         printf("Average number of particles per grid cell = %6.2f\n", grid_density);
         Float max_density = 200.0;

@@ -3,12 +3,9 @@ Bispectrum:
 - Currently storing all nearby separations and angles -> faster to analyze each separately? There's O(100-1000) of them.
 NB: some of the one-grid utilities in the group_counter script will fail for non-equal fields.
 - We can probably pre-allocate memory to registers for speed in bisecptrum_counts
-- Could remove bispoectrum code from grid_power.cpp file?
+- Could remove bispectrum code from grid_power.cpp file?
 - There's a weird malloc error going on...
 - Seems like the make_map function isn't being called??
-
-It might actually be faster to run with a random catalog for the D-R-D term with R in the center
-Need to remove E_II_interpolators
 
 Now removing option to generate particles randomly
 
@@ -16,19 +13,14 @@ Still To Do:
 - Sort out all the output + number of counts etc.
 - Relook at input options
 - Test how many randoms we need
-- Fully remove a<b in interpolators
-- Should we stop counting both i<j and i>j? Not sure how kernels respond to this
 - Remove testing output files, e.g. DDR_I,II
-- Clean up parameter file
 - must check we havent screwed up Pk
-- Remove phi file from bisepctrum and parameters
-- Sort out compilation errors when PERIODIC not specified
 - Clean up MAKEFILE
-- Should add R0 to file names - also do in power spectrum?
-- Should multithread integration kernels
-- Should the kernel_interps be shared or used on each core? test!
+- Should add R0 to file names - also do in power spectrum - will need to change docs + wrappers.
 - Remove MAXORDER in file?
 - Note we only need 1 field now
+- Change wrapper types to remove .sh?
+- mention that default wrapper string is hipster
 
 To Do with Pk etc.:
 - Test subsampling behavior

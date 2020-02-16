@@ -13,19 +13,19 @@ public:
 
     // Name of the first particle field
     char *fname = NULL;
-    const char default_fname[500] = "../hipster_data/rand_1e6";
-
-    // Optional File Prefix for output
-    char *out_string = NULL;
-    const char default_out_string[500] = "test";
+    const char default_fname[500] = "";
 
     // Name of the radial binning .csv file in k-space
     char *radial_bin_file = NULL;
-    const char default_radial_bin_file[500] = "../hipster_data/k_bins.txt";
+    const char default_radial_bin_file[500] = "";
 
     // Output directory
     char *out_file = NULL;
-    const char default_out_file[500] = "output";
+    const char default_out_file[500] = "";
+
+    // Optional File Prefix for output
+    char *out_string = NULL;
+    const char default_out_string[500] = "";
 
     // The number of threads to run on
 	  int nthread = 10;
@@ -37,14 +37,14 @@ public:
     int max_l = 4; // max Legendre moment
 
     // Kernel truncation radius (in Mpc/h)
-    Float R0 = 15;
+    Float R0 = 100;
 
 #ifndef BISPECTRUM
     //---------- POWER SPECTRUM PARAMETERS -----------------
 
     // Name of second particle field (power spectrum only)
     char *fname2 = NULL;
-    const char default_fname2[500] = "../hipster_data/rand_1e6";
+    const char default_fname2[500] = "";
 
     // Survey correction function coefficient file
     char *inv_phi_file = NULL;
@@ -85,7 +85,7 @@ public:
   	// The particles will be read from the unit cube, but then scaled by boxsize.
   	Float rescale = 1.;   // If left zero or negative, set rescale=boxsize
 
-#ifdef BISPECTRUM
+#ifndef BISPECTRUM
     // For consistency with other modules
     char *inv_phi_file2 = NULL; // Survey correction function coefficient file
     char *inv_phi_file12 = NULL; // Survey correction function coefficient file
@@ -141,7 +141,8 @@ public:
 	    }
 #ifdef BISPECTRUM
 #ifndef PERIODIC
-      fprintf(stderr,"Code was compiled in BISPECTRUM mode without PERIODIC mode enabled. Support for this is not yet available. Exiting.\n\n");
+      fprintf(stderr,"\nCode was compiled in BISPECTRUM mode without PERIODIC mode enabled. Support for this is not yet available. Exiting.\n\n");
+      exit(1);
 #endif
 #endif
 
@@ -165,6 +166,7 @@ public:
             printf("\nTruncation radius (%.0f Mpc/h) is too large for efficient spectral computation. Exiting.\n\n",R0);
             exit(1);
         }
+#ifdef BISPECTRUM
         if(f_rand>30){
             printf("\nYou have chosen a huge random catalog of %.2f x more particles than the data. This is too big for fast computation! Exiting.\n\n",f_rand);
             exit(1);
@@ -173,7 +175,7 @@ public:
             printf("\nThe random catalog should be at least as large as the data. You've selected f_rand = %.2f. Exiting.\n\n",f_rand);
             exit(1);
         }
-
+#endif
 	    // compute smallest and largest boxsizes
 	    Float box_min = fmin(fmin(rect_boxsize.x,rect_boxsize.y),rect_boxsize.z);
 	    Float box_max = fmax(fmax(rect_boxsize.x,rect_boxsize.y),rect_boxsize.z);
@@ -203,7 +205,7 @@ public:
 
 	    // Read in the radial binning
 	    read_radial_binning(radial_bin_file);
-        printf("Read in %d radial k-space bins in range (%.0f, %.0f) successfully.\n",nbin,rmin,rmax);
+        printf("Read in %d radial k-space bins in range (%.0f, %.0f) successfully.\n\n",nbin,rmin,rmax);
 
 	    assert(box_min>0.0);
 	    assert(rmax>0.0);
@@ -220,35 +222,32 @@ public:
 		printf("Grid = %d\n", nside);
 		printf("Radial Bins = %d\n", nbin);
 		printf("Radial k-space binning = {%6.5f, %6.5f} over %d bins (user-defined bin widths) \n",rmin,rmax,nbin);
-		printf("Output directory: '%s'\n",out_file);
+		printf("Output directory: '%s'\n\n",out_file);
 
 	}
 private:
 	void usage() {
-	      fprintf(stderr, "\nUsage for HIPSTER:\n\n");
+	      fprintf(stderr, "\nUSAGE FOR HIPSTER\n\n");
+        fprintf(stderr, "Key Parameters:\n");
         fprintf(stderr, "   -def: This allows one to accept the defaults without giving other entries.\n");
 	      fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,[w]).\n");
+        fprintf(stderr, "   -binfile <filename>: File containing the desired k-space radial bins\n");
+        fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");
+        fprintf(stderr, "   -out_string: (Optional) String to add to file name for identification\n");
+        fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
+        fprintf(stderr, "   -perbox <perbox>: Boolean, whether the box is periodic is not\n");
+        fprintf(stderr, "   -max_l <max_l>: Maximum legendre multipole (must be even for power spectra)\n");
+        fprintf(stderr, "   -R0 <R0>: Truncation radius for pair-separation window (in Mpc/h)\n");
 #ifndef BISPECTRUM
         fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,[w]).\n");
         fprintf(stderr, "   -inv_phi_file <filename>: Survey inverse correction function multipole coefficient file\n");
+#else
+        fprintf(stderr, "   -f_rand <f_rand>: Ratio of random particles to galaxies. Typically this should be order a few.\n");
 #endif
-        fprintf(stderr, "   -binfile <filename>: File containing the desired k-space radial bins\n");
-        fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");
-        fprintf(stderr, "   -out_string: (Optional) String to add to file name to specify field type (e.g. RR)\n");
-        fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
-        fprintf(stderr, "   -perbox <perbox>: Boolean, whether the box is periodic is not\n");
-        fprintf(stderr, "\n");
-	      fprintf(stderr, "   -max_l <max_l>: Maximum legendre multipole (must be even for power spectra)\n");
-        fprintf(stderr, "   -R0 <R0>: Truncation radius for pair-separation window (in Mpc/h)\n");
-#ifdef BISPECTRUM
-        fprintf(stderr, "   -f_rand <f_rand>: Ratio of random particles to galaxies. Typically this should be order a few");
-#endif
-        fprintf(stderr, "\n");
+        fprintf(stderr, "\nOther Parameters:\n");
         fprintf(stderr, "   -nside <nside>: The grid size for accelerating the pair count.  Default 250.\n");
 	      fprintf(stderr, "          There are {nside} cells along the longest dimension of the periodic box.\n");
-	      fprintf(stderr, "   -rescale <rescale>: How much to dilate the input positions by.  Default 1.\n");
-        fprintf(stderr, "            Zero or negative value causes =boxsize, rescaling unit cube to full periodicity\n");
-        fprintf(stderr, "   -nmax <nmax>: The maximum number of particles to read in from the particle files. Default 1000000000000\n");
+	      fprintf(stderr, "   -nmax <nmax>: The maximum number of particles to read in from the particle files. Default 1000000000000\n");
   	    fprintf(stderr, "   -invert: Multiply all the weights by -1.\n");
   	    fprintf(stderr, "   -balance: Rescale the negative weights so that the total weight is zero.\n");
         fprintf(stderr, "   -rs <rstart>:  If inverting particle weights, this sets the index from which to start weight inversion. Default 0\n");
@@ -282,7 +281,7 @@ private:
             if (line[0]=='\n') continue;
                 nbin++;
             }
-            printf("\n# Found %d radial bins in the file\n",nbin);
+            printf("# Found %d radial bins in the file\n",nbin);
             rewind(fp); // restart file
 
             // Now allocate memory to the weights array

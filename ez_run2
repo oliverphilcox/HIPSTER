@@ -1,0 +1,6 @@
+binfile=/tigress/ophilcox/hipster_data/k_bin_big.csv
+dat=/tigress/ophilcox/hipster_data/quijote_mass_cut_halo_1.txt
+out_str=quijote_run_test
+
+./hipster_wrapper_bispectrum.sh --dat=$dat --l_max=6 --R0=50 --k_bin=$binfile --f_rand=1 --nthreads=40 --subsample=1.
+# ./power -in $dat -binfile $binfile  -output /tigress/ophilcox/hipster_data -out_string $out_str -perbox -max_l 6 -R0 50 -nthread 40  -f_rand 1.

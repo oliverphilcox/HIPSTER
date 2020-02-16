@@ -54,7 +54,7 @@ class Grid {
     integer3 cell_id_from_1d(int n) {
 	// Undo 1d back to 3-d indexing
         assert(n>=0&&n<ncells);
-        
+
         integer3 cid;
         cid.z = n%nside_cuboid.z;
         n = n/nside_cuboid.z;
@@ -80,10 +80,10 @@ class Grid {
         // Return the position difference corresponding to a cell separation
         return cellsize*sep;
     }
-    
+
     void copy(Grid *g){
         // Copy grid object
-        rect_boxsize=g->rect_boxsize; 
+        rect_boxsize=g->rect_boxsize;
         nside=g->nside;
         ncells=g->ncells;
         cellsize=g->cellsize;
@@ -99,13 +99,13 @@ class Grid {
         sumw_pos=g->sumw_pos;
         sumw_neg=g->sumw_neg;
         sum_weights=g->sum_weights;
-        
+
         // Allocate memory:
         p = (Particle *)malloc(sizeof(Particle)*np);
         pid = (int *)malloc(sizeof(int)*np);
         c  = (Cell *)malloc(sizeof(Cell)*ncells);
         filled = (int *)malloc(sizeof(int)*nf);
-	
+
         // Copy in lists elementwise
         for(int j=0;j<ncells;j++) c[j]=g->c[j];
         for(int j=0;j<np;j++) p[j]=g->p[j];
@@ -121,7 +121,7 @@ class Grid {
         free(filled);
         return;
     }
-    
+
     Grid(){
        //empty constructor
     }
@@ -140,7 +140,7 @@ class Grid {
         assert(max_boxsize>0&&nside>0&&np>=0);
         nside_cuboid = integer3(ceil3(rect_boxsize/cellsize));
         ncells = nside_cuboid.x*nside_cuboid.y*nside_cuboid.z;
-            
+
         p = (Particle *)malloc(sizeof(Particle)*np);
         pid = (int *)malloc(sizeof(int)*np);
         printf("# Allocating %6.3f MB of particles\n", (sizeof(Particle)+sizeof(int))*np/1024.0/1024.0);
@@ -157,7 +157,7 @@ class Grid {
 #else
         for (int j=0; j<np; j++) cell[j] = pos_to_cell(input[j].pos - shift);
 #endif
-        
+
         // Histogram the number of particles in each cell
         int *incell = (int *)malloc(sizeof(int)*ncells);
         for (int j=0; j<ncells; j++) incell[j] = 0.0;
@@ -169,8 +169,8 @@ class Grid {
         filled = (int *)malloc(sizeof(int)*nf);
         for (int j=0,k=0; j<ncells; j++) if(incell[j]>0) filled[k++]=j;
 
-        printf("\nThere are %d filled cells compared with %d total cells.\n",nf,ncells);
-        
+        printf("There are %d filled cells compared with %d total cells.\n",nf,ncells);
+
         // Count the number of positively weighted particles + total weights
         sumw_pos = sumw_neg = sum_weights = 0.0;
         for (int j=0; j<np; j++){
@@ -194,7 +194,7 @@ class Grid {
         // Initialize number of particles in each partition
         np1=0;
         np2=0;
-        
+
         // Copy the particles into the cell-ordered list
         for (int j=0; j<np; j++) {
             Cell *thiscell = c+cell[j];
@@ -206,7 +206,7 @@ class Grid {
 #endif
             pid[index] = j;	 // Storing the original index
 
-        
+
             thiscell->np += 1;
             if(p[index].rand_class==0){
                 thiscell->np1+=1;
@@ -234,7 +234,7 @@ class Grid {
         norm = np/nofznorm;
 
         free(cell);
-        
+
         return;
         }
 

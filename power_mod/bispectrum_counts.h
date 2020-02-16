@@ -169,7 +169,7 @@ public:
     // Close open files
     fclose(RRR_periodic_file);
 
-    printf("RRR counts saved to %s.\n",RRR_periodic_name);
+    printf("RRR counts saved to %s\n\n",RRR_periodic_name);
 
     }
 

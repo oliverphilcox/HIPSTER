@@ -1,8 +1,0 @@
-binfile=/tigress/ophilcox/hipster_data/k_bin_quijote.csv
-#new.csv
-dat=/tigress/ophilcox/hipster_data/quijote_mass_cut_halo_1.txt 
-#dat=/tigress/ophilcox/hipster_data/rand_file.txt
-#halos_1.txt.sub
-#out_str=rand_run2
-out_str=quijote_run_75
- ./power -in $dat -in2 $dat -in3 $dat -binfile $binfile  -output /tigress/ophilcox/hipster_data -out_string $out_str -perbox -max_l 2 -R0 75 -nthread 20 -boxsize 1000
