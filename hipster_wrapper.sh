@@ -20,6 +20,7 @@ PERIODIC_MAKEFLAG=
 PARAM_COUNT=0
 NTHREADS=10
 SUBSAMPLE=1
+STRING=hipster
 
 # Help dialogue
 function usageText ()

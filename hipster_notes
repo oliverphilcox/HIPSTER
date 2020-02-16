@@ -20,7 +20,7 @@ Still To Do:
 - Remove MAXORDER in file?
 - Note we only need 1 field now
 - Change wrapper types to remove .sh?
-- mention that default wrapper string is hipster
+- read and check documentation
 
 To Do with Pk etc.:
 - Test subsampling behavior

@@ -10,9 +10,9 @@ Assuming the :ref:`dependencies` are satisfied, HIPSTER is now ready to run usin
 For advanced users, the C++ code must also be compiled via::
 
     cd HIPSTER
-    make [Periodic=-DPERIODIC]
+    make [Periodic=-DPERIODIC] [Bispectrum=-DBISPECTRUM]
 
-HIPSTER can be run for either *periodic* or *aperiodic* data-sets. This is specified by adding compiler flags in the Makefile, or can simply be activated by adding the line ``Periodic=-DPERIODIC`` to the ``make`` command. See :ref:`periodicity-note` for more information. Note that compilation into the correct format is done automatically if the main wrappers are used.
+HIPSTER can be run for either *periodic* or *aperiodic* data-sets. This is specified by adding compiler flags in the Makefile, or can simply be activated by adding the line ``Periodic=-DPERIODIC`` to the ``make`` command. See :ref:`periodicity-note` for more information. Similarly the bispectrum mode is activate with ``Bispectrum=-DBISPECTRUM``. Note that compilation into the correct format is done automatically if the main wrappers are used.
 
 **Note for Mac Users**: HIPSTER is primarily designed for Linux machines, though running on a Mac is also possible. To do so, you must have a recent version of GCC, `gnu-getopt <(http://macappstore.org/gnu-getopt/)>`_ (emulating the ``getopt`` Linux script). Furthermore the code must be compiled without OpenMP, by removing the ``-DOPENMP`` and ``-lgomp`` flags from the Makefile.
 

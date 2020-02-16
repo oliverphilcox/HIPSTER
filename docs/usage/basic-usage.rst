@@ -28,21 +28,22 @@ Using the HIPSTER Wrapper
 The HIPSTER wrappers can be run simply via ``./hipster_wrapper.sh``, ``./hipster_wrapper_periodic.sh`` or ``./hipster_wrapper_bispectrum.sh``. The following arguments are required:
 
     - ``--dat``: Data file in (x,y,z,weight) co-ordinates.
-    - ``--ran_DR``: *(Non-Periodic Only)* Random file for DR pair counting.
-    - ``--ran_RR``: *(Non-Periodic Only)* Random file for RR pair counting (and survey correction function estimation).
-    - ``--l_max``: Maximum Legendre multipole. (Currently HIPSTER only computes spectra for even multipoles; odd multipoles can easily be added on demand).
+    - ``--l_max``: Maximum Legendre multipole. For the power spectrum, HIPSTER currently only uses even multipoles, but all multipoles are used for the bispectrum.
     - ``--R0``: Pair count truncation radius (see note below).
+    - ``--f_rand``: *(Bispectrum Only)* Ratio of random particles to data points (see note below).
     - ``--k_bin``: :math:`k`-space binning file (created in :doc:`pre-processing` or user-defined).
+    - ``--ran_DR``: *(Non-Periodic Power Only)* Random file for DR pair counting.
+    - ``--ran_RR``: *(Non-Periodic Only)* Random file for RR pair counting (and survey correction function estimation).
 
 A number of additional arguments are possible:
 
-    - ``--string`` (Optional): Identification string for output file names.
+    - ``--string`` (Optional): Identification string for output file names. Default: hipster.
     - ``--nthreads`` (Optional): Number of CPU threads on which to run. Default: 10.
     - ``--subsample`` (Optional):  Factor by which to sub-sample the data. Default: 1 (no subsampling)
-    - ``--load_RR``: *(Non-Periodic Only)* If set, load previously computed RR pair counts and survey correction functions for a large speed boost. If these are not found, they will be recomputed.
+    - ``--load_RR``: *(Non-Periodic Power Only)* If set, load previously computed RR pair counts and survey correction functions for a large speed boost. If these are not found, they will be recomputed.
     - ``-h``: Display the command line options.
 
-Note that, for non-periodic surveys, two different random catalogs can be provided; one to compute the DR counts and one to compute the RR pair counts. It is usually preferable to use a larger random catalog for the DR pair counts to reduce noise. We recommend :math:`\sim 50`x randoms for DR counts and :math:`\sim 10`x randoms for the RR counts.
+Note that, for the power spectrum of non-periodic surveys, two different random catalogs can be provided; one to compute the DR counts and one to compute the RR pair counts. It is usually preferable to use a larger random catalog for the DR pair counts to reduce noise. We recommend :math:`\sim 50`x randoms for DR counts and :math:`\sim 10`x randoms for the RR counts.
 
 As an example, consider computing the isotropic (:math:`\ell=0`) power spectrum cut at :math:`R_0=50h^{-1}\mathrm{Mpc}` from a single set of galaxies (``galaxies.dat``) and randoms (``randoms.dat``), given some :math:`k`-binning file  ``binning.csv``::
 
@@ -58,12 +59,18 @@ Here, we've set the subsampling to 2, meaning that we'll use (a randomly selecte
 
 The output of the wrapper is saved in the HIPSTER directory as ``output/{STRING}_power_spectrum_n{K_BINS}_l{MAX_L}.txt`` where {STRING} is the identification string described above, {MAX_L} is the maximum Legendre multipole and {K_BINS} is the number of :math:`k` bins in the binning file. The output file contains power spectrum estimates for each :math:`k`-bin on a separate line, with the column indicating the (even) Legendre multipole.
 
+For the bispectrum, we can run the following to get the spectrum up to :math:`\ell=4` (assuming that the input file ``data.dat`` has periodic boundary conditions)::
+
+    ./hipster_wrapper_bispectrum.sh --dat data.dat -l_max 4 -R0 50 -k_bin binning.csv --subsample 2 --f_rand 3
+
+We've chosen to use three times as many randoms as data points, which is usually sufficient. This outputs a bispectrum in the HIPSTER directory as ``output/{STRING}_bispectrum_n{K_BINS}_l{MAX_L}_R0{R0}.txt`` where {STRING} is the identification string described above, {MAX_L} is the maximum Legendre multipole, {K_BINS} is the number of :math:`k` bins in the binning file and {R0} is the truncation radius. The output file contains bispectrum estimates for each Legendre multipole in a separate column with the row indicating the :math:`k_1,k_2` bins (in :math:`h\,\mathrm{Mpc}^{-1}` units), using the indexing :math:`n_\mathrm{collapsed} = in_\mathrm{bin}+j` for the :math:`i`-th :math:`k_1` and :math:`j`-th :math:`k_2` bin, with :math:`n_\mathrm{bin}` total bins.
+
 .. _periodicity-note:
 
 Note on Periodicity
 ~~~~~~~~~~~~~~~~~~~~
 
-HIPSTER can be run in either *periodic* or *aperiodic* mode. In the former, we assume the simulation takes the form of a cubic box and measure the angle :math:`\mu` from the Z-axis, as appropriate for most simulations. In the aperiodic case, we measure :math:`\mu` relative to the local line of sight, as appropriate for (non-uniform and non-cubic) surveys. The periodic wrapper runs many times faster than the non-periodic one; this is as a result of many simplifications in the underlying equations.
+For the power spectrum, HIPSTER can be run in either *periodic* or *aperiodic* mode. In the former, we assume the simulation takes the form of a cubic box and measure the angle :math:`\mu` from the Z-axis, as appropriate for most simulations. In the aperiodic case, we measure :math:`\mu` relative to the local line of sight, as appropriate for (non-uniform and non-cubic) surveys. The periodic wrapper runs many times faster than the non-periodic one; this is as a result of many simplifications in the underlying equations. Currently the bispectrum is only supported in periodic mode.
 
 To specify periodicity when using the C++ code alone (without the bash wrapper), we can pass the ``-perbox`` argument to the C++ code, which must be compiled with the ``-DPERIODIC`` flag (that can be manually added to the Makefile). The C++ code will crash if this is not specified.
 
@@ -75,3 +82,10 @@ Note on choice of Truncation Radius and Bin Widths
 A key hyperparameter of the code is the power spectrum estimation is the *truncation radius* :math:`R_0`. This is the maximum radius up to which particle counts are computed and sets the computation time of the algorithm (which scales as :math:`R_0^3`). As discussed in the introductory paper, the effect of :math:`R_0` is to convolve the true power spectrum with a window function of characteristic scale :math:`3/R_0`, giving a small bias which is important at low-:math:`k`, but negligible on small-scales. Considering moments up to :math:`\ell=4`, we find :math:`R_0=50h^{-1}\mathrm{Mpc}` to be sufficient for measuring :math:`k\gtrsim 0.5h\,\mathrm{Mpc}^{-1}` and :math:`R_0=100h^{-1}\mathrm{Mpc}` to be sufficient for :math:`k\gtrsim 0.25h\,\mathrm{Mpc}^{-1}`. For fixed truncation error, :math:`R_0` scales inversely with the minimum :math:`k`-bin of interest.
 
 The choice of :math:`R_0` also sets the :math:`k`-binning scale via :math:`\Delta k\gtrsim 3/R_0` (assuming linear binning). Using narrow :math:`k`-bins will not give additional information, but lead to the :math:`k`-bins becoming more correlated.
+
+.. _bispectrum-randoms-note
+
+Note on Random Particles in the Bispectrum
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Whilst it is possible to compute the periodic-box bispectrum without any use of random particles (by performing all random particle integrals analytically), this turns out to be very computationally intensive for the bispectrum. As detailed in the second HIPSTER paper, there is one particular term (labelled :math:`\widetilde{DDR}^{II}`) that is difficult to compute, thus we elect to compute it via pair counts with a random catalog which is created internally via HIPSTER. The HIPSTER parameter :math:`f_\mathrm{rand}` is the ratio of random particles to galaxies (after subsampling, if applied), and controls this effect. Generally a ratio of order a few gives little sampling noise, but this can be easily experimented with. The runtime of the code scales in proportion to :math:`(1+f_\mathrm{rand})`.
