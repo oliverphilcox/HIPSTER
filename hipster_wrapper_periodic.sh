@@ -17,6 +17,7 @@ eval set -- "$OPTS"
 PARAM_COUNT=0
 NTHREADS=10
 SUBSAMPLE=1
+STRING=hipster
 
 # Help dialogue
 function usageText ()
@@ -143,9 +144,9 @@ if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
 fi
 
 # Define file names
-DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}.txt
-RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_l${MAX_L}.txt
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
+DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_R0${R0}.txt
+RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_l${MAX_L}_R0${R0}.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R0}.txt
 
 # Compile code
 echo "COMPILING C++ CODE"

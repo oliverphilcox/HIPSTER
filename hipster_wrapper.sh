@@ -205,10 +205,10 @@ fi
 
 # Define file names
 CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0}_lmax${MAX_L}.txt
-RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}.txt
-DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}.txt
-DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}.txt
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
+RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}_R0${R0}.txt
+DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}_R0${R0}.txt
+DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_R0${R0}.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R0}.txt
 
 # If correction file does not exist re-create it!
 if $PRELOAD; then

@@ -106,7 +106,7 @@ public:
                         if(random_counts) printf("Data+Random Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
                         else printf("Data+Data Counts: Counting cell %d of %d on thread %d: %.0f percent complete\n",n1+1,grid1->nf,thread,percent_counter);
                     }
-                    percent_counter+=10.;
+                    percent_counter+=5.;
                 }
 
                 // Pick first cell

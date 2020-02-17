@@ -131,7 +131,7 @@ public:
     char RR_periodic_name[1000];
     Float tmp_out;
 
-    snprintf(RR_periodic_name, sizeof RR_periodic_name, "%s/%s_analyt_RR_power_counts_n%d_l%d.txt", out_file, out_string, nbin, 2*(mbin-1));
+    snprintf(RR_periodic_name, sizeof RR_periodic_name, "%s/%s_analyt_RR_power_counts_n%d_l%d_R0%d.txt", out_file, out_string, nbin, 2*(mbin-1),int(R0));
     FILE * RR_periodic_file = fopen(RR_periodic_name,"w");
 
     for (int i=0;i<nbin;i++){
@@ -232,9 +232,9 @@ public:
 
         char pow_name[1000];
   #ifdef PERIODIC
-        snprintf(pow_name, sizeof pow_name, "%s/%s_DD_power_counts_n%d_l%d.txt", out_file,out_string,nbin, 2*(mbin-1));
+        snprintf(pow_name, sizeof pow_name, "%s/%s_DD_power_counts_n%d_l%d_R0%d.txt", out_file,out_string,nbin, 2*(mbin-1),int(R0));
   #else
-        snprintf(pow_name, sizeof pow_name, "%s/%s_power_counts_n%d_l%d.txt", out_file,out_string,nbin, 2*(mbin-1));
+        snprintf(pow_name, sizeof pow_name, "%s/%s_power_counts_n%d_l%d_R0%d.txt", out_file,out_string,nbin, 2*(mbin-1),int(R0));
   #endif
         FILE * PowFile = fopen(pow_name,"w");
 
@@ -258,7 +258,7 @@ public:
         char pk_name[1000];
         Float output_pk;
         printf("Norm = %.2e\n",power_norm);
-        snprintf(pk_name, sizeof pk_name, "%s/%s_power_spectrum_n%d_l%d.txt", out_file,out_string,nbin, 2*(mbin-1));
+        snprintf(pk_name, sizeof pk_name, "%s/%s_power_spectrum_n%d_l%d_R0%d.txt", out_file,out_string,nbin, 2*(mbin-1),int(R0));
         FILE * PkFile = fopen(pk_name,"w");
 
         for (int i=0;i<nbin;i++){

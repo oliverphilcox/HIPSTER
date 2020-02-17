@@ -172,11 +172,11 @@ public:
 
     global_counts.save_counts(one_grid);
 #ifdef PERIODIC
-    printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
     global_counts.save_spectrum(analytic_counts);
-    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
 #else
-    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
 #endif
     }
 };

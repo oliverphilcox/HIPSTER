@@ -57,7 +57,7 @@ Similarly, for a simulation with periodic boundary conditions with data-file ``d
 
 Here, we've set the subsampling to 2, meaning that we'll use (a randomly selected) half of the available data, to get faster computation.
 
-The output of the wrapper is saved in the HIPSTER directory as ``output/{STRING}_power_spectrum_n{K_BINS}_l{MAX_L}.txt`` where {STRING} is the identification string described above, {MAX_L} is the maximum Legendre multipole and {K_BINS} is the number of :math:`k` bins in the binning file. The output file contains power spectrum estimates for each :math:`k`-bin on a separate line, with the column indicating the (even) Legendre multipole.
+The output of the wrapper is saved in the HIPSTER directory as ``output/{STRING}_power_spectrum_n{K_BINS}_l{MAX_L}_R0{R0}.txt`` where {STRING} is the identification string described above, {MAX_L} is the maximum Legendre multipole, {K_BINS} is the number of :math:`k` bins in the binning file and {R0} is the truncation radius. The output file contains power spectrum estimates for each :math:`k`-bin on a separate line, with the column indicating the (even) Legendre multipole.
 
 For the bispectrum, we can run the following to get the spectrum up to :math:`\ell=4` (assuming that the input file ``data.dat`` has periodic boundary conditions)::
 

@@ -62,7 +62,7 @@ Analogously, for the bispectrum we can run the ``./power`` executable, which, in
 
     ./power -in galaxy_positions.txt -binfile binfile.csv -output output/ -out_string DR -max_l 2 -R0 100 -inv_phi_file inv_phi_coefficients.txt -nthread 10 -f_rand 3
 
- The code uses the following main arguments:
+The code uses the following main arguments:
 
     - ``-in``: First input ASCII file containing space separated (x,y,z,weight) positions of particles in comoving :math:`h^{-1}\mathrm{Mpc}` units. Note that the weight column is optional, and will be set to unity if not included.
     - ``-in2``: (*Power spectrum only*) Second input ASCII file, with format as above.
@@ -78,11 +78,11 @@ Analogously, for the bispectrum we can run the ``./power`` executable, which, in
 
 Note that a full list of command line options to the executable can be shown by running ``./power`` without any arguments.
 
-For the power spectrum, the code creates the output file ``{OUT_STRING}_power_counts_n{N_BINS}_l{MAX_L}_full.txt``, specifying the ``out_string`` parameter, the number of radial bins and the maximum Legendre multipole. Each line of the output file has the (weighted) pair count with the column specifying the Legendre multipole. If the code has been run in periodic mode, it additionally outputs ``{OUT_STRING}_analyt_RR_power_counts_n{N_BINS}_l{MAX_L}_full.txt`` containing the RR counts (computed from a 1-dimensional Hankel transform) and ``{OUT_STRING}_power_spectrum_n{N_BINS}_l{MAX_L}_full.txt`` containing the full power spectrum estimate. This is the main output of the code.
+For the power spectrum, the code creates the output file ``{OUT_STRING}_power_counts_n{N_BINS}_l{MAX_L}_R0{R0}.txt``, specifying the ``out_string`` parameter, the number of radial bins and the maximum Legendre multipole. Each line of the output file has the (weighted) pair count with the column specifying the Legendre multipole. If the code has been run in periodic mode, it additionally outputs ``{OUT_STRING}_analyt_RR_power_counts_n{N_BINS}_l{MAX_L}_R0{R0}.txt`` containing the RR counts (computed from a 1-dimensional Hankel transform) and ``{OUT_STRING}_power_spectrum_n{N_BINS}_l{MAX_L}_R0{R0}.txt`` containing the full power spectrum estimate. This is the main output of the code.
 
 To compute the full power spectra for non-periodic surveys, the data-data (DD), data-random (DR) and random-random (RR) pair counts must be computed. (For periodic surveys, we require only the data-data counts). We do *not* have to use the same sized random catalogs for the DR and RR counts. It is usually preferable to use a larger random catalog for the DR pair counts to reduce noise. We recommend :math:`\sim 50\times` randoms for DR counts and :math:`\sim 10\times` for the RR counts. Note that the RR counts are the most computationally intensive procedure, but they only need be computed for each survey once (i.e. when analyzing mock data, the RR pair counts are the same for each mock).
 
-For the bispectrum, the code instead outputs the files ``{OUT_STRING}_{TYPE}_n{N_BINS}_l{MAX_L}_full.txt`` where {TYPE} is ``bispectrum``, ``DDD_counts``, ``DDR_I_counts``, ``DDR_II_counts`` and ``analyt_RRR_counts``, giving the full bispectrum and various components. Each line of the output file has the (weighted) pair count in a combination of :math:`k_1,k_2` bins with the column specifying the Legendre multipole. The :math:`i`-th :math:`k_1` and :math:`j`-th :math:`k_2` bin is indexed as :math:`in_\mathrm{bins}+j`.
+For the bispectrum, the code instead outputs the files ``{OUT_STRING}_{TYPE}_n{N_BINS}_l{MAX_L}_{R0}R0.txt`` where {TYPE} is ``bispectrum``, ``DDD_counts``, ``DDR_I_counts``, ``DDR_II_counts`` and ``analyt_RRR_counts``, giving the full bispectrum and various components. Each line of the output file has the (weighted) pair count in a combination of :math:`k_1,k_2` bins with the column specifying the Legendre multipole. The :math:`i`-th :math:`k_1` and :math:`j`-th :math:`k_2` bin is indexed as :math:`in_\mathrm{bins}+j`.
 
 .. _power-spectrum-reconstruction
 
