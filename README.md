@@ -25,4 +25,5 @@ To compute a bispectrum from particles in a *periodic* simulation box (``data.da
 For any queries regarding the code please contact [Oliver Philcox](mailto:ohep2@alumni.cam.ac.uk).
 
 **New for version 2**: Optimizations for periodic N-body simulations
+
 **New for version 3**: A new pair-count estimator for the periodic bispectrum
