@@ -7,19 +7,11 @@ NB: some of the one-grid utilities in the group_counter script will fail for non
 - There's a weird malloc error going on...
 - Seems like the make_map function isn't being called??
 
-Now removing option to generate particles randomly
-
 Still To Do:
 - Sort out all the output + number of counts etc.
-- Relook at input options
 - Test how many randoms we need
 - Remove testing output files, e.g. DDR_I,II
-- must check we havent screwed up Pk
-- Clean up MAKEFILE
-- Should add R0 to file names - also do in power spectrum - will need to change docs + wrappers.
 - Remove MAXORDER in file?
-- Note we only need 1 field now
-- Change wrapper types to remove .sh?
 - read and check documentation
 
 To Do with Pk etc.:
