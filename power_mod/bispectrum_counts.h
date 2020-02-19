@@ -111,7 +111,7 @@ public:
       printf("\nComputing analytic RRR term\n");
       fflush(NULL);
       // Define r
-      Float integrand,tmp_r,old_kr,old_kr3,old_kernel,new_kernel,new_kr,new_kr3,diff_kr;
+      Float integrand,tmp_r,old_kr,old_kr3=0,old_kernel=0,new_kernel,new_kr,new_kr3,diff_kr;
       int npoint=100000;
       Float RRR_analyt[nbin*nbin];
       Float delta_r = R0/double(npoint);
@@ -179,7 +179,7 @@ public:
         // Full bispectrum kernel is made from this.
 
         if(register_size==0) return;
-        Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel,old_kr,old_kr3,new_kr,new_kr3,old_kernel,new_kernel;
+        Float sep_weight,particle_sep, tmp_kernel,tmp_count,this_kernel,old_kr=0,old_kr3=0,new_kr,new_kr3,old_kernel=0,new_kernel;
         Float3 norm_sep;
         int start_n;
 

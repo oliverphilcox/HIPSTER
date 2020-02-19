@@ -18,16 +18,14 @@ public:
 public:
     inline double kernel(int ell, double this_sep){
         // Kernel function accelerated by interpolation
-        if(this_sep<=min_val) return 0.;
+        if(this_sep<=min_val) this_sep=min_val;
+        if (ell==0) return gsl_spline_eval(interp_kernel_0,this_sep,sep_a);
+        else if (ell==2) return gsl_spline_eval(interp_kernel_2,this_sep,sep_a);
+        else if (ell==4) return gsl_spline_eval(interp_kernel_4,this_sep,sep_a);
+        else if (ell==6) return gsl_spline_eval(interp_kernel_6,this_sep,sep_a);
         else{
-            if (ell==0) return gsl_spline_eval(interp_kernel_0,this_sep,sep_a);
-            else if (ell==2) return gsl_spline_eval(interp_kernel_2,this_sep,sep_a);
-            else if (ell==4) return gsl_spline_eval(interp_kernel_4,this_sep,sep_a);
-            else if (ell==6) return gsl_spline_eval(interp_kernel_6,this_sep,sep_a);
-            else{
-                printf("Multipoles greater than ell = 6 not yet implemented");
-                exit(1);
-            }
+            printf("Multipoles greater than ell = 6 not yet implemented");
+            exit(1);
         }
     }
 
@@ -116,7 +114,10 @@ public:
         kernel_vals_4 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_6 = (double *)malloc(sizeof(double)*npoint);
 
-        min_val = 0.01*(R0*k_min)/double(npoint); // minimum interpolation value
+        // This minimum value should be sufficient for multipoles up to ell = 10
+        // Going to too-small ell gives nasty divergences at high ell
+        min_val = 0.25; // minimum interpolation value
+        //min_val = 0.01*(R0*k_min)/double(npoint); // minimum interpolation value
         max_val = 2.01*(R0*k_max); // maximum interpolation value
 
         for(int i=0;i<npoint;i++){

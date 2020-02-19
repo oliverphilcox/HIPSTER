@@ -13,6 +13,11 @@ Still To Do:
 - Remove testing output files, e.g. DDR_I,II
 - Remove MAXORDER in file?
 - read and check documentation
+- wrapper for bispectrum seems to want integer f_rand
+- have fixed high-ell problem in bispectrum from fraction argument being too small.
+  - also set interpolators to return minimum value if below minimum
+  - change same in power spectrum??
+- also doesn't recognize output file (maybe with decimal place in R0?)
 
 To Do with Pk etc.:
 - Test subsampling behavior

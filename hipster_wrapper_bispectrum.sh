@@ -113,10 +113,9 @@ echo
 
 # Check some variables:
 
-if [ "$MAX_L" -ge 7 ]; then echo "Only multipoles up to ell = 6 currently implemented. Exiting;"; exit 1; fi;
-if [ $((MAX_L%2)) -eq 1 ]; then echo "Maximum Legendre multipole must be even. Exiting;"; exit 1; fi;
+if [ "$MAX_L" -ge 11 ]; then echo "Only multipoles up to ell = 10 currently implemented. Exiting;"; exit 1; fi;
 
-if [ "$FRAND" -ge 40 ]; then echo "Sampling with $FRAND times more randoms than data will be very slow. Exiting;"; exit 1; fi;
+if [ "$FRAND" -gt 40 ]; then echo "Sampling with $FRAND times more randoms than data will be very slow. Exiting;"; exit 1; fi;
 if [ "$FRAND" -lt 1 ]; then echo "Should have at least as many randoms as data points. Exiting;"; exit 1; fi;
 
 if ! ( test -f "$DATA" ); then

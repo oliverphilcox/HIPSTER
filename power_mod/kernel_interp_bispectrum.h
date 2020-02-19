@@ -28,23 +28,21 @@ public:
 public:
     inline double kernel(int ell, double this_sep){
         // Kernel function accelerated by interpolation
-        if(this_sep<=min_val) return 0.;
+        if(this_sep<=min_val) this_sep=min_val;
+        if (ell==0) return gsl_spline_eval(interp_kernel_0,this_sep,sep_a);
+        else if (ell==1) return gsl_spline_eval(interp_kernel_1,this_sep,sep_a);
+        else if (ell==2) return gsl_spline_eval(interp_kernel_2,this_sep,sep_a);
+        else if (ell==3) return gsl_spline_eval(interp_kernel_3,this_sep,sep_a);
+        else if (ell==4) return gsl_spline_eval(interp_kernel_4,this_sep,sep_a);
+        else if (ell==5) return gsl_spline_eval(interp_kernel_5,this_sep,sep_a);
+        else if (ell==6) return gsl_spline_eval(interp_kernel_6,this_sep,sep_a);
+        else if (ell==7) return gsl_spline_eval(interp_kernel_7,this_sep,sep_a);
+        else if (ell==8) return gsl_spline_eval(interp_kernel_8,this_sep,sep_a);
+        else if (ell==9) return gsl_spline_eval(interp_kernel_9,this_sep,sep_a);
+        else if (ell==10) return gsl_spline_eval(interp_kernel_10,this_sep,sep_a);
         else{
-            if (ell==0) return gsl_spline_eval(interp_kernel_0,this_sep,sep_a);
-            else if (ell==1) return gsl_spline_eval(interp_kernel_1,this_sep,sep_a);
-            else if (ell==2) return gsl_spline_eval(interp_kernel_2,this_sep,sep_a);
-            else if (ell==3) return gsl_spline_eval(interp_kernel_3,this_sep,sep_a);
-            else if (ell==4) return gsl_spline_eval(interp_kernel_4,this_sep,sep_a);
-            else if (ell==5) return gsl_spline_eval(interp_kernel_5,this_sep,sep_a);
-            else if (ell==6) return gsl_spline_eval(interp_kernel_6,this_sep,sep_a);
-            else if (ell==7) return gsl_spline_eval(interp_kernel_7,this_sep,sep_a);
-            else if (ell==8) return gsl_spline_eval(interp_kernel_8,this_sep,sep_a);
-            else if (ell==9) return gsl_spline_eval(interp_kernel_9,this_sep,sep_a);
-            else if (ell==10) return gsl_spline_eval(interp_kernel_10,this_sep,sep_a);
-            else{
-                printf("Multipoles greater than ell = 10 not yet implemented");
-                exit(1);
-            }
+            printf("Multipoles greater than ell = 10 not yet implemented");
+            exit(1);
         }
     }
 
@@ -127,8 +125,7 @@ private:
             (*_kernel_vals_9)[i]=kernel_vals_9[i];
             (*_kernel_vals_10)[i]=kernel_vals_10[i];
         }
-
-        }
+    }
 
     void interpolate(){
         interp_kernel_0 = gsl_spline_alloc(gsl_interp_cspline,npoint);
@@ -200,7 +197,10 @@ public:
         kernel_vals_9 = (double *)malloc(sizeof(double)*npoint);
         kernel_vals_10 = (double *)malloc(sizeof(double)*npoint);
 
-        min_val = 0.1*(R0*k_min)/double(npoint); // minimum interpolation value
+        // This minimum value should be sufficient for multipoles up to ell = 10
+        // Going to too-small ell gives nasty divergences at high ell
+        min_val = 0.25; // minimum interpolation value
+        //10.*(R0*k_min)/double(npoint);
         max_val = 2.1*(R0*k_max); // maximum interpolation value
 
         for(int i=0;i<npoint;i++){
@@ -243,7 +243,7 @@ public:
                     kernel_vals_6[i] = tmp_bessel*tmp_kernel;
                 }
                 else if(ell==7){
-                    tmp_bessel = 1./pow(tmp_kw,5.)*(tmp_kw*(27027 - 2772*pow(tmp_kw,2) + 29*pow(tmp_kw,4))*tmp_cos + (-27027 + 11781*pow(tmp_kw,2.) - 378*pow(tmp_kw,4.) + pow(tmp_kw,6.))*tmp_sin);
+                    tmp_bessel = 1./(pow(tmp_kw,5.))*(tmp_kw*(27027. - 2772.*pow(tmp_kw,2) + 29.*pow(tmp_kw,4.))*tmp_cos + (-27027. + 11781.*pow(tmp_kw,2.) - 378.*pow(tmp_kw,4.) + pow(tmp_kw,6.))*tmp_sin);
                     kernel_vals_7[i] = tmp_bessel*tmp_kernel;
                 }
                 else if(ell==8){
