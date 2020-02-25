@@ -20,14 +20,14 @@ For pair-count analysis, we usually require random particle files larger than th
 
     python python/take_subset_of_particles/py {INPUT_FILE} {OUTPUT_FILE} {N_PARTICLES}
 
-For periodic boxes, we do not need to generate random particle files, but the above script can be useful for subsampling the data, for faster runtimes. Note also that the HIPSTER wrapper has an option for subsampling; if set, this uses a random subset of the data (and random particles), with the fraction specified by the user. Whilst this is useful to get an idea of run-times and for fast evaluation, we recommend applying subsampling separately for full analyses, to ensure that the subsampled data is the same each time the code is run.
+For periodic boxes, we do not need to generate random particle files, but the above script can be useful for subsampling the data, for faster runtimes. (For the bispectrum, random particles are used, but these are generated internally.) Note also that the HIPSTER wrapper has an option for subsampling; if set, this uses a random subset of the data (and random particles), with the fraction specified by the user. Whilst this is useful to get an idea of run-times and for fast evaluation, we recommend applying subsampling separately for full analyses, to ensure that the subsampled data is the same each time the code is run.
 
 .. _binning_function_input
 
 Binning Functions
 ------------------
 
-In addition to the sets of data/random positions, we require a file to specify the desired :math:`k`-space binning of the output power spectra. Two Python routines are provided to produce the relevant files in linear or logarithmic (base :math:`e`) binning and are run as::
+In addition to the sets of data/random positions, we require a file to specify the desired :math:`k`-space binning of the output power spectra or bispectra. Two Python routines are provided to produce the relevant files in linear or logarithmic (base :math:`e`) binning and are run as::
 
         python python/compute_binning_file_linear.py {N_LOG_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}
         python python/compute_binning_file_log.py {N_LINEAR_BINS} {MIN_K} {MAX_K} {OUTPUT_FILE}

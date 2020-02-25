@@ -18,10 +18,18 @@ Still To Do:
   - also set interpolators to return minimum value if below minimum
   - change same in power spectrum??
 - also doesn't recognize output file (maybe with decimal place in R0?)
+- same for hipster_periodic script (even without decimals)
+
+ARE WE IN REAL SPACE OR REDSHIFT SPACE??? quijote_halos_$sim is in RSD
 
 To Do with Pk etc.:
+- Note we're in real-space for B(k) but redshift space for P(k)
 - Test subsampling behavior
 - Test covariance with mocks + R0
 - Analytic Gaussian covariance
 - Discuss actual algorithm for Bispectrum
-- Can we deconvolve?? - would just be better to measure 2PCF here!!
+
+
+PAPER TO DO
+- Bispectrum covariance?
+- Look at ell dependence with mu = 1? i.e. k = 0??

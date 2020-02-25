@@ -1,0 +1,7 @@
+binfile=/tigress/ophilcox/hipster_data/k_bin_huge.csv
+dat=/tigress/ophilcox/hipster_data/quijote_sim_1_snap_rsd.txt.sub
+out_str=quijote_huge
+
+./hipster_wrapper_periodic.sh --dat=$dat --l_max=4 --R0=30. --k_bin=$binfile --nthreads=40 --subsample=1 --string=$out_str
+# ./power -in $dat -binfile $binfile  -output /tigress/ophilcox/hipster_data -out_string $out_str -perbox -max_l 6 -R0 30 -nthread 40
+#  -f_rand 1.
