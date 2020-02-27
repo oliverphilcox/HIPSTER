@@ -1,11 +1,11 @@
-// pair_counter.h - Module to run the pair counting for grid_power.cpp - Oliver Philcox 2019
+// group_counter.h - Module to run the pair/triple counting for grid_power.cpp - Oliver Philcox 2019
 
-#ifndef PAIR_COUNTER_H
-#define PAIR_COUNTER_H
+#ifndef GROUP_COUNTER_H
+#define GROUP_COUNTER_H
 
 #include "power_counts.h"
 
-class pair_counter{
+class group_counter{
 
 private:
     int nbin,mbin;
@@ -33,8 +33,8 @@ public:
     }
 
 public:
-    pair_counter(Grid *grid1, Grid *grid2, Parameters *par, SurveyCorrection *sc, KernelInterp *kernel_interp, integer3 *cell_sep, int len_cell_sep){
 
+    group_counter(Grid *grid1, Grid *grid2, Parameters *par, SurveyCorrection *sc, KernelInterp *kernel_interp, integer3 *cell_sep, int len_cell_sep){
         // Define parameters
         nbin = par->nbin; // number of radial bins
         mbin = par->mbin; // number of Legendre bins
@@ -49,7 +49,6 @@ public:
 
         //-----------INITIALIZE OPENMP + CLASSES----------
         PowerCounts global_counts(par,sc,kernel_interp);
-
         check_threads(par,1); // define threads
 
         fprintf(stderr, "Init time: %g s\n",initial.Elapsed());
@@ -67,15 +66,15 @@ public:
         // Decide which thread we are in
         int thread = omp_get_thread_num();
         assert(omp_get_num_threads()<=par->nthread);
-        if (thread==0) printf("# Starting power-spectrum pair-count computation on %d threads.\n", omp_get_num_threads());
+        if (thread==0) printf("# Starting power-spectrum particle-count computation on %d threads.\n", omp_get_num_threads());
 #else
         int thread = 0;
-        printf("# Starting power-spectrum pair-count computation single threaded.\n");
+        printf("# Starting power-spectrum particle-count computation single threaded.\n");
         { // start loop
 #endif
             // DEFINE LOCAL THREAD VARIABLES
             Particle *prim_list; // list of particles in first cell
-            Float3 separation;
+            Float3 separation; // separation vector
             int* prim_ids; // list of particle IDs in first cell
             int prim_id_1D,sec_id_1D; // 1D cell ids
             integer3 prim_id,delta,sec_id; // particle positions in grid
@@ -103,7 +102,7 @@ public:
                 }
 
                 // Pick first cell
-                prim_id_1D = grid1-> filled[n1]; // 1d ID for cell i
+                prim_id_1D = grid1->filled[n1]; // 1d ID for cell i
                 prim_id = grid1->cell_id_from_1d(prim_id_1D); // define first cell
                 prim_cell = grid1->c[prim_id_1D];
                 if(prim_cell.np==0) continue; // skip if empty
@@ -150,13 +149,11 @@ public:
 
     // Compute RR analytic counts if periodic
 #ifdef PERIODIC
-
-    Float* analytic_RR; // array to hold RR counts
+    Float* analytic_counts; // array to hold RR/RRR counts
     int ec=0;
-    ec+=posix_memalign((void **) &analytic_RR, PAGE, sizeof(Float)*nbin);
+    ec+=posix_memalign((void **) &analytic_counts, PAGE, sizeof(Float)*nbin);
     assert(ec==0);
-
-    global_counts.RR_analytic(analytic_RR);
+    global_counts.randoms_analytic(analytic_counts);
 #endif
     // ----- REPORT AND SAVE OUTPUT ------------
     TotalTime.Stop();
@@ -175,11 +172,11 @@ public:
 
     global_counts.save_counts(one_grid);
 #ifdef PERIODIC
-    printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
-    global_counts.save_power(analytic_RR);
-    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
+    global_counts.save_spectrum(analytic_counts);
+    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
 #else
-    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1));
+    printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
 #endif
     }
 };

@@ -20,6 +20,7 @@ PERIODIC_MAKEFLAG=
 PARAM_COUNT=0
 NTHREADS=10
 SUBSAMPLE=1
+STRING=hipster
 
 # Help dialogue
 function usageText ()
@@ -203,11 +204,12 @@ fi
 
 
 # Define file names
-CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0}_lmax${MAX_L}.txt
-RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}.txt
-DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}.txt
-DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}.txt
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}.txt
+R0int=$( printf "%.0f" $R0 )
+CORRECTION_FILE=$CODE_DIR/output/correction_function_${STRING}_R0${R0int}_lmax${MAX_L}.txt
+RR_FILE=$CODE_DIR/output/${STRING}_RR_power_counts_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
+DR_FILE=$CODE_DIR/output/${STRING}_DR_power_counts_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
+DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
 
 # If correction file does not exist re-create it!
 if $PRELOAD; then

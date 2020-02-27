@@ -3,7 +3,7 @@
 
 # Define Inputs
 SHORT=h
-LONG=dat:,l_max:,R0:,k_bin:,nthreads:,string:,subsample:
+LONG=dat:,l_max:,R0:,k_bin:,nthreads:,string:,subsample:,f_rand:
 
 # read the options
 OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
@@ -29,6 +29,7 @@ function usageText ()
     echo "--l_max: Maximum Legendre multipole"
     echo "--R0: Pair count truncation radius"
     echo "--k_bin: k-space binning file"
+    echo "--f_rand: Ratio of random particles to data (used for DDR) counts. This should be order a few."
     echo "--string (Optional): Identification string for output file names."
     echo "--nthreads (Optional): Number of CPU threads on which to run. Default: 10"
     echo "--subsample (Optional): Factor by which to sub-sample the data. Default: 1 (no subsampling)"
@@ -63,6 +64,11 @@ while true ; do
       shift 2
       let PARAM_COUNT++
       ;;
+    --f_rand )
+      FRAND="$2"
+      shift 2
+      let PARAM_COUNT++
+      ;;
     --string )
       STRING="$2"
       shift 2
@@ -88,7 +94,7 @@ while true ; do
 done
 
 # Check all parameters are specified
-if [ "$PARAM_COUNT" -ne 4 ]; then echo; echo 'Not all command line parameters specified!'; echo; usageText; exit 1; fi
+if [ "$PARAM_COUNT" -ne 5 ]; then echo; echo 'Not all command line parameters specified!'; echo; usageText; exit 1; fi
 
 
 # Print the variables
@@ -99,6 +105,7 @@ echo "Data file: $DATA"
 echo "Maximum Legendre multipole: $MAX_L"
 echo "Pair count truncation radius: $R0"
 echo "k-space binning file: $BINFILE"
+echo "Random-to-data ratio: $FRAND"
 echo "Output string: $STRING"
 echo "CPU-threads: $NTHREADS"
 echo "Subsampling: $SUBSAMPLE"
@@ -106,8 +113,10 @@ echo
 
 # Check some variables:
 
-if [ "$MAX_L" -ge 7 ]; then echo "Only multipoles up to ell = 6 currently implemented. Exiting;"; exit 1; fi;
-if [ $((MAX_L%2)) -eq 1 ]; then echo "Maximum Legendre multipole must be even. Exiting;"; exit 1; fi;
+if [ "$MAX_L" -ge 11 ]; then echo "Only multipoles up to ell = 10 currently implemented. Exiting;"; exit 1; fi;
+
+if [[ $(bc <<< "$FRAND > 40.") -eq 1 ]]; then echo "Sampling with $FRAND times more randoms than data will be very slow. Exiting;"; exit 1; fi;
+if [[ $(bc <<< "$FRAND < 1.") -eq 1 ]]; then echo "Should have at least as many randoms as data points. Exiting;"; exit 1; fi;
 
 if ! ( test -f "$DATA" ); then
     echo "Data file: $DATA does not exist. Exiting;"; exit 1;
@@ -145,40 +154,28 @@ fi
 
 # Define file names
 R0int=$( printf "%.0f" $R0 )
-DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
-RR_FILE=$CODE_DIR/output/${STRING}_analyt_RR_power_counts_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_bispectrum_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
 
 # Compile code
 echo "COMPILING C++ CODE"
 echo
 bash $CODE_DIR/clean
-make Periodic="-DPERIODIC" --directory $CODE_DIR
+make Periodic="-DPERIODIC" Bispectrum="-DBISPECTRUM" --directory $CODE_DIR
 
-# Compute DD pair counts (always need to be computed)
+# Compute bispectrum counts
 echo
-echo "COMPUTING DD PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
+echo "COMPUTING BISPECTRUM COUNTS"
+
+$CODE_DIR/power -in $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox -f_rand $FRAND
 
 # Ensure that the files have actually been created
-if ! (test -f "$DD_FILE"); then
-    echo
-    echo "Weighted DD counts have not been computed. This indicates an error. Exiting."
-    echo
-    exit 1;
-fi
-if ! (test -f "$RR_FILE"); then
-    echo
-    echo "Analytic RR function has not been computed. This indicates an error. Exiting."
-    echo
-    exit 1;
-fi
 if ! (test -f "$OUTPUT_FILE"); then
     echo
-    echo "Output power file has not been computed. This indicates an error. Exiting."
+    echo "Bispectrum has not been computed. This indicates an error. Exiting."
+    echo
     exit 1;
 fi
 
 echo
-echo "COMPUTATIONS COMPLETE"
+echo "COMPUTATIONS COMPLETE AND SAVED TO $OUTPUT_FILE"
 echo
