@@ -115,8 +115,8 @@ echo
 
 if [ "$MAX_L" -ge 11 ]; then echo "Only multipoles up to ell = 10 currently implemented. Exiting;"; exit 1; fi;
 
-if [ "$FRAND" -gt 40 ]; then echo "Sampling with $FRAND times more randoms than data will be very slow. Exiting;"; exit 1; fi;
-if [ "$FRAND" -lt 1 ]; then echo "Should have at least as many randoms as data points. Exiting;"; exit 1; fi;
+if [[ $(bc <<< "$FRAND > 40.") -eq 1 ]]; then echo "Sampling with $FRAND times more randoms than data will be very slow. Exiting;"; exit 1; fi;
+if [[ $(bc <<< "$FRAND < 1.") -eq 1 ]]; then echo "Should have at least as many randoms as data points. Exiting;"; exit 1; fi;
 
 if ! ( test -f "$DATA" ); then
     echo "Data file: $DATA does not exist. Exiting;"; exit 1;
@@ -153,7 +153,8 @@ if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
 fi
 
 # Define file names
-OUTPUT_FILE=$CODE_DIR/output/${STRING}_bispectrum_n${K_BINS}_l${MAX_L}_R0${R0}.txt
+R0int=$( printf "%.0f" $R0 )
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_bispectrum_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
 
 # Compile code
 echo "COMPILING C++ CODE"
