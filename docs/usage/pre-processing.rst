@@ -18,7 +18,7 @@ where {INFILE} and {OUTFILE} are the filenames for the (RA,Dec,redshift,weight) 
 
 For pair-count analysis, we usually require random particle files larger than the data; we suggest using :math:`N_\mathrm{rand}\sim 50N_\mathrm{gal}` for DR counts and :math:`N_\mathrm{rand}\sim 10N_\mathrm{gal}` for RR counts to minimize random noise. For this reason we provide a further convenience function to draw a random subset of a given particle file (in (x,y,z,weight) co-ordinates). This is run as follows (where {N_PARTICLES} specifies the size of the output file)::
 
-    python python/take_subset_of_particles/py {INPUT_FILE} {OUTPUT_FILE} {N_PARTICLES}
+    python python/take_subset_of_particles.py {INPUT_FILE} {OUTPUT_FILE} {N_PARTICLES}
 
 For periodic boxes, we do not need to generate random particle files, but the above script can be useful for subsampling the data, for faster runtimes. (For the bispectrum, random particles are used, but these are generated internally.) Note also that the HIPSTER wrapper has an option for subsampling; if set, this uses a random subset of the data (and random particles), with the fraction specified by the user. Whilst this is useful to get an idea of run-times and for fast evaluation, we recommend applying subsampling separately for full analyses, to ensure that the subsampled data is the same each time the code is run.
 
