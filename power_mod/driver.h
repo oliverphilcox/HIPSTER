@@ -1,10 +1,5 @@
 // driver.h - this contains various c++ functions to create particles in random positions / read them in from file. Based on code by Alex Wiegand.
 #include "cell_utilities.h"
-#ifndef LEGENDRE
-#ifndef POWER
-    #include "jackknife_weights.h"
-#endif
-#endif
 
 #ifndef DRIVER_H
 #define DRIVER_H
@@ -20,21 +15,12 @@ Particle *make_particles(Float3 rect_boxsize, int np) {
         p[j].pos.y = drand48()*rect_boxsize.y;
         p[j].pos.z = drand48()*rect_boxsize.z;
         p[j].w = 1.0;
-        p[j].JK = 0.;
-        p[j].rand_class = rand()%2; // assign random class to each particle
     }
-#ifdef JACKKNIFE
-    fprintf(stderr,"# WARNING - Jackknife regions are not yet implemented for particles made at random. All particles are assigned to the same region.\n");
-#endif
     printf("# Done making %d random particles, periodically distributed.\n", np);
     return p;
 }
 
-#ifdef JACKKNIFE
-Particle *read_particles(Float rescale, int *np, const char *filename, const int rstart, uint64 nmax, const JK_weights *JK) {
-#else
 Particle *read_particles(Float rescale, int *np, const char *filename, const int rstart, uint64 nmax) {
-#endif
     // This will read particles from a file, space-separated x,y,z,w,JK for weight w, (jackknife region JK)
     // Particle positions will be rescaled by the variable 'rescale'.
     // For example, if rescale==boxsize, then inputting the unit cube will cover the periodic volume
@@ -48,14 +34,6 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
     if (fp==NULL) {
         fprintf(stderr,"File %s not found\n", filename); abort();
     }
-
-#ifdef JACKKNIFE
-    // Store filled jackknives in local memory to avoid file corruption
-    int tmp_n_JK = JK->n_JK_filled;
-    int tmp_filled_JK[tmp_n_JK];
-    for(int ii=0;ii<tmp_n_JK;ii++) tmp_filled_JK[ii]=JK->filled_JKs[ii];
-#endif
-
 
     // Count lines to construct the correct size
     while (fgets(line,1000,fp)!=NULL&&(uint)n<nmax) {
@@ -83,31 +61,8 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
         p[j].pos.x = tmp[0]*rescale;
         p[j].pos.y = tmp[1]*rescale;
         p[j].pos.z = tmp[2]*rescale;
-        p[j].rand_class = rand()%2;
-
         // Get the weights from line 4 if present, else fill with +1/-1 depending on the value of rstart
-        // For grid_covariance rstart is typically not used
-#ifdef JACKKNIFE
-        if(stat!=5)
-		   if(rstart>0&&j>=rstart)
-			   p[j].w = -1.;
-		   else
-			   p[j].w = 1.;
-		else{
-		   if(rstart>0&&j>=rstart)
-			   p[j].w = -tmp[stat-2]; //read in weights
-		   else
-			   p[j].w = tmp[stat-2];
-        int tmp_JK = tmp[stat-1]; // read in JK region
-
-		// Collapse jacknife indices to only include filled JKs:
-		p[j].JK=-1;
-
-        for (int x=0;x<tmp_n_JK;x++){
-            if (tmp_filled_JK[x]==tmp_JK) p[j].JK=x;
-        }
-        assert(p[j].JK!=-1); // ensure we find jackknife index
-#else
+        // rstart is typically not used
         if((stat!=4)&&(stat!=5))
             if(rstart>0&&j>=rstart)
                 p[j].w = -1.;
@@ -118,7 +73,6 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
                     p[j].w = -tmp[3]; // read in weights
                 else
                     p[j].w = tmp[3];
-#endif
             }
 
 		j++;

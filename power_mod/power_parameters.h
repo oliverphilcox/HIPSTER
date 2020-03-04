@@ -79,6 +79,10 @@ public:
     // (will be overwritten if reading from a file)
     int np = -1;
 
+    // Summed weights (only used if periodic)
+#ifdef PERIODIC
+    Float sum_w;
+#endif
   	// The periodicity of the position-space cube.
   	Float boxsize = 1000; // this is only used if the input particles are made randomly
 

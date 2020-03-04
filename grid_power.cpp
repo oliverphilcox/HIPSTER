@@ -131,6 +131,9 @@ int main(int argc, char *argv[]) {
         // Now save grid to global memory:
         all_grid[index].copy(&tmp_grid);
 
+#ifdef PERIODIC
+				par.sum_w = tmp_grid.sumw_pos + tmp_grid.sumw_neg;
+#endif
 
         free(orig_p); // Particles are now only stored in grid
 
