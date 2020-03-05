@@ -152,13 +152,15 @@ OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R
 # Compile code
 echo "COMPILING C++ CODE"
 echo
-bash $CODE_DIR/clean
+pushd $CODE_DIR
+bash clean
+popd
 make Periodic="-DPERIODIC" --directory $CODE_DIR
 
 # Compute DD pair counts (always need to be computed)
 echo
 echo "COMPUTING DD PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
+$CODE_DIR/power -in $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
 
 # Ensure that the files have actually been created
 if ! (test -f "$DD_FILE"); then

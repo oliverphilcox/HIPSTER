@@ -162,7 +162,7 @@ public:
         }
 #endif
 
-        if(R0<10){
+        if(R0<1){
             printf("\nTruncation radius (%.0f Mpc/h) is too small for accurate spectral computation. Exiting.\n\n",R0);
             exit(1);
         }
