@@ -55,8 +55,8 @@ public:
         max_legendre = fmax((sc->l_bins-1)*2,par->max_l);
 
 #ifdef PERIODIC
-        // define power spectrum normalization if periodic = (sum_weights)^2/V
-        power_norm = pow(par->sum_w,2.)/(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2]);
+        // define power spectrum normalization if periodic = (sum_weights_1)*(sum_weights_2)/V
+        power_norm = (par->sum_w1*par->sum_w2)/(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2]);
 #endif
 
         int ec=0;

@@ -81,7 +81,7 @@ public:
 
     // Summed weights (only used if periodic)
 #ifdef PERIODIC
-    Float sum_w;
+    Float sum_w1,sum_w2;
 #endif
   	// The periodicity of the position-space cube.
   	Float boxsize = 1000; // this is only used if the input particles are made randomly

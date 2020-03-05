@@ -24,7 +24,7 @@ private:
 
     Float *m; // powers of x,y,z used for Y_lms
     Complex *alm;   // Y_lm (for m>0) for a particle
-    Float bispectrum_norm,bispectrum_norm2;
+    Float bispectrum_norm,bispectrum_norm2,bispectrum_norm3;
 
 public:
     uint64 used_pairs; // total number of pairs used
@@ -59,9 +59,14 @@ public:
 
         make_map(); // Generate spherical harmonic coefficients
 
-        // define power spectrum normalization if periodic = n^3 V = N^3 / V^2, and n^2V = N^2/V for DDR term
-        bispectrum_norm = pow(par->np,3.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],2.);
-        bispectrum_norm2 = pow(par->np,2.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],1.);
+        // define power spectrum normalizations
+        // for DDD terms these are W^3/V^2 where W = sum(weights)
+        // for RRR terms these are unity (since normalized)
+        // for DDRI terms these are W^2/V (since one less factor of nw)
+        // for DDRII terms these are W^2 N / V^2 where N = number of particles, since we assume unit weight for randoms
+        bispectrum_norm = pow(par->sum_w1,3.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],2.);
+        bispectrum_norm2 = pow(par->sum_w1,2.)/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],1.);
+        bispectrum_norm3 = (par->np*pow(par->sum_w1,2.))/pow(par->rect_boxsize[0]*par->rect_boxsize[1]*par->rect_boxsize[2],2.);
 
         // Generate necessary arrays
         int ec=0;
@@ -173,9 +178,10 @@ public:
 
     }
 
-    inline void fill_up_counts(Float3 *separation_register, int register_size){
+    inline void fill_up_counts(Float3 *separation_register, int register_size, Float *weight_register, Float w_primary){
         // Count triples of particles with some weighting function
         // Input is the list of all separations of a primary particle with secondaries and length of this list.
+        // Additionally we input a list of the secondary particle weights and the weight of the primary
         // Full bispectrum kernel is made from this.
 
         if(register_size==0) return;
@@ -206,7 +212,7 @@ public:
             for(int mm=0;mm<n_mult;mm++) m[mm]=0; // powers of x,y,z used for Y_lms
             //for(int mm=0;mm<n_lm;mm++) alm[mm]=0; // seemingly not needed
 
-            sep_weight = pair_weight(particle_sep); // compute W(r;R_0)
+            sep_weight = weight_register[n]*pair_weight(particle_sep); // compute w_j * W(r_ij;R_0)
 
             // Compute Y_lm for particle pair in the alm variable
             norm_sep = separation_register[n]/particle_sep;
@@ -229,14 +235,14 @@ public:
                     new_kr3 = pow(new_kr,3);
                     new_kernel = kernel_interp->kernel(ell,new_kr);
 
-                    // Compute W(r)j^a_ell(r) values
+                    // Compute w_j W(r_ij)j^a_ell(r_ij) values
                     tmp_kernel = sep_weight*(new_kernel-old_kernel)/(new_kr3-old_kr3);
 
                     // Fill up array of (binned) j^a_ell(r)W(r)
                     kernel_arr[i]=tmp_kernel;
 
                     // Assign j0a_W to array
-                    if((!random_counts)&&(ell==0)) j0a_W[i]+=tmp_kernel;
+                    if((!random_counts)&&(ell==0)) j0a_W[i]+=w_primary*tmp_kernel;
 
                     // Fill up array of (binned) j^a_ell(r)W(r)Y_lm(r) values
                     for(int mm=0;mm<=ell;mm++){
@@ -272,7 +278,7 @@ public:
                         tmp_count+=RealProduct(Aa_lm[i*n_lm+nn],Aa_lm[i2*n_lm+nn])*almnorm[nn];
                     }
                     // Added to binned estimate and remove self-count
-                    bispectrum_counts[(i*nbin+i2)*mbin+ell]+= tmp_count * 4.0 * M_PI / (2*ell+1.0) - Cab_l[(i*nbin+i2)*mbin+ell];
+                    bispectrum_counts[(i*nbin+i2)*mbin+ell]+= w_primary*tmp_count * 4.0 * M_PI / (2*ell+1.0) - w_primary*Cab_l[(i*nbin+i2)*mbin+ell];
                 }
             }
         }
@@ -376,8 +382,8 @@ public:
                     if(j==0) output_bkk -= j0a_W[i]*Wka[i2]/bispectrum_norm2;
 
                     // Add DDR-II term
-                    if(i<=i2) output_bkk -= prefactor*DDRII_counts[(i*nbin+i2)*mbin+j]/bispectrum_norm/f_rand;
-                    else output_bkk -= prefactor*DDRII_counts[(i2*nbin+i)*mbin+j]/bispectrum_norm/f_rand;
+                    if(i<=i2) output_bkk -= prefactor*DDRII_counts[(i*nbin+i2)*mbin+j]/bispectrum_norm3/f_rand;
+                    else output_bkk -= prefactor*DDRII_counts[(i2*nbin+i)*mbin+j]/bispectrum_norm3/f_rand;
 
                     if(j==0) output_bkk+=2*Wka[i]*Wka[i2];
                 fprintf(BkkFile,"%le\t",output_bkk);

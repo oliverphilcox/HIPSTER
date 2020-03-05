@@ -95,6 +95,7 @@ int main(int argc, char *argv[]) {
 #ifdef BISPECTRUM
 				else {
         // If you want to just make random particles instead (as appropriate for bispectra)
+				// NB: these will have unit weight but this will be corrected for later
         assert(par.np>0);
 				// Generate some number of randoms (scaled to number of data points)
 				this_np = par.np*par.f_rand;
@@ -131,8 +132,11 @@ int main(int argc, char *argv[]) {
         // Now save grid to global memory:
         all_grid[index].copy(&tmp_grid);
 
+
 #ifdef PERIODIC
-				par.sum_w = tmp_grid.sumw_pos + tmp_grid.sumw_neg;
+				// Save summed weights for the dataset
+				if(index==0) par.sum_w1 = tmp_grid.sumw_pos + tmp_grid.sumw_neg;
+				if(index==1) par.sum_w2 = tmp_grid.sumw_pos + tmp_grid.sumw_neg;
 #endif
 
         free(orig_p); // Particles are now only stored in grid

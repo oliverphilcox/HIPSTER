@@ -84,6 +84,8 @@ public:
             Cell prim_cell,sec_cell; // cell objects
             Particle particle_i; // primary particle
             Float3* sep_register; // list of separation vectors between primary and secondary
+            Float* weight_register; // list of weights of secondaries
+            Float w_primary; // weight of primary particle
             int register_index; // index of register holding particle separations
 
             BispectrumCounts loc_counts(par,kernel_interp,random_counts);
@@ -91,6 +93,7 @@ public:
             int ec=0;
             ec+=posix_memalign((void **) &prim_list, PAGE, sizeof(Particle)*mnp);
             ec+=posix_memalign((void **) &prim_ids, PAGE, sizeof(int)*mnp);
+            ec+=posix_memalign((void **) &weight_register, PAGE, sizeof(Float)*mnp*len_cell_sep); // hold maximum number of close particles
             ec+=posix_memalign((void **) &sep_register, PAGE, sizeof(Float3)*mnp*len_cell_sep); // hold maximum number of close particles
             assert(ec==0);
 
@@ -120,6 +123,8 @@ public:
                 // Select one particle from this cell at a time
                 for(int i=prim_cell.start;i<(prim_cell.start+prim_cell.np);i++){
                     particle_i = grid1->p[i];
+                    w_primary = particle_i.w;
+
                     register_index=0;
 
                     // Now find all secondary particles in allowed region around this primary particle
@@ -148,11 +153,12 @@ public:
                             used_particles++;
                             // Now save the distances of the cells to the register
                             sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
+                            weight_register[register_index++]=grid2->p[j].w;
                         }
                     }
 
                     // Now time to fill up the bispectrum counts
-                    loc_counts.fill_up_counts(sep_register, register_index);
+                    loc_counts.fill_up_counts(sep_register, register_index, weight_register, w_primary);
                 }
             }
 #ifdef OPENMP
