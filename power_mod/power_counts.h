@@ -165,6 +165,10 @@ public:
         cleanup_l(pi.pos,pj.pos,r_ij,mu_ij); // define distance and angle
 
         if(r_ij>=R0) return; // outside correct size
+        if(r_ij==0){
+            printf("Zero separation! This indicates a bug.\n");
+            exit(1);
+        }
 
         used_pairs++; // update number of pairs used
 
@@ -214,6 +218,7 @@ public:
             old_kr = new_kr;
             old_kr3 = new_kr3;
         }
+
     }
 
     inline Float pair_weight(Float sep){

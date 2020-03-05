@@ -236,8 +236,10 @@ let N_RAND_RR++
 # Compile code
 echo
 echo "COMPILING C++ CODE"
+pushd $CODE_DIR
 echo
-bash $CODE_DIR/clean
+bash clean
+popd
 make --directory $CODE_DIR
 # compile without periodic behavior
 

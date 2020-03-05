@@ -69,9 +69,6 @@ public:
   	// Whether to balance the weights or multiply them by -1
   	int qinvert = 0, qbalance = 0;
 
-  	// The index from which on to invert the sign of the weights
-  	int rstart = 0;
-
 	  //---------------- INTERNAL PARAMETERS -----------------------------------
     // (no more user defined parameters below this line)
 
@@ -126,7 +123,6 @@ public:
 #else
       else if (!strcmp(argv[i],"-f_rand")) f_rand=atof(argv[++i]);
 #endif
-		else if (!strcmp(argv[i],"-rs")) rstart = atoi(argv[++i]);
 		else if (!strcmp(argv[i],"-nmax")) nmax = atoll(argv[++i]);
 		else if (!strcmp(argv[i],"-nthread")) nthread = atoi(argv[++i]);
 		else if (!strcmp(argv[i],"-balance")) qbalance = 1;
@@ -162,7 +158,7 @@ public:
         }
 #endif
 
-        if(R0<10){
+        if(R0<1){
             printf("\nTruncation radius (%.0f Mpc/h) is too small for accurate spectral computation. Exiting.\n\n",R0);
             exit(1);
         }
@@ -205,6 +201,9 @@ public:
 	    if (radial_bin_file==NULL) {radial_bin_file = (char *) default_radial_bin_file;} // No radial binning
 
 	    if (fname==NULL) fname = (char *) default_fname;   // No name was given
+#ifndef BISPECTRUM
+    if (!strcmp(fname2,"")) fname2 = fname; // read from first file if second not given
+#endif
 	    create_directory();
 
 	    // Read in the radial binning

@@ -151,8 +151,10 @@ OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R
 
 # Compile code
 echo "COMPILING C++ CODE"
+pushd $CODE_DIR
 echo
-bash $CODE_DIR/clean
+bash clean
+popd
 make Periodic="-DPERIODIC" --directory $CODE_DIR
 
 # Compute DD pair counts (always need to be computed)
