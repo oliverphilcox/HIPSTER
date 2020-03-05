@@ -64,7 +64,7 @@ Analogously, for the bispectrum we can run the ``./power`` executable, which, in
 
 The code uses the following main arguments:
 
-    - ``-in``: First input ASCII file containing space separated (x,y,z,weight) positions of particles in comoving :math:`h^{-1}\mathrm{Mpc}` units. Note that the weight column is optional, and will be set to unity if not included.
+    - ``-in``: First input ASCII file containing space separated (x,y,z,weight) positions of particles in comoving :math:`h^{-1}\mathrm{Mpc}` units. Note that the weight column is optional, and will be set to unity if not included (see :ref:`particle-weights-note`).
     - ``-in2``: (*Power spectrum only*) Second input ASCII file, with format as above.
     - ``-binfile``: :math:`k`-space ASCII binning file, as described above.
     - ``-output``: Directory in which to house output products. This will be created if not already in existence.

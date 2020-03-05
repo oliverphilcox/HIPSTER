@@ -89,3 +89,10 @@ Note on Random Particles in the Bispectrum
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Whilst it is possible to compute the periodic-box bispectrum without any use of random particles (by performing all random particle integrals analytically), this turns out to be very computationally intensive for the bispectrum. As detailed in the second HIPSTER paper, there is one particular term (labelled :math:`\widetilde{DDR}^{II}`) that is difficult to compute, thus we elect to compute it via pair counts with a random catalog which is created internally via HIPSTER. The HIPSTER parameter :math:`f_\mathrm{rand}` is the ratio of random particles to galaxies (after subsampling, if applied), and controls this effect. Generally a ratio of order a few gives little sampling noise, but this can be easily experimented with. The runtime of the code scales in proportion to :math:`(1+f_\mathrm{rand})`.
+
+.. _particle-weights-note
+
+Note on Particle Weights
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the input data file to HIPSTER, particle weights can optionally be specified. For aperiodic computations, these can take any form, for example FKP weights for the power spectrum. For periodic surveys, weights are also supported, which are conventionally used to compute polyspectra from multiple-tracer simulations, for example with dark matter and neutrino particles. In this case, each tracer particle carries a weight proportional to its mass. These weights have the additional constraint that, if the particles are unclustered, the weights must not be varying across the survey, though can vary between sets of particles. In other words, HIPSTER can use a collection of different particle sets at once, each set of which has a (different) uniform weight. If unspecified, weights are set to unity.
