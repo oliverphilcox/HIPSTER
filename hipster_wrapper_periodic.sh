@@ -158,7 +158,7 @@ make Periodic="-DPERIODIC" --directory $CODE_DIR
 # Compute DD pair counts (always need to be computed)
 echo
 echo "COMPUTING DD PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
+$CODE_DIR/power -in $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS -perbox
 
 # Ensure that the files have actually been created
 if ! (test -f "$DD_FILE"); then
