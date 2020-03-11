@@ -116,8 +116,7 @@ public:
 
         // This minimum value should be sufficient for multipoles up to ell = 10
         // Going to too-small ell gives nasty divergences at high ell
-        min_val = 0.25; // minimum interpolation value
-        //min_val = 0.01*(R0*k_min)/double(npoint); // minimum interpolation value
+        min_val = 0.1*(R0*k_min)/double(npoint); // minimum interpolation value
         max_val = 2.01*(R0*k_max); // maximum interpolation value
 
         for(int i=0;i<npoint;i++){

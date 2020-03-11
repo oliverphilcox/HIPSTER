@@ -42,9 +42,9 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
         n++;
     }
     rewind(fp);
+    *np = n;
 
-    Particle *p0 = (Particle *)malloc(sizeof(Particle)*n);
-    int repeated;
+    Particle *p = (Particle *)malloc(sizeof(Particle)*n);
     printf("# Found %d particles from %s\n", n, filename);
     printf("# Rescaling input positions by factor %f\n", rescale);
 
@@ -58,38 +58,17 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
         	abort();
         }
 
-        // Check for repeated positions
-        // If we find a repeat, simply add the secondary weight to the first particle and skip this particle
-        repeated=0;
-        for(int ii=0;ii<j;ii++){
-            if(p0[ii].pos.x==tmp[0]*rescale){
-                if(p0[ii].pos.y==tmp[1]*rescale){
-                    if(p0[ii].pos.z==tmp[2]*rescale){
-                        if((stat!=4)&&(stat!=5)) p0[ii].w += 1.;
-                        else p0[ii].w += tmp[3];
-                        repeated = 1;
-                        break;
-                    }
-                }
-            }
-        }
-        if (repeated==1) continue;
-        p0[j].pos.x = tmp[0]*rescale;
-        p0[j].pos.y = tmp[1]*rescale;
-        p0[j].pos.z = tmp[2]*rescale;
+        p[j].pos.x = tmp[0]*rescale;
+        p[j].pos.y = tmp[1]*rescale;
+        p[j].pos.z = tmp[2]*rescale;
         // Get the weights from line 4 if present, else fill with +1
-        if((stat!=4)&&(stat!=5)) p0[j].w = 1.;
-        else p0[j].w = tmp[3];
+        if((stat!=4)&&(stat!=5)) p[j].w = 1.;
+        else p[j].w = tmp[3];
 		j++;
     }
     fclose(fp);
     printf("# Done reading the particles\n");
 
-    // Now crop output to unique particles only
-    Particle *p = (Particle *)malloc(sizeof(Particle)*j);
-
-    for(int ii=0;ii<j;ii++) p[ii] = p0[ii];
-    *np = j;
     return p;
 }
 
