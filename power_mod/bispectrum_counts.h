@@ -268,7 +268,6 @@ public:
 
         // We can now perform the sum over m to compute A^a_lm A^b*_lm term;
 #define RealProduct(a,b) (a.real()*b.real()+a.imag()*b.imag())
-
         // Loop over bispectrum bins
         for(int i=0;i<nbin;i++){
             for(int i2=i;i2<nbin;i2++){

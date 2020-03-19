@@ -149,11 +149,11 @@ public:
 
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if(j==i) continue; // skip if identical particles
-                            //if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
                             used_particles++;
                             // Now save the distances of the cells to the register
-                            sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
-                            weight_register[register_index++]=grid2->p[j].w;
+                            sep_register[register_index]=grid2->p[j].pos+separation-particle_i.pos;
+                            weight_register[register_index]=grid2->p[j].w;
+                            register_index++;
                         }
                     }
 
