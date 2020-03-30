@@ -107,7 +107,7 @@ private:
 
 public:
     int nbin,mbin;
-    int npoint=1000;
+    int npoint=100000;
     Float min_val,max_val;
     double *sep, *kernel_vals_0,*kernel_vals_1,*kernel_vals_2,*kernel_vals_3,*kernel_vals_4,*kernel_vals_5;
     double *kernel_vals_6,*kernel_vals_7,*kernel_vals_8,*kernel_vals_9,*kernel_vals_10;
@@ -289,9 +289,7 @@ public:
         kernel_vals_10 = (double *)malloc(sizeof(double)*npoint);
 
         // This minimum value should be sufficient for multipoles up to ell = 10
-        // Going to too-small ell gives nasty divergences at high ell
-        min_val = 0.25; // minimum interpolation value
-        //10.*(R0*k_min)/double(npoint);
+        min_val = 0.1*(R0*k_min)/double(npoint);
         max_val = 2.1*(R0*k_max); // maximum interpolation value
 
         for(int i=0;i<npoint;i++){
@@ -302,57 +300,79 @@ public:
 
             Si_int = gsl_sf_Si(tmp_kw);
 
-            // Compute multipole contributions
-            for(int ell=0;ell<=max_legendre;ell+=1){
-                tmp_kernel = 3.;
-                if(ell==0){
-                    tmp_bessel = tmp_sin - tmp_kw*tmp_cos;
-                    kernel_vals_0[i] = tmp_bessel*tmp_kernel;
+            // Insert kw = 0 limit for low k to avoid blow-up
+            if(tmp_kw<0.1){
+                for(int ell=0;ell<=max_legendre;ell+=1){
+                    if(ell==0) kernel_vals_0[i] = 0;
+                    else if(ell==1) kernel_vals_1[i] = -6;
+                    else if(ell==2) kernel_vals_2[i] = 0;
+                    else if(ell==3) kernel_vals_3[i] = -24;
+                    else if(ell==4) kernel_vals_4[i] = 0;
+                    else if(ell==5) kernel_vals_5[i] = -48;
+                    else if(ell==6) kernel_vals_6[i] = 0;
+                    else if(ell==7) kernel_vals_7[i] = -384./5.;
+                    else if(ell==8) kernel_vals_8[i] = 0;
+                    else if(ell==9) kernel_vals_9[i] = -768./7.;
+                    else if(ell==10) kernel_vals_10[i] = 0;
+                    else{
+                        printf("\nOnly ell = 0 to 10 implemented\n");
+                        exit(1);
+                    }
                 }
-                else if(ell==1){
-                    tmp_bessel = -2.*tmp_cos-tmp_kw*tmp_sin;
-                    kernel_vals_1[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==2){
-                    tmp_bessel = tmp_kw*tmp_cos - 4*tmp_sin+3*Si_int;
-                    kernel_vals_2[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==3){
-                    tmp_bessel = 7.*tmp_cos - 15.*tmp_sin/tmp_kw+tmp_kw*tmp_sin;
-                    kernel_vals_3[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==4){
-                    tmp_bessel = 0.5*((105./tmp_kw-2.*tmp_kw)*tmp_cos+(22.-105./pow(tmp_kw,2))*tmp_sin+15*Si_int);
-                    kernel_vals_4[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==5){
-                    tmp_bessel = (tmp_kw*(315 - 16*pow(tmp_kw,2))*tmp_cos - (315 - 105 *pow(tmp_kw,2) + pow(tmp_kw,4))*tmp_sin)/pow(tmp_kw,3.);
-                    kernel_vals_5[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==6){
-                    tmp_bessel = 1./(8.*pow(tmp_kw,4))*(tmp_kw*(20790. - 1575.*pow(tmp_kw,2) + 8.*pow(tmp_kw,4.))*tmp_cos + (-20790. + 8505.*pow(tmp_kw,2) - 176.*pow(tmp_kw,4.))*tmp_sin + 105.*pow(tmp_kw,4.)*Si_int);
-                    kernel_vals_6[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==7){
-                    tmp_bessel = 1./(pow(tmp_kw,5.))*(tmp_kw*(27027. - 2772.*pow(tmp_kw,2) + 29.*pow(tmp_kw,4.))*tmp_cos + (-27027. + 11781.*pow(tmp_kw,2.) - 378.*pow(tmp_kw,4.) + pow(tmp_kw,6.))*tmp_sin);
-                    kernel_vals_7[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==8){
-                    tmp_bessel = 1./(16*pow(tmp_kw,6.))*(tmp_kw*(5405400 - 630630*pow(tmp_kw,2) + 10395*pow(tmp_kw,4) -  16.*pow(tmp_kw,6))*tmp_cos + (-5405400 + 2432430*pow(tmp_kw,2) - 100485*pow(tmp_kw,4) + 592*pow(tmp_kw,6))*tmp_sin + 315*pow(tmp_kw,6)*Si_int);
-                    kernel_vals_8[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==9){
-                    tmp_bessel = 1./pow(tmp_kw,7.)*(tmp_kw*(4922775 - 617760*pow(tmp_kw,2.) + 12870*pow(tmp_kw,4.) - 46*pow(tmp_kw,6.))*tmp_cos - (4922775 - 2258685*pow(tmp_kw,2.) + 109395*pow(tmp_kw,4.) - 990*pow(tmp_kw,6.) + pow(tmp_kw,8.))*tmp_sin);
-                    kernel_vals_9[i] = tmp_bessel*tmp_kernel;
-                }
-                else if(ell==10){
-                    tmp_bessel = 1./(128.*pow(tmp_kw,8.))*(tmp_kw*(10475665200. - 1378377000*pow(tmp_kw,2.) + 34144110*pow(tmp_kw,4.) - 186615*pow(tmp_kw,6.) + 128*pow(tmp_kw,8.))*tmp_cos - 7.*(1496523600 - 695752200*pow(tmp_kw,2.) + 37258650*pow(tmp_kw,4.) - 444015*pow(tmp_kw,6.) + 1024*pow(tmp_kw,8.))*tmp_sin +
-  3465.*pow(tmp_kw,8.)*Si_int);
-                    kernel_vals_10[i] = tmp_bessel*tmp_kernel;
-                }
-                else{
-                    printf("\nOnly ell = 0 to 10 implemented\n");
-                    exit(1);
+            }
+            else{
+                // Compute multipole contributions
+                for(int ell=0;ell<=max_legendre;ell+=1){
+                    tmp_kernel = 3.;
+                    if(ell==0){
+                        tmp_bessel = tmp_sin - tmp_kw*tmp_cos;
+                        kernel_vals_0[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==1){
+                        tmp_bessel = -2.*tmp_cos-tmp_kw*tmp_sin;
+                        kernel_vals_1[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==2){
+                        tmp_bessel = tmp_kw*tmp_cos - 4*tmp_sin+3*Si_int;
+                        kernel_vals_2[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==3){
+                        tmp_bessel = 7.*tmp_cos - 15.*tmp_sin/tmp_kw+tmp_kw*tmp_sin;
+                        kernel_vals_3[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==4){
+                        tmp_bessel = 0.5*((105./tmp_kw-2.*tmp_kw)*tmp_cos+(22.-105./pow(tmp_kw,2))*tmp_sin+15*Si_int);
+                        kernel_vals_4[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==5){
+                        tmp_bessel = (tmp_kw*(315 - 16*pow(tmp_kw,2))*tmp_cos - (315 - 105 *pow(tmp_kw,2) + pow(tmp_kw,4))*tmp_sin)/pow(tmp_kw,3.);
+                        kernel_vals_5[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==6){
+                        tmp_bessel = 1./(8.*pow(tmp_kw,4))*(tmp_kw*(20790. - 1575.*pow(tmp_kw,2) + 8.*pow(tmp_kw,4.))*tmp_cos + (-20790. + 8505.*pow(tmp_kw,2) - 176.*pow(tmp_kw,4.))*tmp_sin + 105.*pow(tmp_kw,4.)*Si_int);
+                        kernel_vals_6[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==7){
+                        tmp_bessel = 1./(pow(tmp_kw,5.))*(tmp_kw*(27027. - 2772.*pow(tmp_kw,2) + 29.*pow(tmp_kw,4.))*tmp_cos + (-27027. + 11781.*pow(tmp_kw,2.) - 378.*pow(tmp_kw,4.) + pow(tmp_kw,6.))*tmp_sin);
+                        kernel_vals_7[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==8){
+                        tmp_bessel = 1./(16*pow(tmp_kw,6.))*(tmp_kw*(5405400 - 630630*pow(tmp_kw,2) + 10395*pow(tmp_kw,4) -  16.*pow(tmp_kw,6))*tmp_cos + (-5405400 + 2432430*pow(tmp_kw,2) - 100485*pow(tmp_kw,4) + 592*pow(tmp_kw,6))*tmp_sin + 315*pow(tmp_kw,6)*Si_int);
+                        kernel_vals_8[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==9){
+                        tmp_bessel = 1./pow(tmp_kw,7.)*(tmp_kw*(4922775 - 617760*pow(tmp_kw,2.) + 12870*pow(tmp_kw,4.) - 46*pow(tmp_kw,6.))*tmp_cos - (4922775 - 2258685*pow(tmp_kw,2.) + 109395*pow(tmp_kw,4.) - 990*pow(tmp_kw,6.) + pow(tmp_kw,8.))*tmp_sin);
+                        kernel_vals_9[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else if(ell==10){
+                        tmp_bessel = 1./(128.*pow(tmp_kw,8.))*(tmp_kw*(10475665200. - 1378377000*pow(tmp_kw,2.) + 34144110*pow(tmp_kw,4.) - 186615*pow(tmp_kw,6.) + 128*pow(tmp_kw,8.))*tmp_cos - 7.*(1496523600 - 695752200*pow(tmp_kw,2.) + 37258650*pow(tmp_kw,4.) - 444015*pow(tmp_kw,6.) + 1024*pow(tmp_kw,8.))*tmp_sin +
+      3465.*pow(tmp_kw,8.)*Si_int);
+                        kernel_vals_10[i] = tmp_bessel*tmp_kernel;
+                    }
+                    else{
+                        printf("\nOnly ell = 0 to 10 implemented\n");
+                        exit(1);
+                    }
                 }
             }
         }

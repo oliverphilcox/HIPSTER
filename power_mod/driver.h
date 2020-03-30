@@ -20,7 +20,7 @@ Particle *make_particles(Float3 rect_boxsize, int np) {
     return p;
 }
 
-Particle *read_particles(Float rescale, int *np, const char *filename, const int rstart, uint64 nmax) {
+Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nmax) {
     // This will read particles from a file, space-separated x,y,z,w,JK for weight w, (jackknife region JK)
     // Particle positions will be rescaled by the variable 'rescale'.
     // For example, if rescale==boxsize, then inputting the unit cube will cover the periodic volume
@@ -42,8 +42,8 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
         n++;
     }
     rewind(fp);
-
     *np = n;
+
     Particle *p = (Particle *)malloc(sizeof(Particle)*n);
     printf("# Found %d particles from %s\n", n, filename);
     printf("# Rescaling input positions by factor %f\n", rescale);
@@ -61,20 +61,9 @@ Particle *read_particles(Float rescale, int *np, const char *filename, const int
         p[j].pos.x = tmp[0]*rescale;
         p[j].pos.y = tmp[1]*rescale;
         p[j].pos.z = tmp[2]*rescale;
-        // Get the weights from line 4 if present, else fill with +1/-1 depending on the value of rstart
-        // rstart is typically not used
-        if((stat!=4)&&(stat!=5))
-            if(rstart>0&&j>=rstart)
-                p[j].w = -1.;
-            else
-                p[j].w = 1.;
-            else{
-                if(rstart>0&&j>=rstart)
-                    p[j].w = -tmp[3]; // read in weights
-                else
-                    p[j].w = tmp[3];
-            }
-
+        // Get the weights from line 4 if present, else fill with +1
+        if((stat!=4)&&(stat!=5)) p[j].w = 1.;
+        else p[j].w = tmp[3];
 		j++;
     }
     fclose(fp);

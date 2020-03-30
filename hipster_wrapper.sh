@@ -236,8 +236,8 @@ let N_RAND_RR++
 # Compile code
 echo
 echo "COMPILING C++ CODE"
-echo
 pushd $CODE_DIR
+echo
 bash clean
 popd
 make --directory $CODE_DIR

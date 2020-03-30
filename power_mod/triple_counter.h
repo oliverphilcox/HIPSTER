@@ -67,10 +67,10 @@ public:
         // Decide which thread we are in
         int thread = omp_get_thread_num();
         assert(omp_get_num_threads()<=par->nthread);
-        if (thread==0) printf("# Starting power-spectrum particle-count computation on %d threads.\n\n", omp_get_num_threads());
+        if (thread==0) printf("# Starting bispectrum particle-count computation on %d threads.\n\n", omp_get_num_threads());
 #else
         int thread = 0;
-        printf("# Starting power-spectrum particle-count computation single threaded.\n\n");
+        printf("# Starting bispectrum particle-count computation single threaded.\n\n");
         { // start loop
 #endif
 
@@ -149,11 +149,11 @@ public:
 
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if(j==i) continue; // skip if identical particles
-                            //if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
                             used_particles++;
                             // Now save the distances of the cells to the register
-                            sep_register[register_index++]=grid2->p[j].pos+separation-particle_i.pos;
-                            weight_register[register_index++]=grid2->p[j].w;
+                            sep_register[register_index]=grid2->p[j].pos+separation-particle_i.pos;
+                            weight_register[register_index]=grid2->p[j].w;
+                            register_index++;
                         }
                     }
 
