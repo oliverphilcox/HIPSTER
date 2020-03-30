@@ -67,10 +67,10 @@ public:
         // Decide which thread we are in
         int thread = omp_get_thread_num();
         assert(omp_get_num_threads()<=par->nthread);
-        if (thread==0) printf("# Starting power-spectrum particle-count computation on %d threads.\n\n", omp_get_num_threads());
+        if (thread==0) printf("# Starting bispectrum particle-count computation on %d threads.\n\n", omp_get_num_threads());
 #else
         int thread = 0;
-        printf("# Starting power-spectrum particle-count computation single threaded.\n\n");
+        printf("# Starting bispectrum particle-count computation single threaded.\n\n");
         { // start loop
 #endif
 

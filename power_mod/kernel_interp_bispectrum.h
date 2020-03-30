@@ -377,11 +377,6 @@ public:
             }
         }
 
-        for(int ii=0;ii<100;ii++) printf("2: %.2e %.4e\n",sep[ii],kernel_vals_2[ii]);
-        for(int ii=0;ii<100;ii++) printf("9: %.2e %.4e\n",sep[ii],kernel_vals_9[ii]);
-        for(int ii=0;ii<100;ii++) printf("10: %.2e %.4e\n",sep[ii],kernel_vals_10[ii]);
-        exit(1);
-
         // activate interpolator function
         interpolate();
 
