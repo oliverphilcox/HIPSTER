@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
 								all_grid[index].copy(&all_grid[0]);
 								continue;
 						}
-	          orig_p = read_particles(par.rescale, &par.np, filename, par.rstart, par.nmax);
+	          orig_p = read_particles(par.rescale, &par.np, filename, par.nmax);
             assert(par.np>0);
 						this_np = par.np;
             par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
@@ -132,17 +132,16 @@ int main(int argc, char *argv[]) {
         // Now save grid to global memory:
         all_grid[index].copy(&tmp_grid);
 
-
-#ifdef PERIODIC
-				// Save summed weights for the dataset
-				if(index==0) par.sum_w1 = tmp_grid.sumw_pos + tmp_grid.sumw_neg;
-				if(index==1) par.sum_w2 = tmp_grid.sumw_pos + tmp_grid.sumw_neg;
-#endif
-
         free(orig_p); // Particles are now only stored in grid
 
         fflush(NULL);
 		}
+
+#ifdef PERIODIC
+				// Save summed weights for the dataset
+				par.sum_w1 = all_grid[0].sumw_pos + all_grid[0].sumw_neg;
+				par.sum_w2 = all_grid[1].sumw_pos + all_grid[1].sumw_neg;
+#endif
 
 		Float max_sep = par.R0;
 
