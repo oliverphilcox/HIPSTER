@@ -129,7 +129,7 @@ public:
 
             // Insert kw = 0 limit for low k to avoid blow-up
             if(tmp_kw<0.01){
-                for(int ell=0;ell<=max_legendre;ell+=1){
+                for(int ell=0;ell<=6;ell+=1){
                     if(ell==0) kernel_vals_0[i] = 0;
                     else if(ell==2) kernel_vals_2[i] = 0;
                     else if(ell==4) kernel_vals_4[i] = 0;

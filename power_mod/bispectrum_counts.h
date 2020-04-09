@@ -3,6 +3,22 @@
 #ifndef BISPECTRUM_COUNTS_H
 #define BISPECTRUM_COUNTS_H
 
+#ifdef AVX
+#include "../avx_mod/externalmultipoles.h"
+// typedef struct { double v[4]; } d4;
+
+// An array of pointers to all of the AVX assembly functions
+void (*CMptr[16])( d4 *ip1x, d4 *ip2x, d4 *ip1y, d4 *ip2y, d4 *ip1z, d4 *ip2z,
+                   d4 *cx, d4 *cy, d4 *cz, d4 *globalM,
+                   d4 *mass1, d4 *mass2) = {
+     MultipoleKernel1,  MultipoleKernel2,  MultipoleKernel3,  MultipoleKernel4,
+     MultipoleKernel5,  MultipoleKernel6,  MultipoleKernel7,  MultipoleKernel8,
+     MultipoleKernel9,  MultipoleKernel10, MultipoleKernel11, MultipoleKernel12,
+     MultipoleKernel13, MultipoleKernel14, MultipoleKernel15, MultipoleKernel16
+};
+
+#endif
+
 class BispectrumCounts{
 
 private:
@@ -427,7 +443,6 @@ while (true){
       // Next fill up Y_lms (using tedious spherical harmonic code in another file)
       #include "spherical_harmonics.h"
 }
-      //for(int mm=0;mm<n_lm;mm++) printf("%d %.2e %.2e\n",mm,alm[mm].real(),alm[mm].imag());
 }
 
 inline void make_map() {
