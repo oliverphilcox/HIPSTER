@@ -235,7 +235,7 @@ private:
         fprintf(stderr, "   -def: This allows one to accept the defaults without giving other entries.\n");
 	      fprintf(stderr, "   -in <file>: The input file for particle-set 1 (space-separated x,y,z,[w]).\n");
         fprintf(stderr, "   -binfile <filename>: File containing the desired k-space radial bins\n");
-        fprintf(stderr, "   -output: Directory to save output covariance matrices into\n");
+        fprintf(stderr, "   -output: Directory to save output spectra into\n");
         fprintf(stderr, "   -out_string: (Optional) String to add to file name for identification\n");
         fprintf(stderr, "   -nthread <nthread>: The number of CPU threads ot use for parallelization.\n");
         fprintf(stderr, "   -perbox <perbox>: Boolean, whether the box is periodic is not\n");
