@@ -5,13 +5,17 @@ PERIODIC_FLAG=$(Periodic)
 BISPECTRUM_FLAG=$(Bispectrum)
 
 CC = gcc
-CFLAGS = -g -Wall -O3
-CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) $(BISPECTRUM_FLAG) -DOPENMP
+CFLAGS = -g 
+#-Wall -O3 
+#CXXFLAGS = -DPOWER -Wall -O3 $(PERIODIC_FLAG) $(BISPECTRUM_FLAG)
+CXXFLAGS = -DPOWER -DBISPECTRUM -DPERIODIC
+# -DOPENMP
 # disable OPENMP to run single threaded
 # use -DBISPECTRUM to run in bispectrum mode, or set Bispectrum=-DBISPECTRUM on the command line
 # use -DPERIODIC to run in periodic mode, or set Periodic=-DPERIODIC on the command line
 
-CXX = g++ -fopenmp -lgomp -std=c++0x -ffast-math
+#CXX = g++ -fopenmp -lgomp -std=c++0x -ffast-math
+CXX = g++ -lgomp -std=c++0x
 
 AUNTIE	= power
 AOBJS	= grid_power.o
