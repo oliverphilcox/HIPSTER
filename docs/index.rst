@@ -33,7 +33,7 @@ This is described in detail in the accompanying pages.
    usage/basic-usage
    usage/advanced-usage
 
-For any queries regarding the code please contact `Oliver Philcox  <mailto:ohep2@alumni.cam.ac.uk>`_.
+For any queries regarding the code please contact `Oliver Philcox  <mailto:ohep2@cantab.ac.uk>`_.
 
 
 .. Indices and tables

@@ -22,7 +22,7 @@ To compute a bispectrum from particles in a *periodic* simulation box (``data.da
 
         ./hipster_wrapper_bispectrum.sh --dat data.dat --l_max L -R0 R0 -k_bin binning.csv --nthreads 4 --f_rand 3
 
-For any queries regarding the code please contact [Oliver Philcox](mailto:ohep2@alumni.cam.ac.uk).
+For any queries regarding the code please contact [Oliver Philcox](mailto:ohep2@cantab.ac.uk).
 
 **New for version 2**: Optimizations for periodic N-body simulations
 
