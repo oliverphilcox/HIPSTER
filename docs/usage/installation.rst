@@ -45,6 +45,6 @@ Additional Collaborators:
 - Lehman Garrison (CCA / Harvard)
 - Zachary Slepian (Florida)
 
-Please cite the initial theory paper (Philcox & Eisenstein 2019, accepted by MNRAS, `arXiv <https://arxiv.org/abs/1912.01010>`_) and the periodic power spectrum and bispectrum paper (Philcox 2020, in prep.) when using this code in your research.
+Please cite the initial theory paper (Philcox & Eisenstein 2019, accepted by MNRAS, `arXiv <https://arxiv.org/abs/1912.01010>`_) and the periodic power spectrum and bispectrum paper (Philcox 2020, submitted to MNRAS, `arXiv <https://arxiv.org/pdf/2005.01739.pdf>`_) when using this code in your research.
 
 Note that many of the code modules and convenience functions are based on those of `RascalC <https://RascalC.readthedocs.io>`_, developed by Oliver Philcox, Daniel Eisenstein, Ross O'Connell and Alexander Wiegand.
