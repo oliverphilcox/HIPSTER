@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.abspath('../python/'))
 # -- Project information -----------------------------------------------------
 
 project = 'HIPSTER'
-copyright = '2019, Oliver Philcox, Daniel Eisenstein'
+copyright = '2020, Oliver Philcox, Daniel Eisenstein'
 author = 'Oliver Philcox, Daniel Eisenstein'
 
 # The short X.Y version
