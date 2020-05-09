@@ -2,9 +2,9 @@
 
 ## HIgh-k Power Spectrum EstimatoR
 
-Code to compute small-scale power spectra and bispectra for cosmological simulations and galaxy surveys of arbitrary shape, based on the configuration space estimators of Philcox & Eisenstein (2019, MNRAS, [arXiv](https://arxiv.org/abs/1912.01010)) and Philcox (2020, submitted, [arXiv](https://arxiv.org/pdf/2005.01739.pdf)). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ or bispectrum, $B_\ell(k_1,k_2)$ by computing weighted pair counts over the simulation box or survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise or aliasing, and is optimized for small-scale spectrum computation in real- or redshift-space. Both the power spectrum and bispectrum estimators have efficiency $\mathcal{O}\left(N^2\right)$ for $N$ particles, and become faster at large $k$.
+Code to compute small-scale power spectra and isotropic bispectra for cosmological simulations and galaxy surveys of arbitrary shape, based on the configuration space estimators of Philcox & Eisenstein (2019, MNRAS, [arXiv](https://arxiv.org/abs/1912.01010)) and Philcox (2020, submitted, [arXiv](https://arxiv.org/pdf/2005.01739.pdf)). This computes the Legendre multipoles of the power spectrum, $P_\ell(k)$ or bispectrum, $B_\ell(k_1,k_2)$ by computing weighted pair counts over the simulation box or survey, truncated at some maximum radius $R_0$. This fully accounts for window function effects, does not include shot-noise or aliasing, and is optimized for small-scale spectrum computation in real- or redshift-space. Both the power spectrum and bispectrum estimators have efficiency $\mathcal{O}\left(N^2\right)$ for $N$ particles, and become faster at large $k$.
 
-The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys or cosmological simulations respectively. The 'periodic' mode contains various optimizations relating to the periodic geometry, as detailed in the second paper. HIPSTER also supports weighted spectra, for example when tracer particles are weighted by their mass in a multi-species simulation.
+The code can be run either in 'aperiodic' or 'periodic' mode, for galaxy surveys or cosmological simulations respectively. The 'periodic' mode contains various optimizations relating to the periodic geometry, as detailed in the second paper. HIPSTER also supports weighted spectra, for example when tracer particles are weighted by their mass in a multi-species simulation. Generalization to anisotropic bispectra is straightforward (and requires no additional computing time) and can be added on request.
 
 Full documentation of HIPSTER is available on [ReadTheDocs](https://HIPSTER.readthedocs.io).
 
@@ -18,7 +18,7 @@ To compute a power spectrum from galaxies in a *non-periodic* survey (``data.dat
 
     ./hipster_wrapper.sh --dat galaxies.dat --ran_DR randoms.dat --ran_RR randoms.dat -l_max L -R0 R0 -k_bin binning.csv --nthreads 4
 
-To compute a bispectrum from particles in a *periodic* simulation box (``data.dat``) up to $\ell=L$ with pair-counts truncated at radius $R_0$ using $k$-space binning file ``binning.csv`` and 4 CPU cores, using 3 times as many random points as data points, run:
+To compute an isotropic bispectrum from particles in a *periodic* simulation box (``data.dat``) up to $\ell=L$ with pair-counts truncated at radius $R_0$ using $k$-space binning file ``binning.csv`` and 4 CPU cores, using 3 times as many random points as data points, run:
 
         ./hipster_wrapper_bispectrum.sh --dat data.dat --l_max L -R0 R0 -k_bin binning.csv --nthreads 4 --f_rand 3
 

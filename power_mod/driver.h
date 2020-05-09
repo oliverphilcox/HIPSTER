@@ -96,7 +96,7 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
     Float         biggest = prange.x;
     biggest = fmax(biggest, prange.y);
     biggest = fmax(biggest, prange.z);
-    if (prange.x>0.99*biggest && prange.y>0.99*biggest && prange.z>0.99*biggest) {
+    if (prange.x>0.95*biggest && prange.y>0.95*biggest && prange.z>0.95*biggest) {
         // Probably using a cube of inputs, intended for a periodic box
     	box=true;
 #ifndef PERIODIC
