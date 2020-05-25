@@ -24,7 +24,7 @@ Dependencies
 HIPSTER requires the following (often pre-installed) packages:
 
 - `C compiler <https://gcc.gnu.org/>`_: Tested with gcc 5.4.O
-- `Gnu Scientific Library (GSL) <https://www.gnu.org/software/gsl/doc/html/index.html>`_: Any recent version
+- `Gnu Scientific Library (GSL) <https://www.gnu.org/software/gsl/doc/html/index.html>`_: Any recent version above 5.1 (needed for C++11)
 - `OpenMP <https://www.openmp.org/>`_: Any recent version (optional, but required for parallelization)
 - `Python <(https://www.python.org/>`_: 2.7 or later, 3.4 or later (required for pre- and post-processing)
 
