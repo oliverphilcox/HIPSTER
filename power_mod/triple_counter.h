@@ -80,7 +80,7 @@ public:
             int* prim_ids; // list of particle IDs in first cell
             int prim_id_1D,sec_id_1D; // 1D cell ids
             integer3 prim_id,delta,sec_id; // particle positions in grid
-            int mnp = grid1->maxnp; // max number of particles in grid1 cell
+            int mnp = fmax(grid1->maxnp,grid2->maxnp); // max number of particles in grid1 cell
             Cell prim_cell,sec_cell; // cell objects
             Particle particle_i; // primary particle
             Float3* sep_register; // list of separation vectors between primary and secondary
