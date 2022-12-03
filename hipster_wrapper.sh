@@ -267,7 +267,7 @@ fi
 # Compute DR pair counts (always need to be computed)
 echo
 echo "COMPUTING DR PAIR COUNTS"
-$CODE_DIR/power -in $DATA -in2 $RAN_RR -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING}_DR -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
+$CODE_DIR/power -in $DATA -in2 $RAN_DR -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING}_DR -max_l $MAX_L -R0 $R0 -inv_phi_file $CORRECTION_FILE -nthread $NTHREADS $PERIODIC_FLAG
 # Ensure that the files have actually been created
 if ! (test -f "$DR_FILE"); then
     echo
@@ -291,7 +291,8 @@ fi
 echo
 echo "COMBINING PAIR COUNTS TO FORM POWER SPECTRUM"
 echo
-python $CODE_DIR/python/reconstruct_power.py $DD_FILE $DR_FILE $RR_FILE $DATA $N_RAND_RR $N_RAND_DR $OUTPUT_FILE
+#python $CODE_DIR/python/reconstruct_power.py $DD_FILE $DR_FILE $RR_FILE $DATA $N_RAND_RR $N_RAND_DR $OUTPUT_FILE
+python $CODE_DIR/python/reconstruct_power.py $DD_FILE $DR_FILE $RR_FILE $DATA $RAN_DR $RAN_RR $OUTPUT_FILE
 # Ensure this ran as expected
 if ! (test -f "$OUTPUT_FILE"); then
     echo

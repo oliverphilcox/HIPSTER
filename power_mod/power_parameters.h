@@ -31,7 +31,7 @@ public:
 	  int nthread = 10;
 
     // Whether or not we are using a periodic box
-  	bool perbox = true;
+  	bool perbox = false;
 
     // Maximum Legendre moment (must be even for power spectra)
     int max_l = 4; // max Legendre moment
@@ -61,7 +61,7 @@ public:
     //-------- OTHER PARAMETERS ----------------------------------------------
 
     // The grid size, which is used to allocate particles internally.
-    int nside = 30;
+    int nside = 50;
 
   	// The maximum number of points to read
   	uint64 nmax = 1000000000000;

@@ -46,8 +46,8 @@ print('Computing pair counts up to a maximum radius of %.2f'%r_max)
 
 binfile = np.linspace(0,r_max,nrbins+1)
 binfile[0]=1e-4 # to avoid zero errors
-r_lo = binfile[1:]
-r_hi = binfile[:-1]
+r_hi = binfile[1:]
+r_lo = binfile[:-1]
 r_cen = 0.5*(r_lo+r_hi)
 
 # Compute RR counts for the non-periodic case (measuring mu from the radial direction)
@@ -87,7 +87,7 @@ print("Compute correction function model")
 mu_cen = np.arange(1/(2*nmu_bins),1.+1/(2*nmu_bins),1/nmu_bins)
 delta_mu = (mu_cen[-1]-mu_cen[-2])
 delta_mu_all = delta_mu*np.ones_like(mu_cen).reshape(1,-1)
-norm = np.sum(W**2.) # partial normalization - divided by np.sum(W_gal**2) in reconstruction script
+norm = np.sum(W)**2. # partial normalization - divided by np.sum(W_gal)**2 in reconstruction script
 RR_model = 4.*np.pi*(r_hi**3.-r_lo**3.).reshape(-1,1)*delta_mu_all*norm/3.
 
 # Compute inverse Phi function and multipoles

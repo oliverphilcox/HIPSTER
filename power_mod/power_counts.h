@@ -119,7 +119,7 @@ public:
 
               // Add contribution to integral
               RR_analyt[i]+=integrand*(new_kernel-old_kernel)/diff_kr; // ie 4 pi r^2 W(r) j_0^a(r) dr
-
+              
               // Update values for next time
               old_kr = new_kr;
               old_kr3 = new_kr3;
@@ -193,11 +193,11 @@ public:
                 }
             }
         }
-
+        
         for(int l_i=0;l_i<sc->l_bins;l_i++) tmp_phi_inv+=legendre[l_i]*sc->inv_correction_function(l_i*2,r_ij);
-
+        
         w_ij = pi.w*pj.w*pair_weight(r_ij)/tmp_phi_inv;
-
+        
         // NB: This assumes bins are contiguous
         for(int i=0;i<nbin;i++){
             // Now compute multipole contributions
@@ -223,6 +223,7 @@ public:
 
     inline Float pair_weight(Float sep){
         // Compute weight function W(r;R_0)
+        // NB: input r should never be greater than R0!
         if(sep<R0/2.) return 1.;
         else{
             Float x = sep/R0;
