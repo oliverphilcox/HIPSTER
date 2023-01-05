@@ -130,16 +130,16 @@ public:
                     for(int i=prim_cell.start;i<(prim_cell.start+prim_cell.np);i++){
                         for(int j=sec_cell.start;j<(sec_cell.start+sec_cell.np);j++){
                             if((one_grid==1)&&(j<=i)) continue; // skip if already counted or identical particles (for same grids only)
+                            if((grid1->p[i].tid)==grid2->p[j].tid) continue; // skip if same Lya skewer
                             used_particles++;
 
-                            //Float sepp = (grid1->p[j].pos+separation-grid1->p[i].pos).norm();
-                            //printf("%d %d (%.2e %.2e %.2e) (%.2e %.2e %.2e)\n\n",i,j,grid1->p[j].pos.x,grid1->p[j].pos.y,grid1->p[j].pos.z,grid1->p[i].pos.x,grid1->p[i].pos.y,grid1->p[i].pos.z);
-
                             loc_counts.count_pairs(grid1->p[i],grid2->p[j],separation);
+
                         }
                     }
                 }
             }
+
 #ifdef OPENMP
 #pragma omp critical // only one processor at once
 #endif

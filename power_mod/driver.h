@@ -64,7 +64,8 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
         // Get the weights from line 4 if present, else fill with +1
         if((stat!=4)&&(stat!=5)) p[j].w = 1.;
         else p[j].w = tmp[3];
-		j++;
+        p[j].tid = tmp[4];
+        j++;
     }
     fclose(fp);
     printf("# Done reading the particles\n");
@@ -124,6 +125,10 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
         // Must add rmax to biggest to ensure there is no periodic overlap in this case.
         Float max_boxsize = 1.05*(biggest+2*rmax);
         cellsize = max_boxsize/nside; // compute the width of each cell
+        // Update ranges to add rmax
+        prange.x=1.05*(prange.x+2*rmax);
+        prange.y=1.05*(prange.y+2*rmax);
+        prange.z=1.05*(prange.z+2*rmax);
         // Now compute the size of the box in every dimension
         rect_boxsize = ceil3(prange/cellsize)*cellsize; // to ensure we fit an integer number of cells in each direction
         printf("# Setting non-periodic box-size to {%6.2f,%6.2f,%6.2f}\n", rect_boxsize.x,rect_boxsize.y,rect_boxsize.z);

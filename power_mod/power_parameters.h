@@ -61,7 +61,7 @@ public:
     //-------- OTHER PARAMETERS ----------------------------------------------
 
     // The grid size, which is used to allocate particles internally.
-    int nside = 50;
+    int nside = 256;
 
   	// The maximum number of points to read
   	uint64 nmax = 1000000000000;

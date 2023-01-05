@@ -8,7 +8,7 @@ import numpy as np
 
 # PARAMETERS
 if len(sys.argv)!=7:
-    print("Usage: python RR_counts.py {RANDOM_PARTICLE_FILE} {OUTFILE} {R_MAX} {N_R_BINS} {N_MU_BINS} {NTHREADS}")
+    print("Usage: python compute_correction_function.py {RANDOM_PARTICLE_FILE} {OUTFILE} {R_MAX} {N_R_BINS} {N_MU_BINS} {NTHREADS}")
     sys.exit()
 fname = str(sys.argv[1])
 outfile = str(sys.argv[2])

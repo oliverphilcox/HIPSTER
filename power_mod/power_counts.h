@@ -169,6 +169,7 @@ public:
             printf("Zero separation! This indicates a bug.\n");
             exit(1);
         }
+        if(r_ij==0) return;
 
         used_pairs++; // update number of pairs used
 
@@ -202,8 +203,8 @@ public:
         for(int i=0;i<nbin;i++){
             // Now compute multipole contributions
             if(i==0){
-                old_kr = r_ij*r_low[0];
-                old_kr3 = pow(old_kr,3);
+               old_kr = r_ij*r_low[0];
+               old_kr3 = pow(old_kr,3);
             }
             new_kr = r_ij*r_high[i];
             new_kr3 = pow(new_kr,3);

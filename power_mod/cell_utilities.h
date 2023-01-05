@@ -20,6 +20,7 @@ class Particle {
   public:
     Float3 pos;
     Float w;  // The weight for each particle
+    int tid; // thing_ID (for Lya)
     Float JK; // The Jackknife region ID for each particle (stored as float for ease)
     int rand_class; // Integer 0 or 1 which defines which set of random particles this is in.
     // This is set at read-in at random and used for the EE computation to avoid diagonal non-cancellation.

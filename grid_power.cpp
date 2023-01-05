@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 	          orig_p = read_particles(par.rescale, &par.np, filename, par.nmax);
             assert(par.np>0);
 						this_np = par.np;
-            par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.rmax, shift, par.nside);
+            par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, M_PI/par.rmin, shift, par.nside);
         }
 #ifdef BISPECTRUM
 				else {
@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
 				par.sum_w2 = all_grid[1].sumw_pos + all_grid[1].sumw_neg;
 #endif
 
-		Float max_sep = par.R0;
+		Float max_sep = 1.2*par.R0;
 
     // Count number of second/third field cells enclosed by the maximum truncation radius
 		// This only depends on the cellsize, so works for our random grid too
