@@ -1,9 +1,9 @@
 #!/bin/bash
-# Bash wrapper for the HIPSTER-Lya code developed by Oliver Philcox & Roger de Belsunce
+# Bash wrapper for the HIPSTER code developed by Oliver Philcox & Daniel Eisenstein
 
 # Define Inputs
 SHORT=h
-LONG=dat:,l_max:,R0:,k_bin:,nthreads:,string:
+LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,load_RR
 
 # read the options
 OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
@@ -25,7 +25,7 @@ function usageText ()
     echo "USAGE"
     echo "-----"
     echo "-h: Display this message"
-    echo "--dat: Data file in (x,y,z,weight*density,skewer_id) co-ordinates"
+    echo "--dat: Data file in (x,y,z,weight) co-ordinates"
     echo "--l_max: Maximum Legendre multipole"
     echo "--R0: Pair count truncation radius"
     echo "--k_bin: k-space binning file"
@@ -85,6 +85,7 @@ done
 # Check all parameters are specified
 if [ "$PARAM_COUNT" -ne 4 ]; then echo; echo "Not all command line parameters specified!"; echo; usageText; exit 1; fi
 
+
 # Print the variables
 echo
 echo "INPUT PARAMETERS"
@@ -122,7 +123,8 @@ K_BINS=`wc -l < $BINFILE`
 
 # Define file names
 R0int=$( printf "%.0f" $R0 )
-POWER_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
+DD_FILE=$CODE_DIR/output/${STRING}_DD_power_counts_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
+OUTPUT_FILE=$CODE_DIR/output/${STRING}_power_spectrum_n${K_BINS}_l${MAX_L}_R0${R0int}.txt
 
 # Compile code
 echo
@@ -135,12 +137,12 @@ make Lya="-DLYA" --directory $CODE_DIR
 
 # Compute DD pair counts (always need to be computed)
 echo
-echo "RUNNING HIPSTER"
-$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS $PERIODIC_FLAG
+echo "COMPUTING DD PAIR COUNTS"
+$CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING}_DD -max_l $MAX_L -R0 $R0 -nthread $NTHREADS $PERIODIC_FLAG
 # Ensure that the files have actually been created
-if ! (test -f "$POWER_FILE"); then
+if ! (test -f "$DD_FILE"); then
     echo
-    echo "Power spectrum has not been computed. This indicates an error. Exiting."
+    echo "Weighted DD counts have not been computed. This indicates an error. Exiting."
     exit 1;
 fi
 

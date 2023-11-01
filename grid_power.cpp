@@ -90,7 +90,7 @@ int main(int argc, char *argv[]) {
 	          orig_p = read_particles(par.rescale, &par.np, filename, par.nmax);
             assert(par.np>0);
 						this_np = par.np;
-            par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, M_PI/par.rmin, shift, par.nside);
+            par.perbox = compute_bounding_box(orig_p, par.np, par.rect_boxsize, par.cellsize, par.R0, shift, par.nside);
         }
 #ifdef BISPECTRUM
 				else {

@@ -38,7 +38,7 @@ public:
 
     // Kernel truncation radius (in Mpc/h)
     Float R0 = 100;
-
+    
 #ifndef BISPECTRUM
     //---------- POWER SPECTRUM PARAMETERS -----------------
 
@@ -46,9 +46,11 @@ public:
     char *fname2 = NULL;
     const char default_fname2[500] = "";
 
+#ifndef LYA
     // Survey correction function coefficient file
     char *inv_phi_file = NULL;
     const char default_inv_phi_file[500] = "";
+#endif
 
 #else
   //---------- BISPECTRUM PARAMETERS -----------------
@@ -87,9 +89,11 @@ public:
   	Float rescale = 1.;   // If left zero or negative, set rescale=boxsize
 
 #ifndef BISPECTRUM
+#ifndef LYA
     // For consistency with other modules
     char *inv_phi_file2 = NULL; // Survey correction function coefficient file
     char *inv_phi_file12 = NULL; // Survey correction function coefficient file
+#endif
 #endif
 
 	   // The periodicity of the position-space cuboid in 3D.
@@ -119,7 +123,9 @@ public:
       else if (!strcmp(argv[i],"-in")) fname = argv[++i];
 #ifndef BISPECTRUM
       else if (!strcmp(argv[i],"-in2")) fname2 = argv[++i];
+#ifndef LYA
       else if (!strcmp(argv[i],"-inv_phi_file")) inv_phi_file=argv[++i];
+#endif
 #else
       else if (!strcmp(argv[i],"-f_rand")) f_rand=atof(argv[++i]);
 #endif
@@ -187,9 +193,11 @@ public:
         assert(max_l<=6); // ell>6 not yet implemented!
         mbin = max_l/2+1; // number of angular bins is set to number of Legendre bins
         if (fname2==NULL) fname2 = (char *) default_fname2;   // No name was given
+#ifndef LYA
         if (inv_phi_file==NULL) {inv_phi_file = (char *) default_inv_phi_file;} // no phi file specified
 #ifdef PERIODIC
         fprintf(stderr,"Survey correction function %s specified, but in PERIODIC mode. Survey correction function will be ignored.",inv_phi_file);
+#endif
 #endif
 #else
         assert(max_l<=10); // ell>10 not yet implemented!
@@ -243,7 +251,9 @@ private:
         fprintf(stderr, "   -R0 <R0>: Truncation radius for pair-separation window (in Mpc/h)\n");
 #ifndef BISPECTRUM
         fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,[w]).\n");
+#ifndef LYA
         fprintf(stderr, "   -inv_phi_file <filename>: Survey inverse correction function multipole coefficient file\n");
+#endif
 #else
         fprintf(stderr, "   -f_rand <f_rand>: Ratio of random particles to galaxies. Typically this should be order a few.\n");
 #endif

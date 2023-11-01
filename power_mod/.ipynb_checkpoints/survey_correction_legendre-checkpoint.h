@@ -8,8 +8,8 @@ class SurveyCorrection{
     // this class stores the correction functions for each bin, giving the difference between the true and estimated RR counts. It is created by reading in coefficients to  compute smooth Phi(r,mu).
     // For convenience we read in coefficients describing the monopoles of 1/Phi(r,mu)
 
-#ifdef PERIODIC
-  // Function is trivial with periodic boundary conditions. But we keep the complexity for consistency.
+#if defined(PERIODIC) || defined(LYA)
+    // Function is trivial with periodic boundary conditions and not used for Lya data. But we keep the complexity for consistency.
 public:
     int n_param = 1; // number of coefficients per multipole
     int l_bins = 1; // number of multipoles
@@ -41,17 +41,11 @@ public:
         else return 0;
         }
 };
-
 #else
 public:
     Float* phi_coeffs; // houses polynomial coefficients for the correction function
-#ifdef LYA
-    int n_param = 11; // number of coefficients in total
-    int l_bins = 1; // number of multipoles
-#else
     int n_param = 3; // number of coefficients per multipole
     int l_bins = 3; // number of multipoles
-#endif
 
 public:
     void copy(SurveyCorrection *sc){
@@ -139,7 +133,6 @@ public:
         return;
     }
 
-#ifndef LYA
     // Correction function in r, Legendre space
     Float inv_correction_function(int ell, Float r){
         int l_index = ell/2,base_bin = l_index*n_param;
@@ -147,19 +140,6 @@ public:
         //else return 0;
         return phi_coeffs[base_bin]+phi_coeffs[base_bin+1]*r+phi_coeffs[base_bin+2]*pow(r,2);
     }
-#else
-    // Correction function in r_p, pi space
-    Float inv_correction_function(Float r, Float pi){
-        // Low r regime
-        if(r<1) return phi_coeffs[9]+phi_coeffs[10]*pi;
-        // Standard regime
-        Float output=0;
-        output += (phi_coeffs[0]/(1+r)+phi_coeffs[1]+phi_coeffs[2]*r);
-        output += (phi_coeffs[3]/(1+r)+phi_coeffs[4]+phi_coeffs[5]*r)*pi;
-        output += (phi_coeffs[6]/(1+r)+phi_coeffs[7]+phi_coeffs[8]*r)/(1+pi);
-        return output;
-    }
-#endif
 
 
 };

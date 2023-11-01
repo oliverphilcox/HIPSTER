@@ -133,7 +133,7 @@ bash clean
 popd
 make Lya="-DLYA" --directory $CODE_DIR
 
-# Compute DD pair counts (always need to be computed)
+# Compute power spectrum
 echo
 echo "RUNNING HIPSTER"
 $CODE_DIR/power -in $DATA -in2 $DATA -binfile $BINFILE -output $CODE_DIR/output -out_string ${STRING} -max_l $MAX_L -R0 $R0 -nthread $NTHREADS $PERIODIC_FLAG

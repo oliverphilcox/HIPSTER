@@ -26,6 +26,9 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
     // For example, if rescale==boxsize, then inputting the unit cube will cover the periodic volume
     char line[1000];
     int j=0,n=0;
+#ifdef LYA
+    Float sum_weight;
+#endif
     FILE *fp;
     int stat;
     double tmp[5];
@@ -66,11 +69,20 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
         else p[j].w = tmp[3];
 #ifdef LYA
         p[j].tid = tmp[4];
+        sum_weight += p[j].w;
 #endif
         j++;
     }
     fclose(fp);
     printf("# Done reading the particles\n");
+    
+#ifdef LYA
+    // Check if the mean weight is close to unity
+    if ((abs(sum_weight)/j)>0.01) {
+        fprintf(stderr, "Mean Lya weight should be approximately zero; exiting\n");
+        abort();
+    }
+#endif
 
     return p;
 }
@@ -103,18 +115,33 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
         // Probably using a cube of inputs, intended for a periodic box
     	box=true;
 #ifndef PERIODIC
-    	fprintf(stderr,"#\n# WARNING: cubic input detected but you have not compiled with PERIODIC flag!\n#\n");
-    	printf("#\n# WARNING: cubic input detected but you have not compiled with PERIODIC flag!\n#\n");
-        if(biggest+2*rmax>rect_boxsize.x){
-            printf("#\n# WARNING: Box periodicity is too small; particles will overlap on periodic wrapping!");
-            fprintf(stderr,"#\n# WARNING: Box periodicity is too small; particles will overlap on periodic wrapping!");
-        }
-        biggest = rect_boxsize.x; // just use the input boxsize
-#endif
+    	// fprintf(stderr,"#\n# WARNING: cubic input detected but you have not compiled with PERIODIC flag!\n#\n");
+    	// printf("#\n# WARNING: cubic input detected but you have not compiled with PERIODIC flag!\n#\n");
+    	// if(biggest+2*rmax>rect_boxsize.x){
+    	// printf("#\n# WARNING: Box periodicity is too small; particles will overlap on periodic wrapping!");
+    	// fprintf(stderr,"#\n# WARNING: Box periodicity is too small; particles will overlap on periodic wrapping!");
+    	// }
+    	// biggest = rect_boxsize.x; // just use the input boxsize
+        // set max_boxsize to just enclose the biggest dimension plus r_max
+        // NB: We natively wrap the grid (to allow for any position of the center of the grid)
+        // Must add rmax to biggest to ensure there is no periodic overlap in this case.
+        box=false;
+        Float max_boxsize = 1.05*(biggest+2*rmax);
+        cellsize = max_boxsize/nside; // compute the width of each cell
+        // Update ranges to add rmax
+        prange.x=1.05*(prange.x+2*rmax);
+        prange.y=1.05*(prange.y+2*rmax);
+        prange.z=1.05*(prange.z+2*rmax);
+        printf("max: %.3f, rmax: %.3f prangex: %.3f\n",max_boxsize,rmax,prange.x);
+        // Now compute the size of the box in every dimension
+        rect_boxsize = ceil3(prange/cellsize)*cellsize; // to ensure we fit an integer number of cells in each direction
+        printf("# Setting non-periodic box-size to {%6.2f,%6.2f,%6.2f}\n", rect_boxsize.x,rect_boxsize.y,rect_boxsize.z);
+#else
         // Set boxsize to be the biggest dimension which allows for periodic overlap
         rect_boxsize= {biggest,biggest,biggest};
         cellsize = biggest/nside;
         printf("# Setting periodic box-size to %6.2f\n", biggest);
+#endif
     } else {
         // Probably a non-periodic input (e.g. a real dataset)
         box=false;
@@ -135,7 +162,6 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
         rect_boxsize = ceil3(prange/cellsize)*cellsize; // to ensure we fit an integer number of cells in each direction
         printf("# Setting non-periodic box-size to {%6.2f,%6.2f,%6.2f}\n", rect_boxsize.x,rect_boxsize.y,rect_boxsize.z);
     }
-
 
     return box;
 }

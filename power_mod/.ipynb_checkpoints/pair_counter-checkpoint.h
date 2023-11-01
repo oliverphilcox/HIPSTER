@@ -175,12 +175,16 @@ public:
     printf("Average of %.2f pairs accepted per primary particle.\n\n",(Float)global_counts.used_pairs/grid1->np);
     printf("\nTrial speed: %.2e cell pairs per core per second\n",double(used_cells)/(runtime*double(par->nthread)));
     printf("Acceptance speed: %.2e particle pairs per core per second\n\n",double(global_counts.used_pairs)/(runtime*double(par->nthread)));
-
+#ifndef LYA
     global_counts.save_counts(one_grid);
+#endif
 #ifdef PERIODIC
     printf("Printed counts to file as %s/%s_DD_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
     global_counts.save_spectrum(analytic_counts);
     printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
+#elif defined LYA
+    global_counts.save_spectrum(one_grid);
+    printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));    
 #else
     printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
 #endif

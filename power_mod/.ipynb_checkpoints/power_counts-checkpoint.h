@@ -165,10 +165,6 @@ public:
         cleanup_l(pi.pos,pj.pos,r_ij,mu_ij); // define distance and angle
 
         if(r_ij>=R0) return; // outside correct size
-        if(r_ij==0){
-            printf("Zero separation! This indicates a bug.\n");
-            exit(1);
-        }
         if(r_ij==0) return;
 
         used_pairs++; // update number of pairs used
@@ -196,18 +192,11 @@ public:
         }
         
     #ifdef LYA
-        // Define rp and pi distances
-        Float3 pos = pi.pos-pj.pos;
-        Float3 los=pi.pos+pj.pos; // No 1/2 as normalized anyway below
-        Float pi_ij = abs(pos.dot(los)/los.norm()); // note we only need abs(pi) here by parity
-        Float rp_ij = sqrt(r_ij*r_ij-pi_ij*pi_ij);
-        
-        // Compute phi inverse 
-        tmp_phi_inv = sc->inv_correction_function(rp_ij, pi_ij);
+        // No phi inverse function needed 
+        tmp_phi_inv = 1.;
     #else
         for(int l_i=0;l_i<sc->l_bins;l_i++) tmp_phi_inv+=legendre[l_i]*sc->inv_correction_function(l_i*2,r_ij);
     #endif
-        
         w_ij = pi.w*pj.w*pair_weight(r_ij)/tmp_phi_inv;
         
         // NB: This assumes bins are contiguous
@@ -223,6 +212,7 @@ public:
             for(int j=0;j<mbin;j++){
                 if(i==0) old_kernel[j] = kernel_interp->kernel(j*2,old_kr);
                 new_kernel = kernel_interp->kernel(j*2,new_kr);
+                
                 power_counts[i*mbin+j]+=w_ij*legendre[j]*(new_kernel-old_kernel[j])/diff_kr;
                 old_kernel[j] = new_kernel;
             }
@@ -230,7 +220,6 @@ public:
             old_kr = new_kr;
             old_kr3 = new_kr3;
         }
-
     }
 
     inline Float pair_weight(Float sep){
@@ -287,6 +276,30 @@ public:
             for(int j=0;j<mbin;j++){
                 output_pk = power_counts[i*mbin+j]/power_norm;
                 if(j==0) output_pk-=RR_analytic[i];
+                fprintf(PkFile,"%le\t",output_pk);
+            }
+            fprintf(PkFile,"\n");
+        }
+
+        fflush(NULL);
+
+        // Close open files
+        fclose(PkFile);
+}
+#endif
+    
+#ifdef LYA
+  void save_spectrum(int one_grid){
+        // If Lyman-alpha, we output the normalized (but *window-convolved*) power spectrum estimate here
+        char pk_name[1000];
+        Float output_pk;
+        snprintf(pk_name, sizeof pk_name, "%s/%s_power_spectrum_n%d_l%d_R0%d.txt", out_file,out_string,nbin, 2*(mbin-1),int(R0));
+        FILE * PkFile = fopen(pk_name,"w");
+
+        for (int i=0;i<nbin;i++){
+            for(int j=0;j<mbin;j++){
+                if(one_grid==1) power_counts[i*mbin+j]*=2.; // since we ignore i-j switches
+                output_pk = power_counts[i*mbin+j];
                 fprintf(PkFile,"%le\t",output_pk);
             }
             fprintf(PkFile,"\n");
