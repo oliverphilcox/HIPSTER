@@ -7,11 +7,12 @@ class PowerCounts{
 
 private:
     int nbin,mbin;
-    Float rmin,rmax,R0; //Ranges in r and truncation radius
-    Float *r_high, *r_low; // Max and min of each radial bin
+    Float kmin,kmax,R0; //Ranges in k and truncation radius
+    Float *k_high, *k_low; // Max and min of each radial bin
     Float *power_counts; // Power counts
 #ifdef LYA
     Float *RR_counts; // RR randoms counts
+    int nbin_RR, mbin_RR; // Number of RR bins and multipoles
 #endif
     bool box; // to decide if we have a periodic box
     char *out_file, *out_string;
@@ -42,15 +43,19 @@ public:
         // Add counts accumulated in different threads
         for(int i=0;i<nbin*mbin;i++) power_counts[i]+=pc->power_counts[i];
 #ifdef LYA
-        for(int i=0;i<1000*mbin;i++) RR_counts[i]+=pc->RR_counts[i];
+        for(int i=0;i<nbin_RR*mbin_RR;i++) RR_counts[i]+=pc->RR_counts[i];
 #endif
         used_pairs+=pc->used_pairs;
     }
 
 public:
     PowerCounts(Parameters *par, SurveyCorrection *_sc, KernelInterp *_kernel_interp){
-        nbin = par->nbin; // number of radial bins
+        nbin = par->nbin; // number of k bins
         mbin = par->mbin; // number of Legendre bins
+#ifdef LYA
+        nbin_RR = par->nbin_RR; // number of radial bins for RR counts
+        mbin_RR = par->mbin_RR; // number of Legendre bins for RR counts
+#endif
         out_file = par->out_file; // output directory
         out_string = par->out_string; // type specifier string
         R0 = par-> R0; // truncation radius
@@ -58,7 +63,7 @@ public:
         kernel_interp = new KernelInterp(_kernel_interp);
 
         sc = _sc;
-        max_legendre = fmax((sc->l_bins-1)*2,par->max_l);
+        max_legendre = fmax(fmax((sc->l_bins-1)*2,par->max_l),par->max_l_RR);
 
 #ifdef PERIODIC
         // define power spectrum normalization if periodic = (sum_weights_1)*(sum_weights_2)/V
@@ -68,7 +73,7 @@ public:
         int ec=0;
         ec+=posix_memalign((void **) &power_counts, PAGE, sizeof(double)*nbin*mbin);
 #ifdef LYA
-        ec+=posix_memalign((void **) &RR_counts, PAGE, sizeof(double)*1000*mbin);
+        ec+=posix_memalign((void **) &RR_counts, PAGE, sizeof(double)*nbin_RR*mbin_RR);
 #endif
         assert(ec==0);
 
@@ -76,17 +81,17 @@ public:
 
         box=par->perbox;
 
-        rmax=par->rmax;
-        rmin=par->rmin;
+        kmax=par->kmax;
+        kmin=par->kmin;
 
-        r_high = par->radial_bins_high;
-        r_low = par->radial_bins_low;
+        k_high = par->radial_bins_high;
+        k_low = par->radial_bins_low;
     }
 
     void reset(){
         for(int j=0;j<nbin*mbin;j++) power_counts[j]=0.;
 #ifdef LYA
-        for(int j=0;j<1000*mbin;j++) RR_counts[j] = 0.;
+        for(int j=0;j<nbin_RR*mbin_RR;j++) RR_counts[j] = 0.;
 #endif
         used_pairs=0.;
     }
@@ -119,11 +124,11 @@ public:
           for(int i=0;i<nbin;i++){ // iterate over all k-bins
               // Now compute multipole contributions assuming k-bins are contiguous
               if(i==0){
-                  old_kr = tmp_r*r_low[0];
+                  old_kr = tmp_r*k_low[0];
                   old_kr3 = pow(old_kr,3);
                   old_kernel = kernel_interp->kernel(0,old_kr);
               }
-              new_kr = tmp_r*r_high[i];
+              new_kr = tmp_r*k_high[i];
               new_kr3 = pow(new_kr,3);
               diff_kr = new_kr3 - old_kr3;
 
@@ -224,10 +229,10 @@ public:
         for(int i=0;i<nbin;i++){
             // Now compute multipole contributions
             if(i==0){
-               old_kr = r_ij*r_low[0];
+               old_kr = r_ij*k_low[0];
                old_kr3 = pow(old_kr,3);
             }
-            new_kr = r_ij*r_high[i];
+            new_kr = r_ij*k_high[i];
             new_kr3 = pow(new_kr,3);
             diff_kr = new_kr3 - old_kr3;
             for(int j=0;j<mbin;j++){
@@ -253,10 +258,10 @@ public:
 //         for(int i=0;i<nbin;i++){
 //             // Now compute multipole contributions
 //             if(i==0){
-//                old_kr = r_ij*r_low[0];
+//                old_kr = r_ij*k_low[0];
 //                old_kr3 = pow(old_kr,3);
 //             }
-//             new_kr = r_ij*r_high[i];
+//             new_kr = r_ij*k_high[i];
 //             new_kr3 = pow(new_kr,3);
 //             diff_kr = new_kr3 - old_kr3;
 //             for(int j=0;j<mbin;j++){
@@ -283,11 +288,11 @@ public:
 #ifdef LYA
         //OLIVER: PAIR COUNT CODE
         
-        // NB: This assumes dr = R0/1000
-        int i_bin = floor(r_ij*1000/R0);
+        // Here dr = R0/nbin_RR
+        int i_bin = floor(r_ij*nbin_RR/R0);
         // Now compute multipole contributions
-        for(int j=0;j<mbin;j++){
-            RR_counts[i_bin*mbin+j] += (4.*j+1.)*pi.w*pj.w*legendre[j]; // adding (2 ell+1) factor
+        for(int j=0;j<mbin_RR;j++){
+            RR_counts[i_bin*mbin_RR+j] += (4.*j+1.)*pi.w*pj.w*legendre[j]; // adding (2 ell+1) factor
         }
 #endif
         //OLIVER: END INSERTION
@@ -383,13 +388,13 @@ public:
         
         // Repeat for RR counts
         char rr_name[1000];
-        snprintf(rr_name, sizeof rr_name, "%s/%s_RR_counts_l%d_R0%d.txt", out_file,out_string,2*(mbin-1),int(R0));
+        snprintf(rr_name, sizeof rr_name, "%s/%s_RR_counts_n%d_l%d_R0%d.txt", out_file,out_string,nbin_RR,2*(mbin_RR-1),int(R0));
         FILE * RRFile = fopen(rr_name,"w");
 
-        for (int i=0;i<1000;i++){
-            for(int j=0;j<mbin;j++){
-                if(one_grid==1) RR_counts[i*mbin+j]*=2.; // since we ignore i-j switches
-                fprintf(RRFile,"%le\t",RR_counts[i*mbin+j]);
+        for (int i=0;i<nbin_RR;i++){
+            for(int j=0;j<mbin_RR;j++){
+                if(one_grid==1) RR_counts[i*mbin_RR+j]*=2.; // since we ignore i-j switches
+                fprintf(RRFile,"%le\t",RR_counts[i*mbin_RR+j]);
             }
             fprintf(RRFile,"\n");
         }

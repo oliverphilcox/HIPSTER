@@ -185,7 +185,7 @@ public:
 #elif defined LYA
     global_counts.save_spectrum(one_grid);
     printf("Printed full power spectrum to file as %s/%s_power_spectrum_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));    
-    printf("Printed RR counts to file as %s/%s_RR_counts_l%d_R0%d.txt\n", par->out_file,par->out_string,2*(mbin-1),int(par->R0));    
+    printf("Printed RR counts to file as %s/%s_RR_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,par->nbin_RR,2*(par->mbin_RR-1),int(par->R0));    
 #else
     printf("Printed counts to file as %s/%s_power_counts_n%d_l%d_R0%d.txt\n", par->out_file,par->out_string,nbin, 2*(mbin-1),int(par->R0));
 #endif

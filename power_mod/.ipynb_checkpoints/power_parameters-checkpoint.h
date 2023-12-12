@@ -50,6 +50,14 @@ public:
     // Survey correction function coefficient file
     char *inv_phi_file = NULL;
     const char default_inv_phi_file[500] = "";
+#else
+    
+    // Number of radial bins for RR counts (with spacing R0/nbin_RR)
+    int nbin_RR = 1000;
+    
+    // Maximum Legendre moment for RR counts (must be even)
+    int max_l_RR = 4;
+    
 #endif
 
 #else
@@ -93,6 +101,8 @@ public:
     // For consistency with other modules
     char *inv_phi_file2 = NULL; // Survey correction function coefficient file
     char *inv_phi_file12 = NULL; // Survey correction function coefficient file
+#else
+    int mbin_RR;
 #endif
 #endif
 
@@ -103,7 +113,7 @@ public:
 
     // Radial binning parameters (will be set from file)
     int nbin=0,mbin;
-    Float rmin, rmax;
+    Float kmin, kmax;
     Float * radial_bins_low;
     Float * radial_bins_high;
 
@@ -125,6 +135,9 @@ public:
       else if (!strcmp(argv[i],"-in2")) fname2 = argv[++i];
 #ifndef LYA
       else if (!strcmp(argv[i],"-inv_phi_file")) inv_phi_file=argv[++i];
+#else
+      else if (!strcmp(argv[i],"-max_l_RR")) max_l_RR=atoi(argv[++i]);
+      else if (!strcmp(argv[i],"-nbin_RR")) nbin_RR=atoi(argv[++i]);
 #endif
 #else
       else if (!strcmp(argv[i],"-f_rand")) f_rand=atof(argv[++i]);
@@ -198,6 +211,14 @@ public:
 #ifdef PERIODIC
         fprintf(stderr,"Survey correction function %s specified, but in PERIODIC mode. Survey correction function will be ignored.",inv_phi_file);
 #endif
+#else
+        assert(max_l_RR%2==0); // check max RR ell is even
+        assert(max_l_RR<=8); // ell>8 not yet implemented!
+        mbin_RR = max_l_RR/2+1; // number of RR angular bins is set to number of Legendre bins
+        if(nbin_RR<100){
+            printf("\nRR counts must be finely binned in radius else the window will be unreliable! Please select nbin_RR >= 100");
+            exit(1);
+        }
 #endif
 #else
         assert(max_l<=10); // ell>10 not yet implemented!
@@ -216,10 +237,10 @@ public:
 
 	    // Read in the radial binning
 	    read_radial_binning(radial_bin_file);
-        printf("Read in %d radial k-space bins in range (%.0f, %.0f) successfully.\n\n",nbin,rmin,rmax);
+        printf("Read in %d radial k-space bins in range (%.0f, %.0f) successfully.\n\n",nbin,kmin,kmax);
 
 	    assert(box_min>0.0);
-	    assert(rmax>0.0);
+	    assert(kmax>0.0);
 	    assert(nside>0);
 
 #ifdef OPENMP
@@ -231,8 +252,8 @@ public:
 		// Output for posterity
 		printf("Box Size = {%6.5e,%6.5e,%6.5e}\n", rect_boxsize.x,rect_boxsize.y,rect_boxsize.z);
 		printf("Grid = %d\n", nside);
-		printf("Radial Bins = %d\n", nbin);
-		printf("Radial k-space binning = {%6.5f, %6.5f} over %d bins (user-defined bin widths) \n",rmin,rmax,nbin);
+		printf("Radial k-bins = %d\n", nbin);
+		printf("Radial k-space binning = {%6.5f, %6.5f} over %d bins (user-defined bin widths) \n",kmin,kmax,nbin);
 		printf("Output directory: '%s'\n\n",out_file);
 
 	}
@@ -253,6 +274,9 @@ private:
         fprintf(stderr, "   -in2 <file>: The input file for particle-set 2 (space-separated x,y,z,[w]).\n");
 #ifndef LYA
         fprintf(stderr, "   -inv_phi_file <filename>: Survey inverse correction function multipole coefficient file\n");
+#else
+        fprintf(stderr, "   -nbin_RR <nbin_RR>: Number of radial bins for window function RR counts. Default 1000.\n");
+        fprintf(stderr, "   -max_l_RR <max_l_RR>: Maximum legendre multipole for RR counts (must be even). Default 4.\n");
 #endif
 #else
         fprintf(stderr, "   -f_rand <f_rand>: Ratio of random particles to galaxies. Typically this should be order a few.\n");
@@ -277,7 +301,7 @@ private:
     }
 
     void read_radial_binning(char* binfile_name){
-        // Read the radial binning file and determine the number of bins
+        // Read the radial binning file and detekmine the number of bins
         char line[100000];
 
         FILE *fp;
@@ -335,8 +359,8 @@ private:
                 line_count++;
             }
 
-            rmin = radial_bins_low[0];
-            rmax = radial_bins_high[line_count-1];
+            kmin = radial_bins_low[0];
+            kmax = radial_bins_high[line_count-1];
             assert(line_count==nbin);
     }
 };
