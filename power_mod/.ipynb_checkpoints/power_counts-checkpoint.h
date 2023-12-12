@@ -10,6 +10,9 @@ private:
     Float rmin,rmax,R0; //Ranges in r and truncation radius
     Float *r_high, *r_low; // Max and min of each radial bin
     Float *power_counts; // Power counts
+#ifdef LYA
+    Float *RR_counts; // RR randoms counts
+#endif
     bool box; // to decide if we have a periodic box
     char *out_file, *out_string;
     int max_legendre; // maximum order of Legendre polynomials needed
@@ -38,6 +41,9 @@ public:
     void sum_counts(PowerCounts *pc){
         // Add counts accumulated in different threads
         for(int i=0;i<nbin*mbin;i++) power_counts[i]+=pc->power_counts[i];
+#ifdef LYA
+        for(int i=0;i<1000*mbin;i++) RR_counts[i]+=pc->RR_counts[i];
+#endif
         used_pairs+=pc->used_pairs;
     }
 
@@ -61,6 +67,9 @@ public:
 
         int ec=0;
         ec+=posix_memalign((void **) &power_counts, PAGE, sizeof(double)*nbin*mbin);
+#ifdef LYA
+        ec+=posix_memalign((void **) &RR_counts, PAGE, sizeof(double)*1000*mbin);
+#endif
         assert(ec==0);
 
         reset();
@@ -75,14 +84,18 @@ public:
     }
 
     void reset(){
-        for(int j=0;j<nbin*mbin;j++){
-            power_counts[j]=0.;
-        }
+        for(int j=0;j<nbin*mbin;j++) power_counts[j]=0.;
+#ifdef LYA
+        for(int j=0;j<1000*mbin;j++) RR_counts[j] = 0.;
+#endif
         used_pairs=0.;
     }
 
     ~PowerCounts(){
         free(power_counts);
+#ifdef LYA
+        free(RR_counts);
+#endif
     }
 
 #ifdef PERIODIC
@@ -158,15 +171,21 @@ public:
         Float r_ij, mu_ij, w_ij, tmp_phi_inv=0, new_kr, old_kr,new_kernel,diff_kr,new_kr3, old_kr3;
         Float legendre[max_legendre/2+1]; // Even-ell Legendre coefficients
         Float old_kernel[mbin]; // saved kernel functions
-
+        
 #ifdef PERIODIC
         pj.pos+=separation; // add on separation of cell centers (since periodic particles are defined relative to cell center)
 #endif
         cleanup_l(pi.pos,pj.pos,r_ij,mu_ij); // define distance and angle
-
+        
+        //OLIVER: TESTING CODE
+        //Float dr = 0.2;
+        //Float dmu = 0.1;
+        //r_ij = floor(r_ij/dr)*dr+dr/2;//
+        //mu_ij = floor(mu_ij/dmu)*dmu+dmu/2.;
+        
         if(r_ij>=R0) return; // outside correct size
         if(r_ij==0) return;
-
+        
         used_pairs++; // update number of pairs used
 
         // First define all required legendre moments used for kernel and Phi function
@@ -197,7 +216,9 @@ public:
     #else
         for(int l_i=0;l_i<sc->l_bins;l_i++) tmp_phi_inv+=legendre[l_i]*sc->inv_correction_function(l_i*2,r_ij);
     #endif
-        w_ij = pi.w*pj.w*pair_weight(r_ij)/tmp_phi_inv;
+        
+        // k-integrated kernels
+        w_ij = (pi.wg-pi.w)*(pj.wg-pj.w)*pair_weight(r_ij)/tmp_phi_inv;
         
         // NB: This assumes bins are contiguous
         for(int i=0;i<nbin;i++){
@@ -219,7 +240,57 @@ public:
             // Update values for next time
             old_kr = new_kr;
             old_kr3 = new_kr3;
+            
         }
+        
+//         // Unintegrated i^ell (2 ell + 1) j_ell(kr) kernels
+//         // Add explicit correlation funcion
+//         w_ij = (pi.wg-pi.w)*(pj.wg-pj.w)*pair_weight(r_ij)/tmp_phi_inv;
+        
+//         Float kr, kr2, kr3, kr4, kr5, sin_kr, cos_kr;
+        
+//         // NB: This assumes bins are contiguous
+//         for(int i=0;i<nbin;i++){
+//             // Now compute multipole contributions
+//             if(i==0){
+//                old_kr = r_ij*r_low[0];
+//                old_kr3 = pow(old_kr,3);
+//             }
+//             new_kr = r_ij*r_high[i];
+//             new_kr3 = pow(new_kr,3);
+//             diff_kr = new_kr3 - old_kr3;
+//             for(int j=0;j<mbin;j++){
+                
+//                 // Define j_0 at the k-center of each bin
+//                 kr = (new_kr+old_kr)/2.;
+//                 sin_kr = sin(kr);
+//                 cos_kr = cos(kr);
+//                 kr2 = kr*kr;
+//                 kr3 = kr*kr2;
+//                 kr4 = kr*kr3;
+//                 kr5 = kr*kr4;
+//                 // Write kernels explicitly
+//                 if(j==0) power_counts[i*mbin+j]+=w_ij*legendre[j]*sin_kr/kr;
+//                 if(j==1) power_counts[i*mbin+j]+=-5.*w_ij*legendre[j]*(-3./kr2*cos_kr+(3.-kr2)/kr3*sin_kr);
+//                 if(j==2) power_counts[i*mbin+j]+=9.*w_ij*legendre[j]*(5./kr4*(2*kr2-21)*cos_kr+(kr4-45*kr2+105)/kr5*sin_kr);
+//             }
+//             // Update values for next time
+//             old_kr = new_kr;
+//             old_kr3 = new_kr3;
+            
+//         }
+        
+#ifdef LYA
+        //OLIVER: PAIR COUNT CODE
+        
+        // NB: This assumes dr = R0/1000
+        int i_bin = floor(r_ij*1000/R0);
+        // Now compute multipole contributions
+        for(int j=0;j<mbin;j++){
+            RR_counts[i_bin*mbin+j] += (4.*j+1.)*pi.w*pj.w*legendre[j]; // adding (2 ell+1) factor
+        }
+#endif
+        //OLIVER: END INSERTION
     }
 
     inline Float pair_weight(Float sep){
@@ -261,7 +332,7 @@ public:
 
         // Close open files
         fclose(PowFile);
-      }
+        }
 
 #ifdef PERIODIC
   void save_spectrum(Float* RR_analytic){
@@ -309,7 +380,26 @@ public:
 
         // Close open files
         fclose(PkFile);
-}
+        
+        // Repeat for RR counts
+        char rr_name[1000];
+        snprintf(rr_name, sizeof rr_name, "%s/%s_RR_counts_l%d_R0%d.txt", out_file,out_string,2*(mbin-1),int(R0));
+        FILE * RRFile = fopen(rr_name,"w");
+
+        for (int i=0;i<1000;i++){
+            for(int j=0;j<mbin;j++){
+                if(one_grid==1) RR_counts[i*mbin+j]*=2.; // since we ignore i-j switches
+                fprintf(RRFile,"%le\t",RR_counts[i*mbin+j]);
+            }
+            fprintf(RRFile,"\n");
+        }
+
+        fflush(NULL);
+
+        // Close open files
+        fclose(RRFile);
+
+    }
 #endif
 
 };

@@ -21,6 +21,7 @@ class Particle {
     Float3 pos;
     Float w;  // The weight for each particle
 #ifdef LYA
+    Float wg; // The Lya weight for each particle [w is now the random weight, and the correlation function ~ (wg-w)^2]
     int tid; // thing_ID (for Lya)
 #endif
     Float JK; // The Jackknife region ID for each particle (stored as float for ease)

@@ -15,6 +15,9 @@ Particle *make_particles(Float3 rect_boxsize, int np) {
         p[j].pos.y = drand48()*rect_boxsize.y;
         p[j].pos.z = drand48()*rect_boxsize.z;
         p[j].w = 1.0;
+#ifdef LYA
+        p[j].wg = 1.0;
+#endif
     }
     printf("# Done making %d random particles, periodically distributed.\n", np);
     return p;
@@ -31,7 +34,7 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
 #endif
     FILE *fp;
     int stat;
-    double tmp[5];
+    double tmp[6];
 
     fp = fopen(filename, "r");
     if (fp==NULL) {
@@ -54,35 +57,45 @@ Particle *read_particles(Float rescale, int *np, const char *filename, uint64 nm
     while (fgets(line,1000,fp)!=NULL&&j<n) {
         if (line[0]=='#') continue;
         if (line[0]=='\n') continue;
-        stat=sscanf(line, "%lf %lf %lf %lf %lf", tmp, tmp+1, tmp+2, tmp+3, tmp+4);
+        stat=sscanf(line, "%lf %lf %lf %lf %lf %lf", tmp, tmp+1, tmp+2, tmp+3, tmp+4,tmp+5);
 
+#ifdef LYA
+        if (stat<6) {
+        	fprintf(stderr,"Lya particle %d has bad format\n", j); // Not enough coordinates
+        	abort();
+        }
+        
+#else
         if (stat<3) {
         	fprintf(stderr,"Particle %d has bad format\n", j); // Not enough coordinates
         	abort();
         }
+#endif
+        
 
         p[j].pos.x = tmp[0]*rescale;
         p[j].pos.y = tmp[1]*rescale;
         p[j].pos.z = tmp[2]*rescale;
         // Get the weights from line 4 if present, else fill with +1
-        if((stat!=4)&&(stat!=5)) p[j].w = 1.;
+        if((stat!=4)&&(stat!=5)&&(stat!=6)) p[j].w = 1.;
         else p[j].w = tmp[3];
 #ifdef LYA
-        p[j].tid = tmp[4];
-        sum_weight += p[j].w;
+        p[j].wg = tmp[4];
+        p[j].tid = tmp[5];
+        sum_weight += p[j].wg;
 #endif
         j++;
     }
     fclose(fp);
     printf("# Done reading the particles\n");
     
-#ifdef LYA
-    // Check if the mean weight is close to unity
-    if ((abs(sum_weight)/j)>0.01) {
-        fprintf(stderr, "Mean Lya weight should be approximately zero; exiting\n");
-        abort();
-    }
-#endif
+// #ifdef LYA
+//     // Check if the mean weight is close to unity
+//     if ((abs(sum_weight)/j)>0.01) {
+//         fprintf(stderr, "Mean Lya weight should be approximately zero; exiting\n");
+//         abort();
+//     }
+// #endif
 
     return p;
 }
@@ -168,18 +181,26 @@ bool compute_bounding_box(Particle *p, int np, Float3 &rect_boxsize, Float &cell
 
 
 void invert_weights(Particle *p, int np) {
+    #ifdef LYA
+        fprintf(stderr, "Cannot invert Lya weights!");
+        abort();
+    #endif
     for (int j=0; j<np; j++) p[j].w *= -1.0;
     printf("# Multiplying all weights by -1\n");
 }
 
 void balance_weights(Particle *p, int np) {
+    #ifdef LYA
+        fprintf(stderr, "Cannot balance Lya weights!");
+        abort();
+    #endif
     Float sumpos = 0.0, sumneg = 0.0;
     for (int j=0; j<np; j++)
-	if (p[j].w>=0.0) sumpos += p[j].w;
-	    else sumneg += p[j].w;
+    if (p[j].w>=0.0) sumpos += p[j].w;
+        else sumneg += p[j].w;
     if (sumneg==0.0 || sumpos==0.0) {
-	fprintf(stderr,"Asked to rebalance weights, but there are not both positive and negative weights\n");
-	abort();
+    fprintf(stderr,"Asked to rebalance weights, but there are not both positive and negative weights\n");
+    abort();
     }
     Float rescale = sumpos/(-sumneg);
     printf("# Rescaling negative weights by %f\n", rescale);
