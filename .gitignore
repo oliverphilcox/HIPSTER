@@ -1,3 +1,8 @@
 *.ipynb
 output/*
 output
+tmp/*
+tmp
+*.csv
+power
+run*

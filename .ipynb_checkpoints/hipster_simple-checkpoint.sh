@@ -3,7 +3,7 @@
 
 # Define Inputs
 SHORT=h
-LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,subsample:,load_RR
+LONG=dat:,ran_DR:,ran_RR:,l_max:,R0:,k_bin:,nthreads:,string:,load_RR
 
 # read the options
 OPTS=$(getopt --options $SHORT --long $LONG --name "$0" -- "$@")
@@ -16,10 +16,8 @@ eval set -- "$OPTS"
  # set initial values
 PRELOAD=false
 PERIODIC=false
-PERIODIC_MAKEFLAG=
 PARAM_COUNT=0
 NTHREADS=10
-SUBSAMPLE=1
 STRING=hipster
 
 # Help dialogue
@@ -37,7 +35,6 @@ function usageText ()
     echo "--string (Optional): Identification string for output file names."
     echo "--nthreads (Optional): Number of CPU threads on which to run. Default: 10"
     echo "--load_RR: If set, load previously computed RR pair counts and survey correction functions for a large speed boost."
-    echo "--subsample (Optional): Factor by which to sub-sample the data. Default: 1 (no subsampling)"
     echo
 }
 
@@ -87,10 +84,6 @@ while true ; do
       NTHREADS="$2"
       shift 2
       ;;
-    --subsample )
-      SUBSAMPLE="$2"
-      shift 2
-      ;;
     --load_RR )
       PRELOAD=true
       shift
@@ -124,7 +117,6 @@ echo "k-space binning file: $BINFILE"
 echo "Output string: $STRING"
 echo "CPU-threads: $NTHREADS"
 echo "Periodic: $PERIODIC"
-echo "Subsampling: $SUBSAMPLE"
 echo
 
 # Check some variables:
@@ -150,58 +142,13 @@ fi
 if ! ( test -f "$BINFILE" ); then
     echo "Binning file: $BINFILE does not exist. Exiting;"; exit 1;
 fi
-if [[ $(bc <<< "$SUBSAMPLE < 1.") -eq 1 ]]; then echo "Subsampling parameter must be greater than or equal to unity. Exiting;"; exit 1; fi;
 
 # Work out where the code is installed
 CODE_DIR=`dirname "$0"`
 
 # Compute number of k bins in file
 K_BINS=`wc -l < $BINFILE`
-let K_BINS++
-
-# Subsample files if necessary
-if [[ $(bc <<< "$SUBSAMPLE > 1.") -eq 1 ]]; then
-  # Count number of particles in file
-  N_GAL=`wc -l < $DATA`
-  let N_GAL++
-  if ! $PRELOAD;  then
-    LEN_RAND_RR=`wc -l < $RAN_RR`
-    let LEN_RAND_RR++
-  fi
-  LEN_RAND_DR=`wc -l < $RAN_DR`
-  let LEN_RAND_DR++
-
-  # Compute number after subsampling and ensure it's an integer
-  N_SUB=`echo "$N_GAL/$SUBSAMPLE" | bc`
-  N_SUB=`echo "($N_SUB+0.5)/1" | bc`
-  if ! $PRELOAD;  then
-    N_SUB_RR=`echo "$LEN_RAND_RR/$SUBSAMPLE" | bc`
-    N_SUB_RR=`echo "($N_SUB_RR+0.5)/1" | bc`
-  fi
-  N_SUB_DR=`echo "$LEN_RAND_DR/$SUBSAMPLE" | bc`
-  N_SUB_DR=`echo "($N_SUB_DR+0.5)/1" | bc`
-
-  # Run subsampling script and create new file names
-  NEW_DATA=$DATA.sub
-  echo "Subsampling data with subsampling ratio $SUBSAMPLE"
-  python $CODE_DIR/python/take_subset_of_particles.py $DATA $NEW_DATA $N_SUB
-  DATA=$NEW_DATA
-
-  if ! $PRELOAD;  then
-    NEW_RR=$RAN_RR.sub
-    echo "Subsampling RR file with subsampling ratio $SUBSAMPLE"
-    python $CODE_DIR/python/take_subset_of_particles.py $RAN_RR $NEW_RR $N_SUB_RR
-    RAN_RR=$NEW_RR
-  fi
-
-  NEW_DR=$RAN_DR.sub
-  echo "Subsampling DR file with subsampling ratio $SUBSAMPLE"
-  python $CODE_DIR/python/take_subset_of_particles.py $RAN_DR $NEW_DR $N_SUB_DR
-  RAN_DR=$NEW_DR
-
-  echo "Using $N_SUB particles in $DATA, from $N_GAL particles originally"
-fi
-
+#let K_BINS++
 
 # Define file names
 R0int=$( printf "%.0f" $R0 )
@@ -224,7 +171,10 @@ if ! $PRELOAD;  then
     echo
     echo "COMPUTING SURVEY CORRECTION FUNCTION"
     echo
-    python $CODE_DIR/python/compute_correction_function.py $RAN_RR $CORRECTION_FILE $R0 $R0 100 $NTHREADS
+    # Define 10% larger r-max than R0 (to avoid edge effects)
+    (( RMAX = R0 * 110 / 100 ))
+    echo "RMAX: $RMAX"
+    python $CODE_DIR/python/compute_correction_function_lya.py $RAN_RR $CORRECTION_FILE $RMAX $RMAX $RMAX 10 $NTHREADS
 fi
 
 # Count number of randoms in each file
@@ -240,8 +190,9 @@ pushd $CODE_DIR
 echo
 bash clean
 popd
-make --directory $CODE_DIR
-# compile without periodic behavior
+make Lya="-DLYA" --directory $CODE_DIR
+#make Lya="-DLYA" --directory $CODE_DIR Periodic="-DPERIODIC"
+# compile without periodic behavior in Lya mode
 
 # Check that the preloaded RR counts actually exist!
 if $PRELOAD; then
@@ -259,6 +210,7 @@ if ! $PRELOAD; then
       # Ensure that the files have actually been created
       if ! (test -f "$RR_FILE"); then
           echo
+          echo "$RR_FILE"
           echo "Weighted RR counts have not been computed. This indicates an error. Exiting."
           exit 1;
       fi
